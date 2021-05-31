@@ -4,7 +4,6 @@ package com.murong.rpc.util;
 import org.springframework.util.DigestUtils;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -64,11 +63,4 @@ public class FileUtil {
         return null;
     }
 
-    public static void main(String[] args) throws IOException {
-        RandomAccessFile file = new RandomAccessFile("/Users/yaochuang/test/abc.tar.gz","r");
-        long size = file.getChannel().size();
-
-
-        System.out.println(size);
-    }
 }

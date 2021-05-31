@@ -1,14 +1,18 @@
-package com.murong.rpc.test;
+package com.murong.rpc;
 
 
 import com.murong.rpc.client.Pool;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.util.concurrent.Future;
+import org.junit.Test;
+
+import java.util.concurrent.ExecutionException;
 
 public class ClientConnector {
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void test() throws ExecutionException, InterruptedException {
         Pool pool = new Pool(1);
         FixedChannelPool channelPool = pool.getPool(8888);
 

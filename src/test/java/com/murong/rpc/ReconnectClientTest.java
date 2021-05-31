@@ -1,14 +1,16 @@
-package com.murong.rpc.test;
+package com.murong.rpc;
 
 
 import com.murong.rpc.client.RpcAutoReconnectClient;
 import com.murong.rpc.interaction.*;
+import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ReconnectClientTest {
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void test() {
         RpcAutoReconnectClient client = new RpcAutoReconnectClient("127.0.0.1", 8888);
         client.reConnect();
 

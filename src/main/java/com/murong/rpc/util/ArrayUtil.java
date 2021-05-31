@@ -25,14 +25,4 @@ public class ArrayUtil {
         return Arrays.clone(bytes);
     }
 
-
-    public static void main(String[] args) {
-        String abc = "bbaaccddeeff";
-        byte[] bytes = abc.getBytes();
-
-        System.out.println(bytes.length);
-        byte[] clone = clone(bytes, 3);
-        System.out.println(new String(clone));
-    }
-
 }
