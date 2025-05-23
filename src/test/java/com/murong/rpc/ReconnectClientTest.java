@@ -5,52 +5,41 @@ import com.murong.rpc.client.RpcAutoReconnectClient;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
+import com.murong.rpc.server.RpcServer;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ReconnectClientTest {
 
-    public static void test() throws InterruptedException {
+    /**
+     * 断线重连测试
+     * 1: 开启server服务
+     * 2: 开启client
+     * 3: 计时3s后,client的链接
+     * 5: 此时显示断连,但很快重连上
+     */
+    public static void main(String[] args) throws InterruptedException {
+        serverStart();
+        RpcAutoReconnectClient test = test();
+        Thread.sleep(3000);
+        test.getChannel().close();
+    }
+
+
+    public static RpcServer serverStart() {
+        RpcServer rpcServer = new RpcServer(8765);
+        rpcServer.start();
+        return rpcServer;
+    }
+
+    public static RpcAutoReconnectClient test() {
         RpcAutoReconnectClient client = new RpcAutoReconnectClient("127.0.0.1", 8765);
-        client.setOnReconnectSuccess(c->{
+        client.setOnReconnectSuccess(c -> {
             System.out.println("链接成功了");
         });
         client.autoReconnect();
-
-        Thread.sleep(1000);
-        client.close();
-
-//        AtomicLong atomicLong = new AtomicLong();
-//        ThreadUtil.run(30, () -> {
-//            long l1 = System.currentTimeMillis();
-//            while (true) {
-//                try {
-//                    StringBuilder sb = new StringBuilder("我");
-//                    RpcRequest rpcFileRequest = new RpcRequest();
-//                    rpcFileRequest.setBody(sb.toString());
-//                    long l = atomicLong.addAndGet(1l);
-//                    if (l % 1000 == 0) {
-////                        RpcFuture rpcFuture = client.sendSynMsg(rpcFileRequest);
-////                        RpcResponse rpcResponse = rpcFuture.get();
-////                        System.out.println(rpcResponse.getBody());
-//                        long l2 = System.currentTimeMillis();
-//                        System.out.println(l * 1000 / (l2 - l1));
-//                        client.close();
-//                    } else {
-//                        RpcFuture rpcFuture = client.sendSynMsg(rpcFileRequest);
-//                        RpcResponse rpcResponse = rpcFuture.get();
-//                        System.out.println(rpcResponse);
-//                    }
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
+        return client;
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        test();
-    }
 
 }

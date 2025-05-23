@@ -16,6 +16,12 @@ import com.murong.rpc.server.RpcServer;
 public class SendMsgToCliet {
 
 
+    /**
+     * 服务端向客户端发送消息
+     *
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         Thread.sleep(2000);

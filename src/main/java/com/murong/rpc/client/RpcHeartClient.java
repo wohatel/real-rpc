@@ -65,12 +65,16 @@ public class RpcHeartClient extends AbstractRpcClient {
         this.rpcHeartTimeOutHandler = rpcHeartTimeOutHandler;
     }
 
-    public RpcHeartClient(String host, int port, RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
-        this(host, port, NumberConstant.TEN_EIGHT_K, rpcHeartTimeOutHandler, null);
+    public RpcHeartClient(String host, int port, long timeOutMillis,RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
+        this(host, port, timeOutMillis, rpcHeartTimeOutHandler, null);
+    }
+
+    public RpcHeartClient(String host, int port, long timeOutMillis) {
+        this(host, port, timeOutMillis, null);
     }
 
     public RpcHeartClient(String host, int port) {
-        this(host, port, NumberConstant.TEN_EIGHT_K, null, null);
+        this(host, port, NumberConstant.K_ONE);
     }
 
     public ChannelFuture connect() {
@@ -105,7 +109,7 @@ public class RpcHeartClient extends AbstractRpcClient {
 
     @SneakyThrows
     public static boolean testConnect(String host, int port, long timeOutMillis) {
-        RpcHeartClient heartClient = new RpcHeartClient(host, port, null);
+        RpcHeartClient heartClient = new RpcHeartClient(host, port, timeOutMillis);
         try {
             heartClient.connect();
             Thread.sleep(timeOutMillis);

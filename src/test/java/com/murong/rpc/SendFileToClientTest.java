@@ -20,6 +20,12 @@ import java.io.File;
  */
 public class SendFileToClientTest {
 
+    /**
+     * 服务端主动发送文件到客户端
+     *
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         Thread.sleep(1000);

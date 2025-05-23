@@ -24,6 +24,15 @@ public class SendMsgTcp {
 
     public static final Map<Integer, String> MAP = new ConcurrentHashMap<>();
 
+    /**
+     * 测试同步执行相应的tps -- 也就是说1s钟,发送+响应;一共多少次;
+     * 正常情况下
+     * 阻塞的是4-5万的tps  -- 发送后等待响应为1次
+     * 非阻塞的是20万的tps -- 发送后不等待响应,由异步线程处理响应
+     *
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         Thread.sleep(4000);
@@ -60,8 +69,8 @@ public class SendMsgTcp {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            TPSCounter tpsCounter = null;
-            for (int i = 0; i <= 10; i++) {
+            TPSCounter tpsCounter = new TPSCounter();
+            for (int i = 0; i <= 1000000; i++) {
                 RpcRequest request = new RpcRequest();
                 request.setBody(i + RandomStringUtils.randomAlphanumeric(20));
                 RpcFuture rpcFuture = defaultClient.sendSynMsg(request);
@@ -74,9 +83,6 @@ public class SendMsgTcp {
                 }
                 if (i >= 1000) {
                     tpsCounter.increment();
-                }
-                if (i == 999) {
-                    tpsCounter = new TPSCounter();
                 }
             }
             System.out.println("最终结果:" + tpsCounter.report());

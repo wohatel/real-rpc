@@ -18,6 +18,12 @@ import java.io.File;
 public class ReconnectSendFileTest {
 
 
+    /**
+     * 文件传输测试-- 重建
+     *
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         Thread.sleep(1000);
@@ -44,7 +50,7 @@ public class ReconnectSendFileTest {
     public static void clientConnect() {
         VirtualThreadPool.getEXECUTOR().execute(() -> {
             RpcAutoReconnectClient defaultClient = new RpcAutoReconnectClient("127.0.0.1", 8765);
-            defaultClient.connect();
+            defaultClient.autoReconnect();
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

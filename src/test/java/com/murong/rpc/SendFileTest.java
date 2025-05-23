@@ -26,6 +26,13 @@ import java.util.concurrent.TimeUnit;
 public class SendFileTest {
 
 
+    /**
+     * 文件测试: --追加模式
+     * 同时打印传输进度
+     *
+     * @param args
+     * @throws InterruptedException
+     */
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         Thread.sleep(1000);
@@ -41,7 +48,7 @@ public class SendFileTest {
                     System.out.println(context.getContext());
                     System.out.println("收到了");
                     String id = context.getSessionId();
-                    return new RpcFileWrapper(new File("/Users/yaochuang/test/"), RpcFileTransModel.REBUILD);
+                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.APPEND);
 //                    return null;
                 }
 
@@ -105,8 +112,6 @@ public class SendFileTest {
             }
 
         });
-
-
 
 
     }

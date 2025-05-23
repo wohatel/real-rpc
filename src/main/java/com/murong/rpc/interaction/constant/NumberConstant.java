@@ -8,9 +8,7 @@ package com.murong.rpc.interaction.constant;
 public class NumberConstant {
 
     public static final long OVER_TIME = 3000L;
-    public static final int HANDLE_LIMIT = 10_0000;
-    public static final int HANDLE_LIMIT_UP_TIME = 1000_000;
-
+    public static final int K_ONE = 10_000;
     public static final long M_128 = 128 * 1024 * 1024;
     public static final long M_10 = 10 * 1024 * 1024;
     public static final long M_5 = 5 * 1024 * 1024;

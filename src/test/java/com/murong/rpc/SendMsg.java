@@ -22,6 +22,9 @@ public class SendMsg {
         clientConnect();
     }
 
+    /**
+     * 发送消息测试
+     */
     public static void serverStart() {
 
         VirtualThreadPool.getEXECUTOR().execute(() -> {
@@ -35,7 +38,7 @@ public class SendMsg {
         VirtualThreadPool.getEXECUTOR().execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
-            RpcFuture rpcFuture = defaultClient.sendSynMsg(new RpcRequest(),1000_1000);
+            RpcFuture rpcFuture = defaultClient.sendSynMsg(new RpcRequest(), 10_000);
             rpcFuture.addListener(new RpcResponseMsgListener() {
                 @Override
                 public void onResponse(RpcResponse response) {
