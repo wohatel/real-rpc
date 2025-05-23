@@ -1,0 +1,124 @@
+package com.murong.rpc;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.murong.rpc.client.RpcDefaultClient;
+import com.murong.rpc.interaction.file.RpcFileTransConfig;
+import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
+import com.murong.rpc.interaction.file.RpcFileTransModel;
+import com.murong.rpc.interaction.file.RpcFileWrapper;
+import com.murong.rpc.interaction.common.VirtualThreadPool;
+import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.handler.RpcFileTransHandler;
+import com.murong.rpc.server.RpcServer;
+import io.netty.util.internal.PlatformDependent;
+
+import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * description
+ *
+ * @author yaochuang 2025/03/25 14:09
+ */
+public class SendFileTest {
+
+
+    public static void main(String[] args) throws InterruptedException {
+        serverStart();
+        Thread.sleep(1000);
+        clientConnect();
+    }
+
+    public static void serverStart() {
+        VirtualThreadPool.getEXECUTOR().execute(() -> {
+            RpcServer rpcServer = new RpcServer(8765);
+            rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
+                @Override
+                public RpcFileWrapper getTargetFile(RpcFileContext context) {
+                    System.out.println(context.getContext());
+                    System.out.println("收到了");
+                    String id = context.getSessionId();
+                    return new RpcFileWrapper(new File("/Users/yaochuang/test/"), RpcFileTransModel.REBUILD);
+//                    return null;
+                }
+
+                /**
+                 * 文件接收成功
+                 *
+                 * @param context 文件上下文
+                 */
+                @Override
+                public void onSuccess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+                    System.out.println("完成了吗");
+                }
+
+                public void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
+                    System.out.println("接收大小:" + recieveSize + "总大小:" + context.getLength());
+                }
+
+                @Override
+                public void onStop(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+                    System.out.println("传输方结束结束了");
+                }
+
+            });
+            rpcServer.start();
+        });
+    }
+
+    public static void clientConnect() {
+        VirtualThreadPool.getEXECUTOR().execute(() -> {
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+            defaultClient.connect();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("1", System.currentTimeMillis());
+            RpcFileTransHandler handler = new RpcFileTransHandler() {
+
+                @Override
+                public void onSuccess(File file, JSONObject context) {
+                    System.out.println(System.currentTimeMillis() - context.getLong("1"));
+                }
+
+                @Override
+                public void onRemoteFailure(File file, JSONObject context, String msg) {
+                    System.out.println(msg);
+                }
+
+
+            };
+            RpcFileTransConfig config = new RpcFileTransConfig();
+            config.setCacheBlock(5);
+
+            defaultClient.sendFile(new File("/Users/yaochuang/test/abc123456123.java"), jsonObject, handler, config);
+            try {
+                Thread.sleep(2000l);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+
+
+
+
+    }
+
+
+    public static void test() {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        scheduler.scheduleAtFixedRate(() -> {
+            long used = PlatformDependent.usedDirectMemory();
+            System.out.printf("Used Direct Memory: %.2f MB%n", used / (1024.0 * 1024));
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
+}
