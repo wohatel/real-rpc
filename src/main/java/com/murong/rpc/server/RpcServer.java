@@ -42,7 +42,6 @@ public class RpcServer implements AutoCloseable {
         this.group = group;
         this.childGroup = childGroup;
         this.rpcMsgChannelInitializer = rpcMsgChannelInitializer == null ? new RpcMsgChannelInitializer() : rpcMsgChannelInitializer;
-        this.rpcMsgChannelInitializer.addLastHandler(rpcMessageServerInteractionHandler);
     }
 
     public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup) {
@@ -69,20 +68,13 @@ public class RpcServer implements AutoCloseable {
     /**
      * 开启nettyServer
      */
-    public void start() {
+    @SneakyThrows
+    public ChannelFuture start() {
         if (this.channel != null) {
             throw new RuntimeException("RpcServer: 不要重复启动");
         }
-        this.start(this.rpcMsgChannelInitializer);
-    }
-
-    /**
-     * 开启nettyServer
-     */
-    @SneakyThrows
-    private ChannelFuture start(ChannelInitializer<SocketChannel> channelChannelInitializer) {
         ServerBootstrap b = new ServerBootstrap();
-        b.group(group, childGroup).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(port)).childHandler(channelChannelInitializer);
+        b.group(group, childGroup).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(port)).childHandler(rpcMsgChannelInitializer.setBusinessHandler(rpcMessageServerInteractionHandler));
         ChannelFuture future = b.bind().sync().addListener(futureListener -> {
             if (!futureListener.isSuccess()) {
                 Throwable cause = futureListener.cause();

@@ -44,19 +44,12 @@ public abstract class AbstractRpcClient implements Closeable {
     }
 
     /**
-     * 给流处理添加rpc_message处理handler
-     */
-    public void initRpcHandler() {
-        this.channel.pipeline().addLast(rpcMessageClientInteractionHandler);
-    }
-
-    /**
      * 设置channel
      *
      * @param channel
      */
-    protected void setChannel(Channel channel) {
+    protected void initClient(Channel channel) {
         this.channel = channel;
-        initRpcHandler();
+        this.channel.pipeline().addLast(rpcMessageClientInteractionHandler);
     }
 }

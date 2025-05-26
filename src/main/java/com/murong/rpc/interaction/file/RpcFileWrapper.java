@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * description
@@ -49,41 +50,44 @@ public class RpcFileWrapper {
         if (file.exists() && file.isDirectory()) {
             throw new RuntimeException(String.format("接收文件配置异常file->%s:模式下以目录形式存在", this.transModel.name()));
         }
+        Path path = file.toPath();
         switch (this.transModel) {
             case CREATNEW -> {
                 // 存在就抛异常,不存在就创建
                 if (file.exists()) {
-                    if (file.isFile()) {
-                        throw new RuntimeException("接收文件文件配置异常file->CREATNEW:模式下文件已存在,请检查");
-                    }
+                    throw new RuntimeException("接收文件文件配置异常file->CREATNEW:模式下文件已存在,请检查");
                 } else {
-                    Files.createFile(file.toPath());
+                    Files.createDirectories(path.getParent());
+                    Files.createFile(path);
                     this.writeIndex = 0L;
                 }
             }
             case REBUILD -> {
                 // 存在就删除,最后都是重建
                 if (file.exists()) {
-                    Files.deleteIfExists(file.toPath());
+                    Files.deleteIfExists(path);
                 }
-                Files.createFile(file.toPath());
+                Files.createDirectories(path.getParent());
+                Files.createFile(path);
                 this.writeIndex = 0L;
             }
             case APPEND -> {
-                // 存在就追加,不存在就创建
-                if (!file.exists()) {
-                    Files.createFile(file.toPath());
+                // 优先创建目录
+                Files.createDirectories(path.getParent());
+                // 存在就续传,不存在就重建
+                if (!Files.exists(path)) {
+                    Files.createFile(path);
                 }
                 this.writeIndex = 0L;
             }
             case RESUME -> {
+                // 优先创建目录
+                Files.createDirectories(path.getParent());
                 // 存在就续传,不存在就重建
-                if (file.exists()) {
-                    this.writeIndex = file.length();
-                } else {
-                    Files.createFile(file.toPath());
-                    this.writeIndex = 0L;
+                if (!Files.exists(path)) {
+                    Files.createFile(path);
                 }
+                this.writeIndex = Files.size(path);
             }
             default -> {
             }

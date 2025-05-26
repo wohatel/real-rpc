@@ -90,7 +90,7 @@ public class RpcHeartClient extends AbstractRpcClient {
             @Override
             public void operationComplete(Future future) throws Exception {
                 if (future.isSuccess()) {
-                    setChannel(connect.channel());
+                    initClient(connect.channel());
                     if (onReconnectSuccess != null) {
                         onReconnectSuccess.accept(connect.channel());
                     }

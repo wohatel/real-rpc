@@ -9,13 +9,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.concurrent.Promise;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 @Log
@@ -78,7 +76,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             Channel newChannel = connectFuture.channel();
             if (connectFuture.isSuccess()) {
                 log.info("连接成功: " + host + ":" + port);
-                setChannel(newChannel);
+                initClient(newChannel);
                 // 连接成功后立即执行逻辑处理
                 if (onReconnectSuccess != null) {
                     onReconnectSuccess.accept(newChannel);
