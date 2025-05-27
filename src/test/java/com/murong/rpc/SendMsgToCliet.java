@@ -30,7 +30,7 @@ public class SendMsgToCliet {
 
     public static void serverStart() {
 
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcSimpleRequestMsgHandler((ctx, req) -> {
                 System.out.println("开始");
@@ -49,7 +49,7 @@ public class SendMsgToCliet {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.setRpcSimpleRequestMsgHandler((ctx, req) -> {
                 RpcResponse response = req.toResponse();

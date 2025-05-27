@@ -40,7 +40,7 @@ public class SendFileTest {
     }
 
     public static void serverStart() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
@@ -79,7 +79,7 @@ public class SendFileTest {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
             try {
@@ -95,12 +95,6 @@ public class SendFileTest {
                 public void onSuccess(File file, final RpcFileTransModel remoteTransModel, JSONObject context) {
                     System.out.println(System.currentTimeMillis() - context.getLong("1"));
                 }
-
-                @Override
-                public void onRemoteFailure(File file, final RpcFileTransModel remoteTransModel, JSONObject context, String msg) {
-                    System.out.println(msg + "接收方");
-                }
-
 
             };
             RpcFileTransConfig config = new RpcFileTransConfig();

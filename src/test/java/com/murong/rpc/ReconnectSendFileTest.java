@@ -31,7 +31,7 @@ public class ReconnectSendFileTest {
     }
 
     public static void serverStart() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
@@ -48,7 +48,7 @@ public class ReconnectSendFileTest {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcAutoReconnectClient defaultClient = new RpcAutoReconnectClient("127.0.0.1", 8765);
             defaultClient.autoReconnect();
             try {

@@ -34,11 +34,11 @@ public class SendFileToClientTest {
     }
 
     public static void serverStart() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
                 if (req.getBody().equals("abcdef")) {
-                    VirtualThreadPool.getEXECUTOR().execute(() -> {
+            VirtualThreadPool.execute(() -> {
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("a", "a");
                         RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), jsonObject, (f, transModel, t) -> {
@@ -55,7 +55,7 @@ public class SendFileToClientTest {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override

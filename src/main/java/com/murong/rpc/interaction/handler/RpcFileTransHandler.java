@@ -22,18 +22,10 @@ public interface RpcFileTransHandler {
     }
 
     /**
-     * 文件向远端传输过程中,远端回调错误
-     * errorMsg 错误信息
-     */
-    default void onRemoteFailure(final File file, final RpcFileTransModel remoteTransModel, final JSONObject context, String errorMsg) {
-
-    }
-
-    /**
      * 文件向远端传输过程中,本地执行出错
      * errorMsg 错误信息
      */
-    default void onLocalFailure(final File file, final RpcFileTransModel remoteTransModel, final JSONObject context, String errorMsg) {
+    default void onFailure(final File file, final RpcFileTransModel remoteTransModel, final JSONObject context, String errorMsg) {
 
     }
 

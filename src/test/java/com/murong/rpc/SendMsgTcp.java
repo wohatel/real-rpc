@@ -41,7 +41,7 @@ public class SendMsgTcp {
 
     public static void serverStart() {
 
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             AtomicLong start = new AtomicLong(0L);
             rpcServer.setRpcSimpleRequestMsgHandler((ctx, req) -> {
@@ -61,7 +61,7 @@ public class SendMsgTcp {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
             try {

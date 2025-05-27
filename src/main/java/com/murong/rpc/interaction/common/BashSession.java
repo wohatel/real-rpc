@@ -37,8 +37,8 @@ public class BashSession {
         builder.redirectErrorStream(true); // stderr 合并到 stdout
         process = builder.start();
         this.bashSessionId = process.pid();
-        VirtualThreadPool.getEXECUTOR().execute(() -> readStream(process.inputReader()));
-        VirtualThreadPool.getEXECUTOR().execute(() -> readStream(process.errorReader()));
+VirtualThreadPool.execute(() -> readStream(process.inputReader()));
+VirtualThreadPool.execute(() -> readStream(process.errorReader()));
         consumeMsg(consumer);
     }
 
@@ -120,7 +120,7 @@ public class BashSession {
      * @param consumer 输出消费
      */
     private void consumeMsg(Consumer<String> consumer) {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
             while (!stop) {
                 try {

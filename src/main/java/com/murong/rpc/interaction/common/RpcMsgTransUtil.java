@@ -2,15 +2,15 @@ package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
+import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionProcess;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
+import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -31,6 +31,8 @@ import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 @Log
 public class RpcMsgTransUtil {
@@ -250,38 +252,33 @@ public class RpcMsgTransUtil {
         if (!needTrans) {
             rpcFuture.setSessionFinish(true);
             if (StringUtils.isBlank(msg)) {
-                VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onSuccess(file, transModel, context));
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, transModel, context));
             } else {
-                VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onRemoteFailure(file, transModel, context, startResponse.getMsg()));
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, transModel, context, startResponse.getMsg()));
             }
             log.warning("接收方不接收文件");
             return rpcSession.getSessionId();
         }
         boolean isOverWriteOnProcess = ReflectUtil.isOverridingInterfaceDefaultMethodByImplObj(rpcFileTransHandler, "onProcess");
         // 添加进度事件处理
+        AtomicReference<String> errorMsg = new AtomicReference<>();
         rpcFuture.addListener(response -> {
             if (response.isSuccess()) {
                 String body = response.getBody();
                 long handleSize = Long.parseLong(body);
                 rpcFileTransProcess.setRemoteHandleSize(handleSize);
-                if (isOverWriteOnProcess) {
-                    VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onProcess(file, transModel, context, rpcFileTransProcess.copy()));
-                }
-                if (rpcFileTransHandler != null && handleSize == rpcFileTransProcess.getFileSize()) {
-                    VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onSuccess(file, transModel, context));
+                VirtualThreadPool.execute(isOverWriteOnProcess, () -> rpcFileTransHandler.onProcess(file, transModel, context, rpcFileTransProcess.copy()));
+                if (handleSize == rpcFileTransProcess.getFileSize()) {
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, transModel, context));
                 }
             } else {
                 log.warning("发送端收到来自接收方的异常消息:" + response.getMsg());
-                if (!rpcFuture.isSessionFinish()) {
-                    rpcFuture.setSessionFinish(true); // 标记结束
-                    if (rpcFileTransHandler != null) {
-                        VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onRemoteFailure(file, transModel, context, response.getMsg()));
-                    }
-                }
+                rpcFuture.setSessionFinish(true); // 标记结束
+                errorMsg.set(response.getMsg());
             }
         });
         log.info("文件传输开始:" + file.getAbsolutePath());
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+        VirtualThreadPool.execute(() -> {
             // 判断文件是否尝试压缩,并且适合压缩
             boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
             RpcSpeedLimiter limiter = new RpcSpeedLimiter(finalConfig.getSpeedLimit());
@@ -332,9 +329,11 @@ public class RpcMsgTransUtil {
                 }
                 log.info("传输完成或终止:" + file.getAbsolutePath());
             } catch (Exception e) {
-                VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileTransHandler.onLocalFailure(file, transModel, context, e.getMessage()));
+                log.log(Level.WARNING, "传输文件异常:", e);
+                errorMsg.set(e.getMessage());
             } finally {
                 try {
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, transModel, context, errorMsg.get()));
                     Thread.sleep(NumberConstant.ONE_POINT_FILE_K);
                     ByteBufPoolManager.destory(rpcSession.getSessionId());
                     rpcFuture.release();
@@ -342,6 +341,7 @@ public class RpcMsgTransUtil {
 
                 }
             }
+
         });
         return rpcSession.getSessionId();
     }

@@ -27,7 +27,7 @@ public class SendMsg {
      */
     public static void serverStart() {
 
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.start();
         });
@@ -35,7 +35,7 @@ public class SendMsg {
     }
 
     public static void clientConnect() {
-        VirtualThreadPool.getEXECUTOR().execute(() -> {
+VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
             RpcFuture rpcFuture = defaultClient.sendSynMsg(new RpcRequest(), 10_000);

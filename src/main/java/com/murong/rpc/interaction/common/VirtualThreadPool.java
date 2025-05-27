@@ -14,4 +14,14 @@ public class VirtualThreadPool {
     @Getter
     private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
+    public static void execute(boolean ack, Runnable task) {
+        if (ack) {
+            EXECUTOR.execute(task);
+        }
+    }
+
+    public static void execute(Runnable task) {
+        EXECUTOR.execute(task);
+    }
+
 }

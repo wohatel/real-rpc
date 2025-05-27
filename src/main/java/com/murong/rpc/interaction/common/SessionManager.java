@@ -173,7 +173,7 @@ public class SessionManager<T> {
                     T resource = this.release(item.sessionId);
                     if (resource != null && sessionClose != null) {
                         // 如果使用线程池关闭任务
-                        VirtualThreadPool.getEXECUTOR().execute(() -> {
+                VirtualThreadPool.execute(() -> {
                             try {
                                 sessionClose.accept(resource);
                             } catch (Exception e) {

@@ -81,7 +81,7 @@ public class RpcInteractionContainer {
         List<RpcResponseMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.getEXECUTOR().execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
+        VirtualThreadPool.execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
             }
         }
     }
@@ -134,7 +134,7 @@ public class RpcInteractionContainer {
         List<RpcResponseMsgListener> listeners = future.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.getEXECUTOR().execute(rpcResponseMsgListener::onTimeout);
+        VirtualThreadPool.execute(rpcResponseMsgListener::onTimeout);
             }
         }
     }

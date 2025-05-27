@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 public class RpcSessionFuture extends RpcFuture {
     private JSONObject context;
 
-    private boolean isSessionFinish;
+    private volatile boolean isSessionFinish;
 
     public RpcSessionFuture() {
     }

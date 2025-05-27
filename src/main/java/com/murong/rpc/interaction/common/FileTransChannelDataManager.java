@@ -82,7 +82,7 @@ public class FileTransChannelDataManager {
             RpcFileContext fileContext = (RpcFileContext) context.get(CONTEXT);
             RpcFileWrapper rpcFileWrapper = (RpcFileWrapper) context.get(FILE_WRAPPER);
             FileTransSessionManger.release(sessionId);
-            VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
+    VirtualThreadPool.execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
         } else {
             readBodyFile(channel, rpcFileRequest, rpcMsg.getByteBuffer());
         }
@@ -100,7 +100,7 @@ public class FileTransChannelDataManager {
         if (!addStatus) {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
-            response.setMsg("服务端终止");
+            response.setMsg("停止接收文件块");
             RpcMsgTransUtil.write(channel, response);
         }
     }
@@ -116,9 +116,9 @@ public class FileTransChannelDataManager {
         RpcMsgTransUtil.write(channel, rpcResponse);
         if (fileWrapper.isNeedTrans()) {
             if (rpcFileRequest.getLength() > fileWrapper.getWriteIndex()) {
-                VirtualThreadPool.getEXECUTOR().execute(() -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
+        VirtualThreadPool.execute(() -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
             } else {
-                VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+        VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
                 log.info("接收方文件接收结束: 无需传输");
             }
         }
@@ -164,20 +164,20 @@ public class FileTransChannelDataManager {
                     response.setBody(String.valueOf(recieveSize));
                     RpcMsgTransUtil.write(channel, response);
                     if (isProcessOverride) {// 如果方法被重写,则说明需要执行,否则不执行
-                        VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize, interrupter));
+                VirtualThreadPool.execute(() -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize, interrupter));
                     }
                     handleChunks.incrementAndGet();
                 }
                 if (handleChunks.get() == chunks) {
                     // 如果结束了,则会认为处理完毕所有的块
-                    VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+            VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
                 }
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "异常", e);
             response.setMsg(e.getMessage());
             response.setSuccess(false);
-            VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onFailure(context, fileWrapper, e));
+    VirtualThreadPool.execute(() -> rpcFileRequestHandler.onFailure(context, fileWrapper, e));
             RpcMsgTransUtil.write(channel, response);
         } finally {
             FileTransSessionManger.release(sessionId);
