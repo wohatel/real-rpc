@@ -34,9 +34,6 @@ public class ReconnectClientTest {
 
     public static RpcAutoReconnectClient test() {
         RpcAutoReconnectClient client = new RpcAutoReconnectClient("127.0.0.1", 8765);
-        client.setOnReconnectSuccess(c -> {
-            System.out.println("链接成功了");
-        });
         client.autoReconnect();
         return client;
     }

@@ -5,19 +5,15 @@ import com.murong.rpc.decoder.RpcMsgCompressEncoder;
 import com.murong.rpc.decoder.RpcMsgDecoder;
 import com.murong.rpc.decoder.RpcMsgEncoder;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.ArrayUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * @author yaochuang
@@ -26,7 +22,14 @@ import java.util.Arrays;
 @Accessors(chain = true)
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    public ChannelHandler businessHandler;
+    protected Consumer<ChannelPipeline> initPipelineConsumer;
+
+    public RpcMsgChannelInitializer() {
+    }
+
+    public RpcMsgChannelInitializer(Consumer<ChannelPipeline> initPipelineConsumer) {
+        this.initPipelineConsumer = initPipelineConsumer;
+    }
 
     /**
      * 添加的默认的编码解码和压缩器
@@ -43,8 +46,8 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast("decoder", new RpcMsgDecoder());
         pipeline.addLast("encoder", new RpcMsgEncoder());
 
-        if (businessHandler != null) {
-            pipeline.addLast(businessHandler);
+        if (initPipelineConsumer != null) {
+            initPipelineConsumer.accept(pipeline);
         }
     }
 }

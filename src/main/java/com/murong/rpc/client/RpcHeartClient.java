@@ -65,7 +65,7 @@ public class RpcHeartClient extends AbstractRpcClient {
         this.rpcHeartTimeOutHandler = rpcHeartTimeOutHandler;
     }
 
-    public RpcHeartClient(String host, int port, long timeOutMillis,RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
+    public RpcHeartClient(String host, int port, long timeOutMillis, RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
         this(host, port, timeOutMillis, rpcHeartTimeOutHandler, null);
     }
 
@@ -91,9 +91,6 @@ public class RpcHeartClient extends AbstractRpcClient {
             public void operationComplete(Future future) throws Exception {
                 if (future.isSuccess()) {
                     initClient(connect.channel());
-                    if (onReconnectSuccess != null) {
-                        onReconnectSuccess.accept(connect.channel());
-                    }
                     alived.set(true);
                     connect.channel().pipeline().addLast(idleStateHandler).addLast(new RpcClientHeartHandler(rpcHeartTimeOutHandler, alived));
                 }

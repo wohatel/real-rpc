@@ -8,7 +8,6 @@ import io.netty.channel.Channel;
 import lombok.Data;
 
 import java.io.Closeable;
-import java.util.function.Consumer;
 
 /**
  * @author yaochuang
@@ -21,8 +20,6 @@ public abstract class AbstractRpcClient implements Closeable {
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
     protected final RpcMessageClientInteractionHandler rpcMessageClientInteractionHandler = new RpcMessageClientInteractionHandler();
-
-    protected Consumer<Channel> onReconnectSuccess;
 
     public void setRpcSimpleRequestMsgHandler(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
         rpcMessageClientInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);

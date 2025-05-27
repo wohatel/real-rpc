@@ -77,10 +77,6 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             if (connectFuture.isSuccess()) {
                 log.info("连接成功: " + host + ":" + port);
                 initClient(newChannel);
-                // 连接成功后立即执行逻辑处理
-                if (onReconnectSuccess != null) {
-                    onReconnectSuccess.accept(newChannel);
-                }
                 // 监听关闭，关闭后自动重连（异步调度，避免递归）
                 newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
                     log.warning("连接断开，将尝试重连...");

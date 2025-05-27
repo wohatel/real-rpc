@@ -60,9 +60,6 @@ public class RpcDefaultClient extends AbstractRpcClient {
             public void operationComplete(Future future) throws Exception {
                 if (future.isSuccess()) {
                     initClient(f.channel());
-                    if (onReconnectSuccess != null) {
-                        onReconnectSuccess.accept(f.channel());
-                    }
                     log.info("链接to-" + host + ":" + port + "成功");
                 } else {
                     log.warning("链接to-" + host + ":" + port + "失败");
