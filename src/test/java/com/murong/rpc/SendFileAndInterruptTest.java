@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author yaochuang 2025/03/25 14:09
  */
-public class SendFileTest {
+public class SendFileAndInterruptTest {
 
 
     /**

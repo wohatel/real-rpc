@@ -43,7 +43,11 @@ public class RpcDefaultClient extends AbstractRpcClient {
     }
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, NoShutNioEventLoopGroup.acquireNioEventLoopGroup(), null);
+        this(host, port, null);
+    }
+
+    public RpcDefaultClient(String host, int port, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+        this(host, port, NoShutNioEventLoopGroup.acquireNioEventLoopGroup(), rpcMsgChannelInitializer);
     }
 
     public ChannelFuture connect() {
