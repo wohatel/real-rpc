@@ -1,6 +1,10 @@
 package com.murong.rpc.interaction.file;
 
 
+import com.murong.rpc.util.RunnerUtil;
+
+import java.util.Arrays;
+
 /**
  * description
  *
@@ -9,9 +13,9 @@ package com.murong.rpc.interaction.file;
 public enum RpcFileTransModel {
 
     /**
-     * 应用场景: 查看本地文件是否存在,如果存在,则说明已经有了,需谨慎操作; 此时会抛出异常告知
+     * 如果存在,就通知成功
      */
-    CREATNEW,
+    SKIP,
 
     /**
      * 应用场景: 删除旧的文件,将发送方文件拷贝过来,生成新文件
@@ -30,7 +34,14 @@ public enum RpcFileTransModel {
      * 如果旧文件不存在,则创建文件,然后将整个发送方的文件内容追加到本地文件后面
      * 如果旧文件存在,则计算下本地文件的长度,让发送发只发送长度后边的内容
      */
-    RESUME
+    RESUME;
 
 
+    public static RpcFileTransModel nameOf(String name) {
+        try{
+            return RpcFileTransModel.valueOf(name);
+        }catch (Exception e){
+            return null;
+        }
+    }
 }

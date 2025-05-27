@@ -5,7 +5,12 @@
   <artifactId>real-rpc</artifactId>
   <name>real-rpc</name>
   <version>1.0.0</version>
-  <description>Demo project for Spring Boot</description>
+  <description>real rpc it is really suitable for every one use in there prj.
+        it useful for send file, request ,or build session in server and client.
+        it support asyn and sync reqeust for response;
+        it also support duplex in client and server ,so you can send msg from server to client or conversely
+        it based netty tcp, so we can build too many channel in one machine
+        for exm: you can run bash in server ,and send bash command to server get output and keep session</description>
   <developers>
     <developer>
       <name>murong</name>

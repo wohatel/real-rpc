@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
+import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.base.RpcRequest;
@@ -40,7 +41,7 @@ public class SendFileToClientTest {
                     VirtualThreadPool.getEXECUTOR().execute(() -> {
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("a", "a");
-                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), jsonObject, (f, t) -> {
+                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), jsonObject, (f, transModel, t) -> {
                             System.out.println(f);
                         });
                     });
@@ -63,7 +64,7 @@ public class SendFileToClientTest {
                     System.out.println("收到了");
                     String id = context.getSessionId();
                     System.out.println(id);
-                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"));
+                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
 //                    return null;
                 }
 

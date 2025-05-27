@@ -14,9 +14,6 @@ public class RpcFileTransProcess {
     private Long fileSize;
     private Long sendSize;
     private Long remoteHandleSize;
-    private Long currentSpeed;
-    private boolean append;
-    private Long writeIndex;
 
     public RpcFileTransProcess copy() {
         RpcFileTransProcess rpcFileTransProcess = new RpcFileTransProcess();
@@ -24,9 +21,6 @@ public class RpcFileTransProcess {
         rpcFileTransProcess.setFileSize(this.getFileSize());
         rpcFileTransProcess.setStartTime(this.getStartTime());
         rpcFileTransProcess.setSendSize(this.getSendSize());
-        rpcFileTransProcess.setCurrentSpeed(this.currentSpeed);
-        rpcFileTransProcess.setAppend(this.append);
-        rpcFileTransProcess.setWriteIndex(this.writeIndex);
         return rpcFileTransProcess;
     }
 }

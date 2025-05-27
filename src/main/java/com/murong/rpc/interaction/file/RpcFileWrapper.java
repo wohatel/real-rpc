@@ -29,6 +29,16 @@ public class RpcFileWrapper {
     private long writeIndex;
 
     /**
+     * 错误信息
+     */
+    private String msg;
+
+    /**
+     * 是否需要传输
+     */
+    private boolean needTrans;
+
+    /**
      * @param file 目标文件存储
      */
     public RpcFileWrapper(File file, RpcFileTransModel transModel) {
@@ -43,63 +53,69 @@ public class RpcFileWrapper {
         this(file, null);
     }
 
-    public void init() throws IOException {
+    public void init(long remoteFileSize) {
+
         if (file == null) {
-            throw new RuntimeException("文件配置异常file->空指针");
+            this.msg = "文件配置异常file->文件为null";
+            return;
         }
         if (file.exists() && file.isDirectory()) {
-            throw new RuntimeException(String.format("接收文件配置异常file->%s:模式下以目录形式存在", this.transModel.name()));
+            this.msg = "接收文件配置异常:文件下以目录形式存在";
+            return;
         }
-        Path path = file.toPath();
-        switch (this.transModel) {
-            case CREATNEW -> {
-                // 存在就抛异常,不存在就创建
-                if (file.exists()) {
-                    throw new RuntimeException("接收文件文件配置异常file->CREATNEW:模式下文件已存在,请检查");
-                } else {
+        try {
+            Path path = file.toPath();
+            switch (this.transModel) {
+                case REBUILD -> {
+                    // 存在就删除,最后都是重建
+                    if (file.exists()) {
+                        Files.deleteIfExists(path);
+                    }
                     Files.createDirectories(path.getParent());
                     Files.createFile(path);
                     this.writeIndex = 0L;
+                    this.needTrans = remoteFileSize != 0;
                 }
-            }
-            case REBUILD -> {
-                // 存在就删除,最后都是重建
-                if (file.exists()) {
-                    Files.deleteIfExists(path);
+                case APPEND -> {
+                    // 优先创建目录
+                    Files.createDirectories(path.getParent());
+                    // 存在就续传,不存在就重建
+                    if (!Files.exists(path)) {
+                        Files.createFile(path);
+                    }
+                    this.writeIndex = 0L;
+                    this.needTrans = remoteFileSize != 0;
                 }
-                Files.createDirectories(path.getParent());
-                Files.createFile(path);
-                this.writeIndex = 0L;
-            }
-            case APPEND -> {
-                // 优先创建目录
-                Files.createDirectories(path.getParent());
-                // 存在就续传,不存在就重建
-                if (!Files.exists(path)) {
-                    Files.createFile(path);
+                case RESUME -> {
+                    // 优先创建目录
+                    Files.createDirectories(path.getParent());
+                    // 存在就续传,不存在就重建
+                    if (!Files.exists(path)) {
+                        Files.createFile(path);
+                    }
+                    this.writeIndex = Files.size(path);
+                    this.needTrans = remoteFileSize > file.length();
+                    if (remoteFileSize < file.length()) {
+                        this.msg = "接收方文件占用内存不小于发送方,无需续传";
+                    }
                 }
-                this.writeIndex = 0L;
-            }
-            case RESUME -> {
-                // 优先创建目录
-                Files.createDirectories(path.getParent());
-                // 存在就续传,不存在就重建
-                if (!Files.exists(path)) {
-                    Files.createFile(path);
+                case SKIP -> {
+                    if (!file.exists()) {
+                        Files.createDirectories(path.getParent());
+                        Files.createFile(path);
+                        this.needTrans = true;
+                    }
+                    this.writeIndex = 0L;
                 }
-                this.writeIndex = Files.size(path);
-            }
-            default -> {
-            }
-        }
-    }
+                default -> {
 
-    public void verify(long remoteFileLength) throws IOException {
-        // 只有在续传的时候需要检查文件大小
-        if (RpcFileTransModel.RESUME == this.transModel) {
-            if (remoteFileLength < this.writeIndex) {
-                throw new RuntimeException("文件传输失败: 传输一端文件长度小于本地文件长度, 无需续传");
+                }
             }
+        } catch (Exception e) {
+            this.needTrans = false;
+            this.msg = e.getMessage();
+            this.writeIndex = 0L;
         }
+
     }
 }

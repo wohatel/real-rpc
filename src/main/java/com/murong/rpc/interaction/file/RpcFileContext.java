@@ -16,4 +16,7 @@ public class RpcFileContext {
     private final String sourceFileName;//源文件名称
     @Getter
     private final JSONObject context;//发送端上下文信息
+
+    @Getter
+    private final long chunkHandleTimeOut; // 处理块超时时间
 }

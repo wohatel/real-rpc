@@ -47,8 +47,7 @@ public class SendFileTest {
                 public RpcFileWrapper getTargetFile(RpcFileContext context) {
                     System.out.println(context.getContext());
                     System.out.println("收到了");
-                    String id = context.getSessionId();
-                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.APPEND);
+                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
 //                    return null;
                 }
 
@@ -64,6 +63,9 @@ public class SendFileTest {
 
                 public void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
                     System.out.println("接收大小:" + recieveSize + "总大小:" + context.getLength());
+                    if (recieveSize > 100000) {
+                        interrupter.interrupt();
+                    }
                 }
 
                 @Override
@@ -90,19 +92,18 @@ public class SendFileTest {
             RpcFileTransHandler handler = new RpcFileTransHandler() {
 
                 @Override
-                public void onSuccess(File file, JSONObject context) {
+                public void onSuccess(File file, final RpcFileTransModel remoteTransModel, JSONObject context) {
                     System.out.println(System.currentTimeMillis() - context.getLong("1"));
                 }
 
                 @Override
-                public void onRemoteFailure(File file, JSONObject context, String msg) {
-                    System.out.println(msg);
+                public void onRemoteFailure(File file, final RpcFileTransModel remoteTransModel, JSONObject context, String msg) {
+                    System.out.println(msg + "接收方");
                 }
 
 
             };
             RpcFileTransConfig config = new RpcFileTransConfig();
-            config.setCacheBlock(5);
 
             defaultClient.sendFile(new File("/Users/yaochuang/test/abc123456123.java"), jsonObject, handler, config);
             try {

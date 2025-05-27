@@ -1,5 +1,6 @@
 package com.murong.rpc.interaction.common;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.base.RpcSession;
@@ -9,6 +10,7 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
+import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.util.ReflectUtil;
@@ -22,6 +24,8 @@ import lombok.extern.java.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -36,18 +40,26 @@ public class FileTransChannelDataManager {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         if (rpcFileRequestHandler == null) {
-            rpcResponse.setSuccess(false);
-            rpcResponse.setMsg("远端接收文件事件配置有误:发送终止");
+            List<String> rbody = new ArrayList<>();
+            rbody.add(String.valueOf(false));
+            rbody.add(null);
+            rbody.add(String.valueOf(0));
+            rbody.add("远端接收文件事件暂无接收文件配置:发送终止");
+            rpcResponse.setBody(JSONArray.toJSONString(rbody));
             RpcMsgTransUtil.write(channel, rpcResponse);
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
             JSONObject body = rpcFileRequest.getBody() == null ? null : JSONObject.parse(rpcFileRequest.getBody());
-            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession().getSessionId(), rpcFileRequest.getFileName(), body);
+            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession().getSessionId(), rpcFileRequest.getFileName(), body, rpcFileRequest.getChunkHandleTimeOut());
             RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
-                rpcResponse.setSuccess(false);
-                rpcResponse.setMsg("远端接受文件路径错误:发送终止");
+                List<String> rbody = new ArrayList<>();
+                rbody.add(String.valueOf(false));
+                rbody.add(null);
+                rbody.add(String.valueOf(0));
+                rbody.add("远端接受文件路径错误:发送终止");
+                rpcResponse.setBody(JSONArray.toJSONString(rbody));
                 RpcMsgTransUtil.write(channel, rpcResponse);
                 return;
             }
@@ -94,22 +106,21 @@ public class FileTransChannelDataManager {
     }
 
     private static void readInitFile(Channel channel, RpcFileRequest rpcFileRequest, RpcFileContext context, RpcFileWrapper fileWrapper, RpcFileRequestHandler rpcFileRequestHandler, RpcResponse rpcResponse) {
-        try {
-            fileWrapper.init();
-            fileWrapper.verify(rpcFileRequest.getLength()); // 如果校验出现问题,会抛出异常
+        fileWrapper.init(rpcFileRequest.getLength());
+        List<String> body = new ArrayList<>();
+        body.add(String.valueOf(fileWrapper.isNeedTrans()));
+        body.add(fileWrapper.getTransModel().name());
+        body.add(String.valueOf(fileWrapper.getWriteIndex()));
+        body.add(fileWrapper.getMsg());
+        rpcResponse.setBody(JSONArray.toJSONString(body));
+        RpcMsgTransUtil.write(channel, rpcResponse);
+        if (fileWrapper.isNeedTrans()) {
             if (rpcFileRequest.getLength() > fileWrapper.getWriteIndex()) {
                 VirtualThreadPool.getEXECUTOR().execute(() -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
             } else {
                 VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
                 log.info("接收方文件接收结束: 无需传输");
             }
-            rpcResponse.setBody(String.valueOf(fileWrapper.getWriteIndex()));
-            RpcMsgTransUtil.write(channel, rpcResponse);
-        } catch (Exception e) {
-            rpcResponse.setSuccess(false);
-            rpcResponse.setMsg(e.getMessage());
-            RpcMsgTransUtil.write(channel, rpcResponse);
-            VirtualThreadPool.getEXECUTOR().execute(() -> rpcFileRequestHandler.onFailure(context, fileWrapper, e));
         }
     }
 
@@ -129,7 +140,7 @@ public class FileTransChannelDataManager {
             // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
-                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isNormal(sessionId), 6, () -> FileTransSessionManger.poll(sessionId, NumberConstant.OVER_TIME));
+                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isNormal(sessionId), 3, () -> FileTransSessionManger.poll(sessionId, context.getChunkHandleTimeOut() / 3));
                     // 拉取之后也要判断是否正常
                     if (poll == null) {
                         if (!FileTransSessionManger.isNormal(sessionId)) {

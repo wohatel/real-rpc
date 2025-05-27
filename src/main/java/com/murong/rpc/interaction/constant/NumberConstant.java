@@ -13,6 +13,7 @@ public class NumberConstant {
     public static final long M_10 = 10 * 1024 * 1024;
     public static final long M_5 = 5 * 1024 * 1024;
     public static final long M_1 = 1024 * 1024;
+    public static final long K_512 = 512 * 1024;
     public static final int TEN_EIGHT = 18;
     public static final int CODE_SUCCESS = 200;
     public static final int TEN = 10;

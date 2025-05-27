@@ -37,9 +37,8 @@ public class RpcInteractionContainer {
             }
             return rpcFuture;
         }
-        RpcSessionFuture rpcFuture = new RpcSessionFuture();
+        RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
         rpcFuture.setRequestId(rpcSession.getSessionId());
-        rpcFuture.setTimeOut(rpcSession.getTimeOutMillis());
         RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
         return rpcFuture;
     }
