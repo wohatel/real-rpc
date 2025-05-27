@@ -86,7 +86,7 @@ public class RpcHeartClient extends AbstractRpcClient {
         b.channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true);
         b.handler(this.rpcMsgChannelInitializer);
         ChannelFuture connect = b.connect(host, port);
-        connect.addListener(new GenericFutureListener() {
+        connect.addListener(new GenericFutureListener<>() {
             @Override
             public void operationComplete(Future future) throws Exception {
                 if (future.isSuccess()) {
