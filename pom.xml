@@ -61,24 +61,6 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.14.0</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-            <version>1.1.10.7</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.luben</groupId>
-            <artifactId>zstd-jni</artifactId>
-            <version>1.5.5-10</version> <!-- 或使用最新版本 -->
-        </dependency>
-
-        <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-            <version>1.8.0</version> <!-- 你也可以使用更新版本 -->
-        </dependency>
     </dependencies>
 
     <!-- 许可证信息 -->
@@ -147,17 +129,12 @@
                         </executions>
                     </plugin>
 
-                    <!--  必须配置GPG插件用于使用以下配置对组件进行签名 -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.6</version>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
                         <executions>
                             <execution>
-                                <id>sign-artifacts</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
@@ -165,20 +142,25 @@
                             </execution>
                         </executions>
                     </plugin>
-                    
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.4.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>${serverId}</publishingServerId>
+                            <tokenAuth>true</tokenAuth>
+                        </configuration>
+                    </plugin>
+
                 </plugins>
             </build>
 
-            <!-- 【注】snapshotRepository 与 repository 中的 id 一定要与 setting.xml 中 server 的 id 保持一致！ -->
             <distributionManagement>
                 <snapshotRepository>
-                    <id>releases</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <id>${serverId}</id>
+                    <url>https://central.sonatype.com/</url>
                 </snapshotRepository>
-                <repository>
-                    <id>releases</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
             </distributionManagement>
         </profile>
 
