@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.file;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,7 +55,6 @@ public class RpcFileWrapper {
     }
 
     public void init(long remoteFileSize) {
-
         if (file == null) {
             this.msg = "文件配置异常file->文件为null";
             return;
@@ -103,7 +103,7 @@ public class RpcFileWrapper {
                     if (!file.exists()) {
                         Files.createDirectories(path.getParent());
                         Files.createFile(path);
-                        this.needTrans = true;
+                        this.needTrans = remoteFileSize != 0;
                     }
                     this.writeIndex = 0L;
                 }
@@ -117,5 +117,15 @@ public class RpcFileWrapper {
             this.writeIndex = 0L;
         }
 
+    }
+
+    /**
+     * 初始化阶段就结束
+     *
+     * @return
+     */
+    public boolean isInterruptByInit() {
+        // 不需要传输文件,并且没有异常
+        return !this.needTrans && StringUtils.isBlank(this.msg);
     }
 }

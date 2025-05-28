@@ -35,7 +35,7 @@ VirtualThreadPool.execute(() -> {
     }
 
     public static void clientConnect() {
-VirtualThreadPool.execute(() -> {
+            VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
             RpcFuture rpcFuture = defaultClient.sendSynMsg(new RpcRequest(), 10_000);

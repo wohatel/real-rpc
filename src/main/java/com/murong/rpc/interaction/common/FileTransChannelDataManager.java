@@ -112,13 +112,11 @@ public class FileTransChannelDataManager {
         body.add(fileWrapper.getMsg());
         rpcResponse.setBody(JSONArray.toJSONString(body));
         RpcMsgTransUtil.write(channel, rpcResponse);
-        if (fileWrapper.isNeedTrans()) {
-            if (rpcFileRequest.getLength() > fileWrapper.getWriteIndex()) {
-                VirtualThreadPool.execute(() -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
-            } else {
-                VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
-                log.info("接收方文件接收结束: 无需传输");
-            }
+        if (fileWrapper.isInterruptByInit()) {
+            VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+            log.info("接收方文件接收结束: 无需传输");
+        } else {
+            VirtualThreadPool.execute(fileWrapper.isNeedTrans(), () -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
         }
     }
 
