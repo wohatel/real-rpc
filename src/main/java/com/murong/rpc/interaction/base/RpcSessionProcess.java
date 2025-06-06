@@ -9,5 +9,5 @@ import lombok.Getter;
  */
 @Getter
 public enum RpcSessionProcess {
-    NONE, START, ING, FiNISH
+    START, ING, FiNISH
 }

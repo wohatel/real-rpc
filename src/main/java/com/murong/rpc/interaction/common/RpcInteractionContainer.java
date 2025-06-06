@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.common;
 
 
+import com.murong.rpc.interaction.base.RpcSessionProcess;
 import com.murong.rpc.interaction.handler.RpcResponseMsgListener;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
@@ -17,15 +18,23 @@ public class RpcInteractionContainer {
 
     private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcInteractionContainer::handleTimeOut);
 
-    public static RpcSessionFuture sendSessionRequest(RpcSessionRequest rpcSessionRequest) {
+    /**
+     * 校验并刷新session请求时长
+     *
+     * @param rpcSessionRequest
+     */
+    static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
-            return null;
+            throw new RuntimeException("rpcSessionRequest 不能为null");
         }
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         if (rpcSession == null) {
             throw new RuntimeException("session 标识不能为null");
         }
         if (contains(rpcSession.getSessionId())) {
+            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.START) {
+                throw new RuntimeException("不可重复开启会话");
+            }
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
             if (!rpcFuture.isSessionFinish()) {
                 rpcFuture.setRequestTime(System.currentTimeMillis());
@@ -36,13 +45,24 @@ public class RpcInteractionContainer {
                 }
             }
             return rpcFuture;
+        } else {
+            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
+                throw new RuntimeException("会话没有开启,不可以发送会话消息");
+            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
+                throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
+            } else {
+                RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
+                rpcFuture.setRequestId(rpcSession.getSessionId());
+                RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
+                return rpcFuture;
+            }
         }
-        RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
-        rpcFuture.setRequestId(rpcSession.getSessionId());
-        RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
-        return rpcFuture;
+
     }
 
+    /**
+     * 获取到sessionFuture
+     */
     public static RpcSessionFuture getSessionFuture(String sessionId) {
         return (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
     }
@@ -81,7 +101,7 @@ public class RpcInteractionContainer {
         List<RpcResponseMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-        VirtualThreadPool.execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
+                VirtualThreadPool.execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
             }
         }
     }
@@ -134,7 +154,7 @@ public class RpcInteractionContainer {
         List<RpcResponseMsgListener> listeners = future.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-        VirtualThreadPool.execute(rpcResponseMsgListener::onTimeout);
+                VirtualThreadPool.execute(rpcResponseMsgListener::onTimeout);
             }
         }
     }
