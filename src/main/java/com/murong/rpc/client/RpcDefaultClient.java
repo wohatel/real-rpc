@@ -6,6 +6,7 @@ import com.murong.rpc.initializer.RpcMsgChannelInitializer;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
@@ -73,15 +74,19 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return f;
     }
 
-    public String sendFile(File file, JSONObject context) {
+    public String sendFile(File file) {
+        return this.sendFile(file, null);
+    }
+
+    public String sendFile(File file, RpcSessionContext context) {
         return this.sendFile(file, context, null);
     }
 
-    public String sendFile(File file, JSONObject context, RpcFileTransHandler rpcFileTransHandler) {
+    public String sendFile(File file, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler) {
         return this.sendFile(file, context, rpcFileTransHandler, null);
     }
 
-    public String sendFile(File file, JSONObject context, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
+    public String sendFile(File file, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
         return RpcMsgTransUtil.writeFile(channel, file, context, rpcFileTransHandler, config);
     }
 
@@ -115,7 +120,7 @@ public class RpcDefaultClient extends AbstractRpcClient {
      * @param context
      * @return
      */
-    public RpcSessionFuture startSession(RpcSession rpcSession, JSONObject context) {
+    public RpcSessionFuture startSession(RpcSession rpcSession, RpcSessionContext context) {
         return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession, context);
     }
 

@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileRequest;
@@ -30,9 +31,6 @@ import java.util.logging.Level;
 @Log
 public class FileTransChannelDataManager {
 
-    private static final String CONTEXT = "context";
-    private static final String FILE_WRAPPER = "fileWrapper";
-
     @SneakyThrows
     public static void channelRead(Channel channel, RpcMsg rpcMsg, RpcFileRequestHandler rpcFileRequestHandler) {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
@@ -48,8 +46,8 @@ public class FileTransChannelDataManager {
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
-            JSONObject body = rpcFileRequest.getBody() == null ? null : JSONObject.parse(rpcFileRequest.getBody());
-            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession().getSessionId(), rpcFileRequest.getFileName(), body, rpcFileRequest.getChunkHandleTimeOut());
+            RpcSessionContext rpcSessionContext = JSONObject.parseObject(rpcFileRequest.getBody(), RpcSessionContext.class);
+            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession().getSessionId(), rpcFileRequest.getFileName(), rpcSessionContext, rpcFileRequest.getChunkHandleTimeOut());
             RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
                 List<String> rbody = new ArrayList<>();
@@ -63,10 +61,9 @@ public class FileTransChannelDataManager {
             }
             // 将上下文存入toContext
             RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcFileRequest.getRpcSession().getSessionId());
-            JSONObject toContext = new JSONObject();
-            toContext.put(CONTEXT, context);
-            toContext.put(FILE_WRAPPER, rpcFileWrapper);
-            sessionFuture.setContext(toContext);
+            JSONArray toContext = sessionFuture.getContext();
+            toContext.set(0, context);
+            toContext.set(1, rpcFileWrapper);
             // 继续处理逻辑
             readInitFile(channel, rpcFileRequest, context, rpcFileWrapper, rpcFileRequestHandler, rpcResponse);
         } else if (rpcFileRequest.isSessionFinish()) {
@@ -76,9 +73,9 @@ public class FileTransChannelDataManager {
                 log.warning("会话已结束:" + sessionId);
                 return;
             }
-            JSONObject context = sessionFuture.getContext();
-            RpcFileContext fileContext = (RpcFileContext) context.get(CONTEXT);
-            RpcFileWrapper rpcFileWrapper = (RpcFileWrapper) context.get(FILE_WRAPPER);
+            JSONArray context = sessionFuture.getContext();
+            RpcFileContext fileContext = (RpcFileContext) context.getFirst();
+            RpcFileWrapper rpcFileWrapper = (RpcFileWrapper) context.get(1);
             FileTransSessionManger.release(sessionId);
             VirtualThreadPool.execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
         } else {

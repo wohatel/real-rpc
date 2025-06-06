@@ -1,9 +1,10 @@
 package com.murong.rpc.interaction.base;
 
-import com.alibaba.fastjson2.JSONObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,21 +14,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RpcSessionContext {
 
+    public RpcSessionContext(String sessionTopic, String... metters) {
+        this.sessionTopic = sessionTopic;
+        this.sessionMetters = metters == null ? null : Arrays.stream(metters).toList();
+    }
+
     /**
      * 会话主题
      */
     private final String sessionTopic;
 
     /**
-     * 会话类别
-     */
-    private final String sessionType;
-
-    /**
      * 会话事项
      */
     private final List<String> sessionMetters;
 
-
-    private final JSONObject context;
 }

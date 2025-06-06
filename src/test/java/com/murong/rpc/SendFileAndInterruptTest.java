@@ -2,6 +2,7 @@ package com.murong.rpc;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.client.RpcDefaultClient;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -40,7 +41,7 @@ public class SendFileAndInterruptTest {
     }
 
     public static void serverStart() {
-VirtualThreadPool.execute(() -> {
+        VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
@@ -79,7 +80,7 @@ VirtualThreadPool.execute(() -> {
     }
 
     public static void clientConnect() {
-VirtualThreadPool.execute(() -> {
+        VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
             try {
@@ -87,19 +88,18 @@ VirtualThreadPool.execute(() -> {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("1", System.currentTimeMillis());
+
             RpcFileTransHandler handler = new RpcFileTransHandler() {
 
                 @Override
-                public void onSuccess(File file, final RpcFileTransModel remoteTransModel, JSONObject context) {
-                    System.out.println(System.currentTimeMillis() - context.getLong("1"));
+                public void onSuccess(File file, final RpcFileTransModel remoteTransModel, RpcSessionContext context) {
+                    System.out.println(System.currentTimeMillis());
                 }
 
             };
             RpcFileTransConfig config = new RpcFileTransConfig();
 
-            defaultClient.sendFile(new File("/Users/yaochuang/test/abc123456123.java"), jsonObject, handler, config);
+            defaultClient.sendFile(new File("/Users/yaochuang/test/abc123456123.java"), null, handler, config);
             try {
                 Thread.sleep(2000l);
             } catch (InterruptedException e) {

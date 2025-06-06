@@ -1,19 +1,19 @@
 package com.murong.rpc.client;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
+import com.murong.rpc.interaction.base.RpcRequest;
+import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
-import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
-import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
-import com.murong.rpc.interaction.base.RpcRequest;
-import com.murong.rpc.interaction.base.RpcResponse;
+import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
+import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -52,16 +52,18 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession rpcSession = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    JSONObject context = JSONObject.parse(request.getBody());
+                    RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
                     RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-                    sessionFuture.setContext(context);
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession, context);
+                    sessionFuture.getContext().set(0, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession, sessionContext);
                 } else if (request.isSessionRequest()) {
                     RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-                    rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, sessionFuture.getContext(), request);
+                    RpcSessionContext sessionContext = (RpcSessionContext) sessionFuture.getContext().getFirst();
+                    rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, sessionContext, request);
                 } else if (request.isSessionFinish()) {
                     RpcSessionFuture rpcSessionFuture = RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
-                    rpcSessionRequestMsgHandler.sessionStop(ctx, rpcSession, rpcSessionFuture.getContext());
+                    RpcSessionContext sessionContext = (RpcSessionContext) rpcSessionFuture.getContext().getFirst();
+                    rpcSessionRequestMsgHandler.sessionStop(ctx, rpcSession, sessionContext);
                 }
             }
 

@@ -1,16 +1,14 @@
 package com.murong.rpc;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.client.RpcDefaultClient;
-import com.murong.rpc.client.RpcHeartClient;
-import com.murong.rpc.interaction.common.BashSession;
-import com.murong.rpc.interaction.common.SessionManager;
-import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
-import com.murong.rpc.interaction.handler.RpcHeartTimeOutHandler;
+import com.murong.rpc.interaction.common.BashSession;
+import com.murong.rpc.interaction.common.RpcMsgTransUtil;
+import com.murong.rpc.interaction.common.SessionManager;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,6 +18,7 @@ import io.netty.util.internal.StringUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * description
@@ -53,7 +52,8 @@ public class BashSessionTest {
         defaultClient.connect();
 
         RpcSession session = new RpcSession(3000_000);
-        RpcSessionFuture objectRpcSessionFuture = defaultClient.startSession(session, null);
+        RpcSessionContext rpcSessionContext = new RpcSessionContext("解决生态链", List.of("保护野生动物", "多吃蚊子"));
+        RpcSessionFuture objectRpcSessionFuture = defaultClient.startSession(session, rpcSessionContext);
         RpcResponse rpcResponse = objectRpcSessionFuture.get();
         System.out.println(rpcResponse + ":建立session");
         // 同时设置监听
@@ -96,7 +96,8 @@ public class BashSessionTest {
         RpcServer rpcServer = new RpcServer(8765, new NioEventLoopGroup(), new NioEventLoopGroup());
         RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler = new RpcSessionRequestMsgHandler() {
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, JSONObject context) {
+            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+                System.out.println("开始主题:" + context.getSessionTopic());
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 if (session == null) {
                     BashSession bashSession = new BashSession(rs -> {
@@ -112,7 +113,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, JSONObject context, RpcSessionRequest request) {
+            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcSessionRequest request) {
                 String command = request.getCommand();
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 sessionSessionManager.flushTime(rpcSession.getSessionId());
@@ -143,7 +144,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, JSONObject context) {
+            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
 
             }
 

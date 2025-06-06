@@ -2,6 +2,7 @@ package com.murong.rpc.interaction.handler;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -18,7 +19,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param rpcSession
      * @param context
      */
-    void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final JSONObject context);
+    void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
 
     /**
      * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
@@ -26,7 +27,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param request
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final JSONObject context, final RpcSessionRequest request);
+    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcSessionRequest request);
 
     /**
      * 接收到对方发来的结束会话请求
@@ -34,6 +35,6 @@ public interface RpcSessionRequestMsgHandler {
      * @param rpcSession 会话
      * @param context    上下文信息
      */
-    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final JSONObject context);
+    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
 
 }

@@ -1,6 +1,7 @@
 package com.murong.rpc.server;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.base.RpcMsg;
@@ -58,17 +59,19 @@ public class RpcMessageServerInteractionHandler extends ChannelInboundHandlerAda
                 String sessionId = session.getSessionId();
 
                 if (request.isSessionStart()) {
-                    JSONObject context = JSONObject.parse(request.getBody());
+                    RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
                     RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    future.setContext(context);
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, session, context);
+                    future.getContext().set(0, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStart(ctx, session, sessionContext);
                 } else if (request.isSessionRequest()) {
                     RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    rpcSessionRequestMsgHandler.channelRead(ctx, session, future.getContext(), request);
+                    RpcSessionContext sessionContext = (RpcSessionContext) future.getContext().getFirst();
+                    rpcSessionRequestMsgHandler.channelRead(ctx, session, sessionContext, request);
                 } else if (request.isSessionFinish()) {
                     RpcInteractionContainer.remove(sessionId);
                     RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    rpcSessionRequestMsgHandler.sessionStop(ctx, session, future.getContext());
+                    RpcSessionContext sessionContext = (RpcSessionContext) future.getContext().getFirst();
+                    rpcSessionRequestMsgHandler.sessionStop(ctx, session, sessionContext);
                 }
             }
             case file -> FileTransChannelDataManager.channelRead(ctx.channel(), rpcMsg, rpcFileRequestHandler);

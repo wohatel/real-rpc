@@ -2,6 +2,8 @@ package com.murong.rpc;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.client.RpcDefaultClient;
+import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -34,14 +36,13 @@ public class SendFileToClientTest {
     }
 
     public static void serverStart() {
-VirtualThreadPool.execute(() -> {
+        VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
                 if (req.getBody().equals("abcdef")) {
-            VirtualThreadPool.execute(() -> {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("a", "a");
-                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), jsonObject, (f, transModel, t) -> {
+                    VirtualThreadPool.execute(() -> {
+                        RpcSessionContext sessionContext = new RpcSessionContext("1", "1", "2", "3");
+                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), sessionContext, (f, transModel, t) -> {
                             System.out.println(f);
                         });
                     });
@@ -55,13 +56,16 @@ VirtualThreadPool.execute(() -> {
     }
 
     public static void clientConnect() {
-VirtualThreadPool.execute(() -> {
+        VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
                 public RpcFileWrapper getTargetFile(RpcFileContext context) {
                     System.out.println(context.getContext());
                     System.out.println("收到了");
+                    RpcSessionContext sessionContext = context.getContext();
+                    System.out.println(sessionContext.getSessionTopic());
+                    System.out.println(sessionContext.getSessionMetters());
                     String id = context.getSessionId();
                     System.out.println(id);
                     return new RpcFileWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);

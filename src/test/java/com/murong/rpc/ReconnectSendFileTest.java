@@ -2,6 +2,7 @@ package com.murong.rpc;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.client.RpcAutoReconnectClient;
+import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
@@ -56,9 +57,7 @@ VirtualThreadPool.execute(() -> {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("a", "a");
-            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"), jsonObject);
+            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"));
         });
 
 
