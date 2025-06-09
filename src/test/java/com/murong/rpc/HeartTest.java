@@ -1,7 +1,6 @@
 package com.murong.rpc;
 
 import com.murong.rpc.client.RpcHeartClient;
-import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.server.RpcServer;
 
 /**
@@ -23,8 +22,7 @@ public class HeartTest {
         RpcServer rpcServer = serverStart();
         Thread.sleep(2000);
         clientConnect();
-
-        Thread.sleep(5000);
+        Thread.sleep(50000);
         rpcServer.close();
     }
 
@@ -50,5 +48,4 @@ public class HeartTest {
         }).start();
 
     }
-
 }

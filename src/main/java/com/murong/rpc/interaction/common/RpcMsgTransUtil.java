@@ -22,6 +22,8 @@ import com.murong.rpc.util.ReflectUtil;
 import com.murong.rpc.util.RpcSpeedLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,10 +38,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 @Log
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcMsgTransUtil {
-
-    private RpcMsgTransUtil() {
-    }
 
     public static void write(Channel channel, RpcResponse rpcResponse) {
         if (rpcResponse == null) {
@@ -268,7 +268,9 @@ public class RpcMsgTransUtil {
                 String body = response.getBody();
                 long handleSize = Long.parseLong(body);
                 rpcFileTransProcess.setRemoteHandleSize(handleSize);
-                VirtualThreadPool.execute(isOverWriteOnProcess, () -> rpcFileTransHandler.onProcess(file, transModel, context, rpcFileTransProcess.copy()));
+                if (isOverWriteOnProcess) {
+                    VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, transModel, context, rpcFileTransProcess.copy()));
+                }
                 if (handleSize == rpcFileTransProcess.getFileSize()) {
                     VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, transModel, context));
                 }
@@ -346,6 +348,5 @@ public class RpcMsgTransUtil {
         });
         return rpcSession.getSessionId();
     }
-
 }
 

@@ -1,6 +1,5 @@
 package com.murong.rpc.interaction.handler;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
