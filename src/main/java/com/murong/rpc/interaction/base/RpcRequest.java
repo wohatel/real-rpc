@@ -9,7 +9,6 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RpcRequest extends AbstractCompressAble {
-    private boolean authen;
     private String requestId = UUID.randomUUID().toString();
     private String requestType; // 请求类型
     private String command; // 请求命令
