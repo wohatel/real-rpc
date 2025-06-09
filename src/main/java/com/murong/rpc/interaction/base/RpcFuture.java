@@ -54,12 +54,12 @@ public class RpcFuture {
     }
 
     public void flushRequestTime() {
-        RpcInteractionContainer.flushTime(requestId, timeOut + System.currentTimeMillis());
+        RpcInteractionContainer.flushTime(requestId, timeOut);
     }
 
     public void setResponseTime(long responseTime) {
         this.responseTime = responseTime;
-        RpcInteractionContainer.flushTime(requestId, timeOut + requestTime);
+        RpcInteractionContainer.flushTime(requestId, timeOut);
     }
 
     @SneakyThrows

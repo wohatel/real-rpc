@@ -4,21 +4,21 @@ import com.murong.rpc.interaction.constant.RpcCommandType;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 
 /**
  * @author yaochuang
  */
-@Getter
 @Data
-public class RpcMsg {
-    // Getters and Setters
+@EqualsAndHashCode(callSuper = true)
+public class RpcMsg extends AbstractCompressAble {
     private RpcCommandType rpcCommandType;
     private Object payload;
     private ByteBuf byteBuffer;
-    private boolean needCompress;
 
     public RpcMsg() {
     }
@@ -36,12 +36,16 @@ public class RpcMsg {
         if (request instanceof RpcSessionRequest rpcSessionRequest) {
             return fromSessionRequest(rpcSessionRequest);
         }
-        return new RpcMsg(RpcCommandType.request, request);
+        RpcMsg rpcMsg = new RpcMsg(RpcCommandType.request, request);
+        rpcMsg.setNeedCompress(request.isNeedCompress());
+        return rpcMsg;
     }
 
     public static RpcMsg fromSessionRequest(RpcSessionRequest rpcSessionRequest) {
         Objects.requireNonNull(rpcSessionRequest);
-        return new RpcMsg(RpcCommandType.session, rpcSessionRequest);
+        RpcMsg rpcMsg = new RpcMsg(RpcCommandType.session, rpcSessionRequest);
+        rpcMsg.setNeedCompress(rpcSessionRequest.isNeedCompress());
+        return rpcMsg;
     }
 
     public static RpcMsg fromResponse(RpcResponse response) {
@@ -51,7 +55,9 @@ public class RpcMsg {
 
     public static RpcMsg fromFileRequest(RpcFileRequest fileRequest) {
         Objects.requireNonNull(fileRequest);
-        return new RpcMsg(RpcCommandType.file, fileRequest);
+        RpcMsg rpcMsg = new RpcMsg(RpcCommandType.file, fileRequest);
+        rpcMsg.setNeedCompress(fileRequest.isNeedCompress());
+        return rpcMsg;
     }
 
     public static RpcMsg fromHeart() {
@@ -72,15 +78,4 @@ public class RpcMsg {
         return (T) payload;
     }
 
-    public void setRpcCommandType(RpcCommandType rpcCommandType) {
-        this.rpcCommandType = rpcCommandType;
-    }
-
-    public void setPayload(Object payload) {
-        this.payload = payload;
-    }
-
-    public void setByteBuffer(ByteBuf byteBuffer) {
-        this.byteBuffer = byteBuffer;
-    }
 }

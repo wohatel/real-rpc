@@ -10,11 +10,14 @@ import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RpcInteractionContainer {
+
+    @Getter
 
     private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcInteractionContainer::handleTimeOut);
 
@@ -38,11 +41,8 @@ public class RpcInteractionContainer {
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
             if (!rpcFuture.isSessionFinish()) {
                 rpcFuture.setRequestTime(System.currentTimeMillis());
-                Long expireAt = RPC_FUTURE_SESSION_MANAGER.getExpireAt(rpcSession.getSessionId());
-                if (RpcSessionFlushStrategy.isNeedFlushForExpired(expireAt, rpcSession.getTimeOutMillis())) {
-                    // 刷新时间
-                    RPC_FUTURE_SESSION_MANAGER.flushTime(rpcSession.getSessionId(), System.currentTimeMillis() + rpcSession.getTimeOutMillis());
-                }
+                // 刷新时间
+                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
             }
             return rpcFuture;
         } else {
@@ -82,13 +82,8 @@ public class RpcInteractionContainer {
             if (rpcSessionFuture.isSessionFinish()) {
                 remove(rpcResponse.getRequestId());
             } else {
-                // 过期时间
-                Long expireAt = RPC_FUTURE_SESSION_MANAGER.getExpireAt(rpcResponse.getRequestId());
-                boolean needFlushForExpired = RpcSessionFlushStrategy.isNeedFlushForExpired(expireAt, rpcSessionFuture.getTimeOut());
-                if (needFlushForExpired) {
-                    // 自动叠加请求时间
-                    RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getRequestId(), System.currentTimeMillis() + rpcFuture.getTimeOut());
-                }
+                // 自动叠加请求时间
+                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getRequestId(), rpcSessionFuture.getTimeOut());
             }
         } else {
             // 清掉
@@ -159,14 +154,17 @@ public class RpcInteractionContainer {
         }
     }
 
-    public static void flushTime(String sessionId, long expiredAt) {
-        RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, expiredAt);
+    public static void flushTime(String sessionId, long sessionTime) {
+        RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, sessionTime);
     }
 
     public static RpcSessionFuture stopSessionGracefully(String sessionId) {
         RpcSessionFuture future = (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
+        if (future == null) {
+            return null;
+        }
         if (!future.isSessionFinish()) {
-            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, System.currentTimeMillis() + NumberConstant.ONE_POINT_FILE_K);
+            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
             future.setSessionFinish(true);
         }
         return future;

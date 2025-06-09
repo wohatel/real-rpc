@@ -1,9 +1,11 @@
 package com.murong.rpc.interaction.base;
 
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class RpcSessionRequest extends RpcRequest {
     private RpcSession rpcSession;
     private RpcSessionProcess sessionProcess;

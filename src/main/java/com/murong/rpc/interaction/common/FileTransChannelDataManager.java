@@ -65,10 +65,10 @@ public class FileTransChannelDataManager {
             toContext.set(0, context);
             toContext.set(1, rpcFileWrapper);
             // 继续处理逻辑
-            readInitFile(channel, rpcFileRequest, context, rpcFileWrapper, rpcFileRequestHandler, rpcResponse);
+            readInitFile(channel, rpcFileRequest, context, rpcFileWrapper, rpcFileRequestHandler);
         } else if (rpcFileRequest.isSessionFinish()) {
             String sessionId = rpcFileRequest.getRpcSession().getSessionId();
-            RpcSessionFuture sessionFuture = (RpcSessionFuture) RpcInteractionContainer.remove(rpcFileRequest.getRpcSession().getSessionId());
+            RpcSessionFuture sessionFuture = (RpcSessionFuture) RpcInteractionContainer.remove(sessionId);
             if (sessionFuture == null) {
                 log.warning("会话已结束:" + sessionId);
                 return;
@@ -100,13 +100,14 @@ public class FileTransChannelDataManager {
         }
     }
 
-    private static void readInitFile(Channel channel, RpcFileRequest rpcFileRequest, RpcFileContext context, RpcFileWrapper fileWrapper, RpcFileRequestHandler rpcFileRequestHandler, RpcResponse rpcResponse) {
+    private static void readInitFile(Channel channel, RpcFileRequest rpcFileRequest, RpcFileContext context, RpcFileWrapper fileWrapper, RpcFileRequestHandler rpcFileRequestHandler) {
         fileWrapper.init(rpcFileRequest.getLength());
         List<String> body = new ArrayList<>();
         body.add(String.valueOf(fileWrapper.isNeedTrans()));
         body.add(fileWrapper.getTransModel().name());
         body.add(String.valueOf(fileWrapper.getWriteIndex()));
         body.add(fileWrapper.getMsg());
+        RpcResponse rpcResponse = rpcFileRequest.toResponse();
         rpcResponse.setBody(JSONArray.toJSONString(body));
         RpcMsgTransUtil.write(channel, rpcResponse);
         if (fileWrapper.isInterruptByInit()) {

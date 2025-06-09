@@ -22,7 +22,6 @@ import java.util.logging.Level;
 public class FileTransSessionManger {
 
     /**
-     * 默认启用60s的文件传输
      * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
      */
     private static final SessionManager<BlockingQueue<FileChunkItem>> FILE_SESSION_MANAGER = new SessionManager<>(NumberConstant.THREE_TEN_K, FileTransSessionManger::close);

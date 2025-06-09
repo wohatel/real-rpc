@@ -1,9 +1,11 @@
 package com.murong.rpc.interaction.base;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class RpcResponse {
+@EqualsAndHashCode(callSuper = true)
+public class RpcResponse extends AbstractCompressAble {
     private String requestId;
     private boolean success = true;
     private String msg; // 异常消息

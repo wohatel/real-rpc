@@ -105,4 +105,18 @@ public class RpcSpeedLimiter {
         }
         return condition.getAsBoolean();
     }
+
+    @SneakyThrows
+    public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries, Runnable runnable) {
+        for (int i = 0; i < maxTries; i++) {
+            if (condition.getAsBoolean()) {
+                return true;
+            }
+            if (runnable != null) {
+                runnable.run();
+            }
+            Thread.sleep(stepMillis);
+        }
+        return condition.getAsBoolean();
+    }
 }

@@ -2,6 +2,7 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcSessionContext;
+import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
@@ -14,9 +15,11 @@ import com.murong.rpc.server.RpcServer;
 import io.netty.util.internal.PlatformDependent;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * description
@@ -62,10 +65,7 @@ public class SendFileAndInterruptTest {
                 }
 
                 public void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
-                    System.out.println("接收大小:" + recieveSize + "总大小:" + context.getLength());
-                    if (recieveSize > 100000) {
-                        interrupter.interrupt();
-                    }
+                    System.out.println("收到的总数:" + recieveSize);
                 }
 
                 @Override
@@ -96,15 +96,16 @@ public class SendFileAndInterruptTest {
                 }
 
             };
-            RpcFileTransConfig config = new RpcFileTransConfig();
+            RpcFileTransConfig config = new RpcFileTransConfig(100 * 1024 * 1024, 10 * 1024 * 1024, true);
 
-            defaultClient.sendFile(new File("/Users/yaochuang/test/abc123456123.java"), null, handler, config);
+            String sessionId = defaultClient.sendFile(new File("/Users/yaochuang/test/归档.zip"), null, handler, config);
+
             try {
-                Thread.sleep(2000l);
+                Thread.sleep(10000l);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-
+//            defaultClient.interruptSendFile(sessionId);
         });
 
 

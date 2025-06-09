@@ -14,6 +14,10 @@ public class RpcFileTransConfig {
         this(speedLimit, NumberConstant.K_512, NumberConstant.EIGHT, NumberConstant.TEN_EIGHT_K, tryCompress, NumberConstant.SEVENTY_FIVE);
     }
 
+    public RpcFileTransConfig(long speedLimit, long chunkSize, boolean tryCompress) {
+        this(speedLimit, chunkSize, NumberConstant.EIGHT, NumberConstant.TEN_EIGHT_K, tryCompress, NumberConstant.SEVENTY_FIVE);
+    }
+
     public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, long chunkHandleTimeOut, boolean tryCompress, int compressRatePercent) {
         if (speedLimit <= 0) {
             throw new RuntimeException("限速不能<=0");
@@ -33,12 +37,12 @@ public class RpcFileTransConfig {
     }
 
     /**
-     * 限速值,限速不超过128M每秒
+     * 限速值,限速
      */
     private final long speedLimit;
 
     /**
-     * 每块传输大小,默认1024Kb
+     * 每块传输大小
      */
     private final long chunkSize;
 

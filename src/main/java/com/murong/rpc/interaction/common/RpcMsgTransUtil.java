@@ -58,16 +58,16 @@ public class RpcMsgTransUtil {
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
     }
 
-    public static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, boolean needCompress, ByteBuf byteBuf) {
+    public static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (rpcRequest == null) {
             return;
         }
         if (channel == null || !channel.isActive()) {
             throw new RuntimeException("连接不可用");
         }
+        RpcInteractionContainer.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
-        build.setNeedCompress(needCompress);
         channel.writeAndFlush(build);
     }
 
@@ -177,7 +177,8 @@ public class RpcMsgTransUtil {
         rpcFileRequest.setSessionProcess(RpcSessionProcess.ING);
         rpcFileRequest.setBuffer(chunkSize);
         rpcFileRequest.setSerial(serial);
-        RpcMsgTransUtil.sendFileMsg(channel, rpcFileRequest, needCompress, buffer);
+        rpcFileRequest.setNeedCompress(needCompress);
+        RpcMsgTransUtil.sendFileMsg(channel, rpcFileRequest, buffer);
     }
 
     @SneakyThrows
@@ -208,11 +209,7 @@ public class RpcMsgTransUtil {
         // 设置需要返回结果
         rpcFileRequest.setNeedResponse(false);
         RpcSessionFuture rpcSessionFuture = RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
-        if (rpcSessionFuture == null) {
-            log.info("文件传输:已结束");
-        } else {
-            // 结束本地传输
-            rpcSessionFuture.setSessionFinish(true);
+        if (rpcSessionFuture != null) {
             // 发送消息体
             sendMsg(channel, rpcFileRequest);
         }
@@ -287,7 +284,8 @@ public class RpcMsgTransUtil {
             RpcSpeedLimiter limiter = new RpcSpeedLimiter(finalConfig.getSpeedLimit());
             // 池化内存申请
             int poolSize = finalConfig.getCacheBlock();
-            ByteBufPoolManager.init(rpcSession.getSessionId(), poolSize, (int) finalConfig.getChunkSize());
+            int applyMemory = Math.min(poolSize, NumberConstant.EIGHT);
+            ByteBufPoolManager.init(rpcSession.getSessionId(), applyMemory, (int) finalConfig.getChunkSize());
             // 发送头文件
             try (FileInputStream fis = new FileInputStream(file); FileChannel fileChannel = fis.getChannel()) {
                 long fileSize = fileChannel.size();
@@ -330,7 +328,8 @@ public class RpcMsgTransUtil {
                     // **限速控制**
                     limiter.flush(thisChunkSize);
                 }
-                log.info("传输完成或终止:" + file.getAbsolutePath());
+                String transStatus = position < fileSize ? "中止" : "完成";
+                log.info("传输" + transStatus + ":" + file.getAbsolutePath());
             } catch (Exception e) {
                 log.log(Level.WARNING, "传输文件异常:", e);
                 errorMsg.set(e.getMessage());

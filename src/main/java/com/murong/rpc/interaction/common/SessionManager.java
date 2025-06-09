@@ -22,7 +22,6 @@ import java.util.logging.Level;
 @Data
 @Log
 public class SessionManager<T> {
-
     private final Long sessionTime;
     private volatile boolean stop;
     private final Map<String, T> container = new ConcurrentHashMap<>();
@@ -31,8 +30,20 @@ public class SessionManager<T> {
     // 清理线程
     private final Thread cleanerThread;
     private final Consumer<T> sessionClose;
+    // 刷新因子(若为0.4)
+    /**
+     * 假如一个请求对应的超时时间为10s, 如果距离超时> 4s,则不刷新,小于4s就去刷新下;
+     * 也就是说: 这个值越大,刷新的越频繁
+     * 如果刷新因子为负,则立即刷新
+     */
+    private final double flushSeed;
 
     public SessionManager(long sessionTime, Consumer<T> sessionClose) {
+        this(sessionTime, sessionClose, 0.5);
+    }
+
+    public SessionManager(long sessionTime, Consumer<T> sessionClose, double flushSeed) {
+        this.flushSeed = flushSeed;
         this.sessionTime = sessionTime;
         if (sessionTime <= 0) {
             throw new RuntimeException("会话时间错误");
@@ -139,11 +150,16 @@ public class SessionManager<T> {
      * @param sessionId sessionId
      * @return 刷新下sesssion的最近交互时间
      */
-    public boolean flushTime(String sessionId, long expiredAt) {
+    public boolean flushTime(String sessionId, long sessionTime) {
         if (!stop) {
             if (container.containsKey(sessionId)) {
-                delayQueue.add(new DelayItem(sessionId, expiredAt));
-                timeFlushMap.get(sessionId).set(expiredAt);
+                AtomicLong atomicLong = timeFlushMap.get(sessionId);
+                boolean needFlushForExpired = RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed);
+                if (needFlushForExpired) {
+                    long expiredAt = System.currentTimeMillis() + sessionTime;
+                    delayQueue.add(new DelayItem(sessionId, expiredAt));
+                    timeFlushMap.get(sessionId).set(expiredAt);
+                }
                 return true;
             }
         }
@@ -157,7 +173,7 @@ public class SessionManager<T> {
      * @return 刷新下sesssion的最近交互时间
      */
     public boolean flushTime(String sessionId) {
-        return this.flushTime(sessionId, System.currentTimeMillis() + sessionTime);
+        return this.flushTime(sessionId, sessionTime);
     }
 
     /**
@@ -173,7 +189,7 @@ public class SessionManager<T> {
                     T resource = this.release(item.sessionId);
                     if (resource != null && sessionClose != null) {
                         // 如果使用线程池关闭任务
-                VirtualThreadPool.execute(() -> {
+                        VirtualThreadPool.execute(() -> {
                             try {
                                 sessionClose.accept(resource);
                             } catch (Exception e) {

@@ -2,11 +2,13 @@ package com.murong.rpc.interaction.base;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.UUID;
 
 @Data
-public class RpcRequest {
+@EqualsAndHashCode(callSuper = true)
+public class RpcRequest extends AbstractCompressAble {
     private boolean authen;
     private String requestId = UUID.randomUUID().toString();
     private String requestType; // 请求类型
@@ -18,10 +20,33 @@ public class RpcRequest {
     private String body;    //  请求body体
     private boolean needResponse; // 请求到达服务端后,要求服务端给予响应
 
+    /**
+     * 构建一个压缩的请求
+     */
+    public static RpcRequest compressRequest() {
+        RpcRequest request = new RpcRequest();
+        request.setNeedCompress(true);
+        return request;
+    }
 
+
+    /**
+     * 构建一个压缩的响应
+     */
     public RpcResponse toResponse() {
+        return this.toResponse(false);
+    }
+
+    /**
+     * 构建响应
+     *
+     * @param needCompress 是否压缩
+     * @return RpcResponse
+     */
+    public RpcResponse toResponse(boolean needCompress) {
         RpcResponse response = new RpcResponse();
         response.setRequestId(this.requestId);
+        response.setNeedCompress(needCompress);
         return response;
     }
 }
