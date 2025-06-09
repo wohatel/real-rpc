@@ -30,8 +30,8 @@ public class SessionManager<T> {
     // 清理线程
     private final Thread cleanerThread;
     private final Consumer<T> sessionClose;
-    // 刷新因子(若为0.4)
     /**
+     * 刷新因子(若为0.4)
      * 假如一个请求对应的超时时间为10s, 如果距离超时> 4s,则不刷新,小于4s就去刷新下;
      * 也就是说: 这个值越大,刷新的越频繁
      * 如果刷新因子为负,则立即刷新
