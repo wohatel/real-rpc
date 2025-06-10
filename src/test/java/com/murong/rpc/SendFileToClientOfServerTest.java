@@ -40,7 +40,7 @@ public class SendFileToClientOfServerTest {
 
                 });
             } else {
-                System.out.println(req);
+                System.out.println(req+"rtyuio");
             }
 
         });

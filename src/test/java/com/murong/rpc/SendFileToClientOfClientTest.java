@@ -45,6 +45,9 @@ public class SendFileToClientOfClientTest {
             @Override
             public void onProcess(final RpcFileContext context, RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
                 System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
+                if (recieveSize > 40000){
+                    interrupter.interrupt();
+                }
             }
 
             /**

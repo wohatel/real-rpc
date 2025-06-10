@@ -47,7 +47,7 @@ public class RpcInteractionContainer {
             return rpcFuture;
         } else {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
-                throw new RuntimeException("会话没有开启,不可以发送会话消息");
+                throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
             } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
                 throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
             } else {
@@ -74,7 +74,6 @@ public class RpcInteractionContainer {
         if (rpcResponse.getRequestId() == null) {
             return;
         }
-        System.out.println(rpcResponse);
         RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getRequestId());
         if (rpcFuture == null) { // 可能超时已被移除
             return;
