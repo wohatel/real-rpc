@@ -12,6 +12,7 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import lombok.Getter;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,24 +74,30 @@ public class RpcInteractionContainer {
         if (rpcResponse.getRequestId() == null) {
             return;
         }
+        System.out.println(rpcResponse);
         RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getRequestId());
         if (rpcFuture == null) { // 可能超时已被移除
             return;
         }
+        // complete只会嗲用一次
+        rpcFuture.complete(rpcResponse);
+        rpcFuture.setResponseTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             if (rpcSessionFuture.isSessionFinish()) {
                 remove(rpcResponse.getRequestId());
             } else {
                 // 自动叠加请求时间
                 RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getRequestId(), rpcSessionFuture.getTimeOut());
+                executeOnResponse(rpcFuture, rpcResponse);
             }
         } else {
             // 清掉
             remove(rpcResponse.getRequestId());
+            executeOnResponse(rpcFuture, rpcResponse);
         }
-        // complete只会嗲用一次
-        rpcFuture.complete(rpcResponse);
-        rpcFuture.setResponseTime(System.currentTimeMillis());
+    }
+
+    private static void executeOnResponse(RpcFuture rpcFuture, RpcResponse rpcResponse) {
         // 执行完结事件
         List<RpcResponseMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
@@ -145,6 +152,14 @@ public class RpcInteractionContainer {
      * @param future
      */
     private static void handleTimeOut(RpcFuture future) {
+        if (future == null) {
+            return;
+        }
+        if (future instanceof RpcSessionFuture sessionFuture) {
+            if (sessionFuture.isSessionFinish()) {
+                return;
+            }
+        }
         List<RpcResponseMsgListener> listeners = future.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {

@@ -5,8 +5,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.base.RpcSessionContext;
-import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileRequest;
@@ -27,7 +25,6 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -39,27 +36,19 @@ public class FileTransChannelDataManager {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         if (rpcFileRequestHandler == null) {
-            List<String> rbody = new ArrayList<>();
-            rbody.add(String.valueOf(false));
-            rbody.add(null);
-            rbody.add(String.valueOf(0));
-            rbody.add("远端接收文件事件暂无接收文件配置:发送终止");
-            rpcResponse.setBody(JSONArray.toJSONString(rbody));
-            RpcMsgTransUtil.write(channel, rpcResponse);
+            sendStartError(rpcResponse, channel, "远端接收文件事件暂无接收文件配置:发送终止");
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
-            RpcSessionContext rpcSessionContext = JSONObject.parseObject(rpcFileRequest.getBody(), RpcSessionContext.class);
-            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession().getSessionId(), rpcFileRequest.getFileName(), rpcSessionContext, rpcFileRequest.getChunkHandleTimeOut());
+            boolean running = FileTransSessionManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
+            if (running) {
+                sendStartError(rpcResponse, channel, "请勿开启重复session,请检查");
+                return;
+            }
+            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession(), rpcFileRequest.getFileName(), rpcFileRequest.getChunkHandleTimeOut());
             RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
-                List<String> rbody = new ArrayList<>();
-                rbody.add(String.valueOf(false));
-                rbody.add(null);
-                rbody.add(String.valueOf(0));
-                rbody.add("远端接受文件路径错误:发送终止");
-                rpcResponse.setBody(JSONArray.toJSONString(rbody));
-                RpcMsgTransUtil.write(channel, rpcResponse);
+                sendStartError(rpcResponse, channel, "远端接受文件路径错误:发送终止");
                 return;
             }
             // 继续处理逻辑
@@ -123,14 +112,14 @@ public class FileTransChannelDataManager {
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
-            final RpcFileTransInterrupter interrupter = new RpcFileTransInterrupter(channel, context.getSessionId());
+            final RpcFileTransInterrupter interrupter = new RpcFileTransInterrupter(channel, context.getRpcSession().getSessionId());
             // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
-                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isNormal(sessionId), 3, () -> FileTransSessionManger.poll(sessionId, context.getChunkHandleTimeOut() / 3));
+                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isRunning(sessionId), 3, () -> FileTransSessionManger.poll(sessionId, context.getChunkHandleTimeOut() / 3));
                     // 拉取之后也要判断是否正常
                     if (poll == null) {
-                        if (!FileTransSessionManger.isNormal(sessionId)) {
+                        if (!FileTransSessionManger.isRunning(sessionId)) {
                             break;
                         }
                         throw new RuntimeException("文件块接收超时");
@@ -167,4 +156,13 @@ public class FileTransChannelDataManager {
         }
     }
 
+    private static void sendStartError(RpcResponse rpcResponse, Channel channel, String message) {
+        List<String> rbody = new ArrayList<>();
+        rbody.add(String.valueOf(false));
+        rbody.add(null);
+        rbody.add(String.valueOf(0));
+        rbody.add("远端接受文件路径错误:发送终止");
+        rpcResponse.setBody(JSONArray.toJSONString(rbody));
+        RpcMsgTransUtil.write(channel, rpcResponse);
+    }
 }

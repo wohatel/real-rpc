@@ -1,5 +1,5 @@
 package com.murong.rpc.interaction.base;
-import com.murong.rpc.interaction.base.RpcResponse;
+
 import lombok.Getter;
 
 import java.util.UUID;
@@ -11,17 +11,24 @@ import java.util.UUID;
  */
 @Getter
 public class RpcSession {
-    private final String sessionId;
-    private final long timeOutMillis;
-
-    public RpcSession(String sessionId, long timeOutMillis) {
-        this.sessionId = sessionId;
-        this.timeOutMillis = timeOutMillis;
-    }
-
+    private String sessionId;
+    private long timeOutMillis;
+    private String topic;
+    private String[] metters;
 
     public RpcSession(long timeOutMillis) {
-        this(UUID.randomUUID().toString(), timeOutMillis);
+        this(timeOutMillis, null);
+    }
+
+    private RpcSession(String sessionId, long timeOutMillis, String topic, String... metters) {
+        this.sessionId = sessionId;
+        this.timeOutMillis = timeOutMillis;
+        this.topic = topic;
+        this.metters = metters;
+    }
+
+    public RpcSession(long timeOutMillis, String topic, String... metters) {
+        this(UUID.randomUUID().toString(), timeOutMillis, topic, metters);
     }
 
     public RpcResponse toResponse() {
@@ -29,4 +36,5 @@ public class RpcSession {
         response.setRequestId(this.sessionId);
         return response;
     }
+
 }

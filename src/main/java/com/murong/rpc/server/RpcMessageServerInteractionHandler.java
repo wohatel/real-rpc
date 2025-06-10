@@ -1,7 +1,6 @@
 package com.murong.rpc.server;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.base.RpcMsg;
@@ -9,7 +8,6 @@ import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
@@ -57,8 +55,7 @@ public class RpcMessageServerInteractionHandler extends ChannelInboundHandlerAda
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, session, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStart(ctx, session);
                 } else if (request.isSessionRequest()) {
                     rpcSessionRequestMsgHandler.channelRead(ctx, session, request);
                 } else if (request.isSessionFinish()) {

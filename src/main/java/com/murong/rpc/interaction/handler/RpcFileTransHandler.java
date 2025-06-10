@@ -1,6 +1,5 @@
 package com.murong.rpc.interaction.handler;
 
-import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 
@@ -17,7 +16,7 @@ public interface RpcFileTransHandler {
      * 传输进度
      * rpcFileTransProcess 传输文件的进度
      */
-    default void onProcess(final File file, final RpcFileTransModel remoteTransModel, final RpcSessionContext context, final RpcFileTransProcess rpcFileTransProcess) {
+    default void onProcess(final File file, final RpcFileTransModel remoteTransModel, final RpcFileTransProcess rpcFileTransProcess) {
 
     }
 
@@ -25,7 +24,7 @@ public interface RpcFileTransHandler {
      * 文件向远端传输过程中,本地执行出错
      * errorMsg 错误信息
      */
-    default void onFailure(final File file, final RpcFileTransModel remoteTransModel, final RpcSessionContext context, String errorMsg) {
+    default void onFailure(final File file, final RpcFileTransModel remoteTransModel, String errorMsg) {
 
     }
 
@@ -33,6 +32,6 @@ public interface RpcFileTransHandler {
      * 文件传输完成
      * errorMsg 错误信息
      */
-    void onSuccess(final File file, final RpcFileTransModel remoteTransModel, final RpcSessionContext context);
+    void onSuccess(final File file, final RpcFileTransModel remoteTransModel);
 
 }

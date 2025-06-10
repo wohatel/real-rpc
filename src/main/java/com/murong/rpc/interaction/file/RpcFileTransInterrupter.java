@@ -13,7 +13,7 @@ public class RpcFileTransInterrupter {
     private final String sessionId;
 
     public synchronized void interrupt() {
-        if (FileTransSessionManger.isNormal(sessionId)) {
+        if (FileTransSessionManger.isRunning(sessionId)) {
             FileTransSessionManger.release(sessionId);
             RpcResponse response = new RpcResponse();
             response.setRequestId(sessionId);

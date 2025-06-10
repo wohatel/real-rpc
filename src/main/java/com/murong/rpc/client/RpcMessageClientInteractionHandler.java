@@ -1,12 +1,9 @@
 package com.murong.rpc.client;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.base.RpcSessionContext;
-import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
@@ -52,8 +49,7 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession rpcSession = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession);
                 } else if (request.isSessionRequest()) {
                     rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, request);
                 } else if (request.isSessionFinish()) {

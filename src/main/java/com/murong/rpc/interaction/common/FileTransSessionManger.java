@@ -12,7 +12,6 @@ import lombok.extern.java.Log;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -31,7 +30,7 @@ public class FileTransSessionManger {
     private static final SessionManager<BlockingQueue<FileChunkItem>> FILE_SESSION_MANAGER = new SessionManager<>(NumberConstant.THREE_TEN_K, FileTransSessionManger::close);
 
     public static boolean addOrRelease(String sessionId, FileChunkItem fileChunkItem) {
-        boolean normal = isNormal(sessionId);
+        boolean normal = isRunning(sessionId);
         try {
             if (normal) {
                 FILE_SESSION_MANAGER.getSession(sessionId).add(fileChunkItem);
@@ -50,7 +49,7 @@ public class FileTransSessionManger {
     /**
      * 是否正常运行
      */
-    public static boolean isNormal(String sessionId) {
+    public static boolean isRunning(String sessionId) {
         return FILE_SESSION_MANAGER.contains(sessionId);
     }
 

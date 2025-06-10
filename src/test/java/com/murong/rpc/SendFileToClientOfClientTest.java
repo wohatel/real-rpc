@@ -2,15 +2,11 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcRequest;
-import com.murong.rpc.interaction.base.RpcSessionContext;
-import com.murong.rpc.interaction.common.RpcMsgTransUtil;
-import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
-import com.murong.rpc.server.RpcServer;
 
 import java.io.File;
 
@@ -38,12 +34,9 @@ public class SendFileToClientOfClientTest {
         defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
             @Override
             public RpcFileWrapper getTargetFile(RpcFileContext context) {
-                System.out.println(context.getContext());
+
                 System.out.println("收到了");
-                RpcSessionContext sessionContext = context.getContext();
-                System.out.println(sessionContext.getSessionTopic());
-                System.out.println(sessionContext.getSessionMetters());
-                String id = context.getSessionId();
+                String id = context.getRpcSession().getSessionId();
                 System.out.println(id);
                 return new RpcFileWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
 //                    return null;

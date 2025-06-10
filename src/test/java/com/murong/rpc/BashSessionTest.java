@@ -3,7 +3,6 @@ package com.murong.rpc;
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.BashSession;
@@ -14,11 +13,9 @@ import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.internal.StringUtil;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 /**
  * description
@@ -52,8 +49,7 @@ public class BashSessionTest {
         defaultClient.connect();
 
         RpcSession session = new RpcSession(3000_000);
-        RpcSessionContext rpcSessionContext = new RpcSessionContext("解决生态链", List.of("保护野生动物", "多吃蚊子"));
-        RpcSessionFuture objectRpcSessionFuture = defaultClient.startSession(session, rpcSessionContext);
+        RpcSessionFuture objectRpcSessionFuture = defaultClient.startSession(session);
         RpcResponse rpcResponse = objectRpcSessionFuture.get();
         System.out.println(rpcResponse + ":建立session");
         // 同时设置监听
@@ -77,7 +73,7 @@ public class BashSessionTest {
                 defaultClient.sendSessionMsg(request);
             } else if (line.equals("new session")) {
                 session = new RpcSession(300_000);
-                defaultClient.startSession(session, null).addListener(res -> {
+                defaultClient.startSession(session).addListener(res -> {
                     System.out.println(res.getBody());
                 });
             } else if (!StringUtil.isNullOrEmpty(line)) {
@@ -92,12 +88,11 @@ public class BashSessionTest {
     public static void start() throws Exception {
 
 
-        SessionManager<BashSession> sessionSessionManager = new SessionManager<>(3000_000, BashSession::close);
+        SessionManager<BashSession> sessionSessionManager = new SessionManager<>(10_000, BashSession::close);
         RpcServer rpcServer = new RpcServer(8765, new NioEventLoopGroup(), new NioEventLoopGroup());
         RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler = new RpcSessionRequestMsgHandler() {
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
-                System.out.println("开始主题:" + context.getSessionTopic());
+            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession) {
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 if (session == null) {
                     BashSession bashSession = new BashSession(rs -> {

@@ -1,8 +1,6 @@
 package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
-import com.murong.rpc.interaction.base.RpcSessionContext;
-import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
@@ -15,11 +13,9 @@ import com.murong.rpc.server.RpcServer;
 import io.netty.util.internal.PlatformDependent;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * description
@@ -48,7 +44,6 @@ public class SendFileAndInterruptTest {
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
                 public RpcFileWrapper getTargetFile(RpcFileContext context) {
-                    System.out.println(context.getContext());
                     System.out.println("收到了");
                     return new RpcFileWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
 //                    return null;
@@ -91,7 +86,7 @@ public class SendFileAndInterruptTest {
             RpcFileTransHandler handler = new RpcFileTransHandler() {
 
                 @Override
-                public void onSuccess(File file, final RpcFileTransModel remoteTransModel, RpcSessionContext context) {
+                public void onSuccess(File file, final RpcFileTransModel remoteTransModel) {
                     System.out.println(System.currentTimeMillis());
                 }
 

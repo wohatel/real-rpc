@@ -5,7 +5,6 @@ import com.murong.rpc.initializer.RpcMsgChannelInitializer;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcSession;
-import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
@@ -77,16 +76,16 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return this.sendFile(file, null);
     }
 
-    public String sendFile(File file, RpcSessionContext context) {
-        return this.sendFile(file, context, null);
+    public String sendFile(File file, RpcSession rpcSession) {
+        return this.sendFile(file, rpcSession, null);
     }
 
-    public String sendFile(File file, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler) {
-        return this.sendFile(file, context, rpcFileTransHandler, null);
+    public String sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler) {
+        return this.sendFile(file, rpcSession, rpcFileTransHandler, null);
     }
 
-    public String sendFile(File file, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
-        return RpcMsgTransUtil.writeFile(channel, file, context, rpcFileTransHandler, config);
+    public String sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
+        return RpcMsgTransUtil.writeFile(channel, file, rpcSession, rpcFileTransHandler, config);
     }
 
     public void interruptSendFile(String sessioId) {
@@ -116,11 +115,10 @@ public class RpcDefaultClient extends AbstractRpcClient {
      * 建立会话
      *
      * @param rpcSession
-     * @param context
      * @return
      */
-    public RpcSessionFuture startSession(RpcSession rpcSession, RpcSessionContext context) {
-        return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession, context);
+    public RpcSessionFuture startSession(RpcSession rpcSession) {
+        return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession);
     }
 
     /**

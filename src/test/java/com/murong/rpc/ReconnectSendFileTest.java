@@ -35,9 +35,8 @@ public class ReconnectSendFileTest {
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
                 public RpcFileWrapper getTargetFile(RpcFileContext context) {
-                    System.out.println(context.getContext());
                     System.out.println("收到了");
-                    String id = context.getSessionId();
+                    String id = context.getRpcSession().getSessionId();
                     return new RpcFileWrapper(new File("/Users/yaochuang/test/abc" + id + ".zip"));
                 }
             });
