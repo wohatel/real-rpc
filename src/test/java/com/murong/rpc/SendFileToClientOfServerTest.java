@@ -1,5 +1,6 @@
 package com.murong.rpc;
 
+import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.server.RpcServer;
@@ -28,7 +29,15 @@ public class SendFileToClientOfServerTest {
         rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
             if (req.getBody().equals("abcdef")) {
                 VirtualThreadPool.execute(() -> {
-                    RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"));
+                    RpcSession rpcSession = RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"));
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    RpcMsgTransUtil.writeStopFile(cx.channel(), rpcSession);
+
                 });
             } else {
                 System.out.println(req);

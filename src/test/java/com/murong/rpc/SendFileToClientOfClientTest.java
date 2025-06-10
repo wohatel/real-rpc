@@ -46,6 +46,15 @@ public class SendFileToClientOfClientTest {
             public void onProcess(final RpcFileContext context, RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
                 System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
             }
+
+            /**
+             * 远端发出终止传输信号
+             *
+             * @param context 文件上下文
+             */
+            public void onStop(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+                System.out.println("发送端终止:");
+            }
         });
         defaultClient.connect();
         try {
