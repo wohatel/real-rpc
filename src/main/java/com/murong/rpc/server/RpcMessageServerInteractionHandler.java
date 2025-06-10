@@ -56,22 +56,13 @@ public class RpcMessageServerInteractionHandler extends ChannelInboundHandlerAda
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
-                String sessionId = session.getSessionId();
-
                 if (request.isSessionStart()) {
                     RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
-                    RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    future.getContext().set(0, sessionContext);
                     rpcSessionRequestMsgHandler.sessionStart(ctx, session, sessionContext);
                 } else if (request.isSessionRequest()) {
-                    RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    RpcSessionContext sessionContext = (RpcSessionContext) future.getContext().getFirst();
-                    rpcSessionRequestMsgHandler.channelRead(ctx, session, sessionContext, request);
+                    rpcSessionRequestMsgHandler.channelRead(ctx, session, request);
                 } else if (request.isSessionFinish()) {
-                    RpcInteractionContainer.remove(sessionId);
-                    RpcSessionFuture future = RpcInteractionContainer.getSessionFuture(sessionId);
-                    RpcSessionContext sessionContext = (RpcSessionContext) future.getContext().getFirst();
-                    rpcSessionRequestMsgHandler.sessionStop(ctx, session, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStop(ctx, session);
                 }
             }
             case file -> FileTransChannelDataManager.channelRead(ctx.channel(), rpcMsg, rpcFileRequestHandler);

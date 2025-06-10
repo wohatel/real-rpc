@@ -18,7 +18,6 @@ import java.util.List;
 public class RpcInteractionContainer {
 
     @Getter
-
     private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcInteractionContainer::handleTimeOut);
 
     /**

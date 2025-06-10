@@ -7,6 +7,7 @@ import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionContext;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
+import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
@@ -25,6 +26,8 @@ import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -59,23 +62,13 @@ public class FileTransChannelDataManager {
                 RpcMsgTransUtil.write(channel, rpcResponse);
                 return;
             }
-            // 将上下文存入toContext
-            RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcFileRequest.getRpcSession().getSessionId());
-            JSONArray toContext = sessionFuture.getContext();
-            toContext.set(0, context);
-            toContext.set(1, rpcFileWrapper);
             // 继续处理逻辑
             readInitFile(channel, rpcFileRequest, context, rpcFileWrapper, rpcFileRequestHandler);
         } else if (rpcFileRequest.isSessionFinish()) {
             String sessionId = rpcFileRequest.getRpcSession().getSessionId();
-            RpcSessionFuture sessionFuture = (RpcSessionFuture) RpcInteractionContainer.remove(sessionId);
-            if (sessionFuture == null) {
-                log.warning("会话已结束:" + sessionId);
-                return;
-            }
-            JSONArray context = sessionFuture.getContext();
-            RpcFileContext fileContext = (RpcFileContext) context.getFirst();
-            RpcFileWrapper rpcFileWrapper = (RpcFileWrapper) context.get(1);
+            Map.Entry<RpcFileContext, RpcFileWrapper> data = FileTransSessionManger.getData(sessionId);
+            RpcFileContext fileContext = data == null ? null : data.getKey();
+            RpcFileWrapper rpcFileWrapper = data == null ? null : data.getValue();
             FileTransSessionManger.release(sessionId);
             VirtualThreadPool.execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
         } else {
@@ -126,7 +119,7 @@ public class FileTransChannelDataManager {
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
-        FileTransSessionManger.init(sessionId);
+        FileTransSessionManger.init(sessionId, NumberConstant.SEVENTY_FIVE, Map.entry(context, fileWrapper));
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();

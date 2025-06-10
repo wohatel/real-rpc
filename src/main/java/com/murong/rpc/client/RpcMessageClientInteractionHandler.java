@@ -53,17 +53,11 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
                 RpcSession rpcSession = request.getRpcSession();
                 if (request.isSessionStart()) {
                     RpcSessionContext sessionContext = JSONObject.parseObject(request.getBody(), RpcSessionContext.class);
-                    RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-                    sessionFuture.getContext().set(0, sessionContext);
                     rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession, sessionContext);
                 } else if (request.isSessionRequest()) {
-                    RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-                    RpcSessionContext sessionContext = (RpcSessionContext) sessionFuture.getContext().getFirst();
-                    rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, sessionContext, request);
+                    rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, request);
                 } else if (request.isSessionFinish()) {
-                    RpcSessionFuture rpcSessionFuture = RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
-                    RpcSessionContext sessionContext = (RpcSessionContext) rpcSessionFuture.getContext().getFirst();
-                    rpcSessionRequestMsgHandler.sessionStop(ctx, rpcSession, sessionContext);
+                    rpcSessionRequestMsgHandler.sessionStop(ctx, rpcSession);
                 }
             }
 

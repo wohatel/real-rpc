@@ -1,6 +1,8 @@
 package com.murong.rpc.interaction.common;
 
 import com.murong.rpc.interaction.constant.NumberConstant;
+import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileWrapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
@@ -8,7 +10,9 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -50,17 +54,13 @@ public class FileTransSessionManger {
         return FILE_SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void init(String sessionId) {
-        init(sessionId, 100);
-    }
-
-    public static void init(String sessionId, int cacheBlock) {
+    public static void init(String sessionId, int cacheBlock, Object data) {
         BlockingQueue<FileChunkItem> session = FILE_SESSION_MANAGER.getSession(sessionId);
         if (session != null) {
             throw new RuntimeException("文件session已存在");
         }
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock, Comparator.comparingInt(t -> (int) (t.getSerial())));
-        FILE_SESSION_MANAGER.initSession(sessionId, queue);
+        FILE_SESSION_MANAGER.initSession(sessionId, queue, null, data);
     }
 
     @SneakyThrows
@@ -72,6 +72,9 @@ public class FileTransSessionManger {
         return poll;
     }
 
+    public static Map.Entry<RpcFileContext, RpcFileWrapper> getData(String sessionId) {
+        return (Map.Entry<RpcFileContext, RpcFileWrapper>) FILE_SESSION_MANAGER.getData(sessionId);
+    }
 
     /**
      * 小窗口机制延迟结束

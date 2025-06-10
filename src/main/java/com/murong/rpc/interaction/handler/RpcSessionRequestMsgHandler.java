@@ -26,7 +26,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param request
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcSessionRequest request);
+    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionRequest request);
 
     /**
      * 接收到对方发来的结束会话请求
@@ -34,6 +34,6 @@ public interface RpcSessionRequestMsgHandler {
      * @param rpcSession 会话
      * @param context    上下文信息
      */
-    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
+    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession);
 
 }

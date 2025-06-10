@@ -113,7 +113,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcSessionRequest request) {
+            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request) {
                 String command = request.getCommand();
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 sessionSessionManager.flushTime(rpcSession.getSessionId());
@@ -144,7 +144,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession) {
 
             }
 

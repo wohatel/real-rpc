@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.common;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -26,6 +27,7 @@ public class SessionManager<T> {
     private volatile boolean stop;
     private final Map<String, T> container = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
+    private final Map<String, Object> dataMap = new ConcurrentHashMap<>();
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
     // 清理线程
     private final Thread cleanerThread;
@@ -56,6 +58,7 @@ public class SessionManager<T> {
         this(sessionTime, null);
     }
 
+
     /**
      * 初始化资源
      *
@@ -63,7 +66,7 @@ public class SessionManager<T> {
      * @param resource  资源
      */
     public void initSession(String sessionId, T resource) {
-        this.initSession(sessionId, resource, System.currentTimeMillis() + sessionTime);
+        this.initSession(sessionId, resource, null, null);
     }
 
     /**
@@ -73,20 +76,39 @@ public class SessionManager<T> {
      * @param resource  资源
      */
     public void initSession(String sessionId, T resource, Long expiredAt) {
+        this.initSession(sessionId, resource, expiredAt, null);
+    }
+
+    /**
+     * 初始化资源
+     *
+     * @param sessionId sessionId
+     * @param resource  资源
+     */
+    public void initSession(String sessionId, T resource, Long expiredAt, Object data) {
         if (!stop) {
             T old = container.putIfAbsent(sessionId, resource);
             if (old == null) {
-                timeFlushMap.put(sessionId, new AtomicLong(expiredAt));
-                delayQueue.add(new DelayItem(sessionId, expiredAt));
+                long finalExpiredAt = expiredAt == null ? System.currentTimeMillis() + sessionTime : expiredAt;
+                timeFlushMap.put(sessionId, new AtomicLong(finalExpiredAt));
+                delayQueue.add(new DelayItem(sessionId, finalExpiredAt));
+                if (data != null) {
+                    dataMap.put(sessionId, data);
+                }
             } else {
                 throw new RuntimeException("资源已存在");
             }
         }
     }
 
+    public Object getData(String sessionId) {
+        return dataMap.get(sessionId);
+    }
+
     @SneakyThrows
     public T release(String sessionId) {
         timeFlushMap.remove(sessionId);
+        dataMap.remove(sessionId);
         return container.remove(sessionId);
     }
 
