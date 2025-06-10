@@ -93,7 +93,7 @@ public class SendFileAndInterruptTest {
             };
             RpcFileTransConfig config = new RpcFileTransConfig(100 * 1024 * 1024, 10 * 1024 * 1024, true);
 
-            String sessionId = defaultClient.sendFile(new File("/Users/yaochuang/test/归档.zip"), null, handler, config);
+            defaultClient.sendFile(new File("/Users/yaochuang/test/归档.zip"), null, handler, config);
 
             try {
                 Thread.sleep(10000l);

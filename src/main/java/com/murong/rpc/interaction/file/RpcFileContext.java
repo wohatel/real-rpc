@@ -14,7 +14,4 @@ public class RpcFileContext {
     private final RpcSession rpcSession;    //session
     @Getter
     private final String sourceFileName;//源文件名称
-
-    @Getter
-    private final long chunkHandleTimeOut; // 处理块超时时间
 }

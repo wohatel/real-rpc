@@ -72,24 +72,26 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return f;
     }
 
-    public String sendFile(File file) {
-        return this.sendFile(file, null);
+    public RpcSession sendFile(File file) {
+        RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
+        this.sendFile(file, rpcSession);
+        return rpcSession;
     }
 
-    public String sendFile(File file, RpcSession rpcSession) {
-        return this.sendFile(file, rpcSession, null);
+    public void sendFile(File file, RpcSession rpcSession) {
+        this.sendFile(file, rpcSession, null);
     }
 
-    public String sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler) {
-        return this.sendFile(file, rpcSession, rpcFileTransHandler, null);
+    public void sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler) {
+        this.sendFile(file, rpcSession, rpcFileTransHandler, null);
     }
 
-    public String sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
-        return RpcMsgTransUtil.writeFile(channel, file, rpcSession, rpcFileTransHandler, config);
+    public void sendFile(File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
+        RpcMsgTransUtil.writeFile(channel, file, rpcSession, rpcFileTransHandler, config);
     }
 
-    public void interruptSendFile(String sessioId) {
-        RpcMsgTransUtil.writeStopFile(this.channel, sessioId);
+    public void interruptSendFile(RpcSession rpcSession) {
+        RpcMsgTransUtil.writeStopFile(this.channel, rpcSession);
     }
 
     public void sendMsg(RpcRequest rpcRequest) {

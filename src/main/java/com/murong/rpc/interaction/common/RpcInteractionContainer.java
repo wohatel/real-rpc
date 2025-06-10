@@ -178,8 +178,8 @@ public class RpcInteractionContainer {
             return null;
         }
         if (!future.isSessionFinish()) {
-            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
             future.setSessionFinish(true);
+            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
         }
         return future;
     }

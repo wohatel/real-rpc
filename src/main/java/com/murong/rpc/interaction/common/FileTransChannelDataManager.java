@@ -45,7 +45,7 @@ public class FileTransChannelDataManager {
                 sendStartError(rpcResponse, channel, "请勿开启重复session,请检查");
                 return;
             }
-            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession(), rpcFileRequest.getFileName(), rpcFileRequest.getChunkHandleTimeOut());
+            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession(), rpcFileRequest.getFileName());
             RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
                 sendStartError(rpcResponse, channel, "远端接受文件路径错误:发送终止");
@@ -55,6 +55,11 @@ public class FileTransChannelDataManager {
             readInitFile(channel, rpcFileRequest, context, rpcFileWrapper, rpcFileRequestHandler);
         } else if (rpcFileRequest.isSessionFinish()) {
             String sessionId = rpcFileRequest.getRpcSession().getSessionId();
+            boolean running = FileTransSessionManger.isRunning(sessionId);
+            if (!running) {// 如果已经不再运行,则无需执行
+                return;
+            }
+            // 正常情况下会有data的值
             Map.Entry<RpcFileContext, RpcFileWrapper> data = FileTransSessionManger.getData(sessionId);
             RpcFileContext fileContext = data == null ? null : data.getKey();
             RpcFileWrapper rpcFileWrapper = data == null ? null : data.getValue();
@@ -116,7 +121,7 @@ public class FileTransChannelDataManager {
             // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
-                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isRunning(sessionId), 3, () -> FileTransSessionManger.poll(sessionId, context.getChunkHandleTimeOut() / 3));
+                    FileTransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> FileTransSessionManger.isRunning(sessionId), 3, () -> FileTransSessionManger.poll(sessionId, context.getRpcSession().getTimeOutMillis() / 3));
                     // 拉取之后也要判断是否正常
                     if (poll == null) {
                         if (!FileTransSessionManger.isRunning(sessionId)) {

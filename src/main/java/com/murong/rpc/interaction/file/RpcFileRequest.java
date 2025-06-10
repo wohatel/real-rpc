@@ -13,7 +13,6 @@ public class RpcFileRequest extends RpcSessionRequest {
     private long serial;  // 编号
     private long length;    //文件总大小
     private int cacheBlock; // 缓存块大小
-    private long chunkHandleTimeOut; // 处理块超时时间
     private String fileName;//文件名称
 
     public RpcFileRequest(RpcSession rpcSession) {

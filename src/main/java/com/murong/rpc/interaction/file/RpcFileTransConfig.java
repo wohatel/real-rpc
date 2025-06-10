@@ -7,18 +7,18 @@ import lombok.Data;
 public class RpcFileTransConfig {
 
     public RpcFileTransConfig() {
-        this(NumberConstant.M_10, NumberConstant.K_512, NumberConstant.EIGHT, NumberConstant.TEN_EIGHT_K, true, NumberConstant.SEVENTY_FIVE);
+        this(NumberConstant.M_10, NumberConstant.K_512, NumberConstant.EIGHT, true, NumberConstant.SEVENTY_FIVE);
     }
 
     public RpcFileTransConfig(long speedLimit, boolean tryCompress) {
-        this(speedLimit, NumberConstant.K_512, NumberConstant.EIGHT, NumberConstant.TEN_EIGHT_K, tryCompress, NumberConstant.SEVENTY_FIVE);
+        this(speedLimit, NumberConstant.K_512, NumberConstant.EIGHT, tryCompress, NumberConstant.SEVENTY_FIVE);
     }
 
     public RpcFileTransConfig(long speedLimit, long chunkSize, boolean tryCompress) {
-        this(speedLimit, chunkSize, NumberConstant.EIGHT, NumberConstant.TEN_EIGHT_K, tryCompress, NumberConstant.SEVENTY_FIVE);
+        this(speedLimit, chunkSize, NumberConstant.EIGHT, tryCompress, NumberConstant.SEVENTY_FIVE);
     }
 
-    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, long chunkHandleTimeOut, boolean tryCompress, int compressRatePercent) {
+    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent) {
         if (speedLimit <= 0) {
             throw new RuntimeException("限速不能<=0");
         }
@@ -31,7 +31,6 @@ public class RpcFileTransConfig {
         this.speedLimit = speedLimit;
         this.chunkSize = chunkSize;
         this.cacheBlock = cacheBlock;
-        this.chunkHandleTimeOut = chunkHandleTimeOut;
         this.compressRatePercent = compressRatePercent;
         this.tryCompress = tryCompress;
     }
@@ -50,10 +49,6 @@ public class RpcFileTransConfig {
      * 限制: 本地和远端缓存的块数,时会暂停发送,默认8
      */
     private final int cacheBlock;
-    /**
-     * 单个小块消息处理超时
-     */
-    private final long chunkHandleTimeOut;
 
     /**
      * 尝试压缩

@@ -28,9 +28,7 @@ public class SendFileToClientOfServerTest {
         rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
             if (req.getBody().equals("abcdef")) {
                 VirtualThreadPool.execute(() -> {
-                    RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), (f, transModel) -> {
-                        System.out.println(f);
-                    });
+                    RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"));
                 });
             } else {
                 System.out.println(req);
