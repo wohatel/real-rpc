@@ -1,7 +1,6 @@
 package com.murong.rpc.interaction.common;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -13,6 +12,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -32,6 +32,8 @@ public class SessionManager<T> {
     // 清理线程
     private final Thread cleanerThread;
     private final Consumer<T> sessionClose;
+    private Predicate<T> autoFlushPredicate;
+
     /**
      * 刷新因子(若为0.4)
      * 假如一个请求对应的超时时间为10s, 如果距离超时> 4s,则不刷新,小于4s就去刷新下;
@@ -113,6 +115,14 @@ public class SessionManager<T> {
     }
 
     @SneakyThrows
+    public void releaseAndSessionClose(String sessionId) {
+        T release = release(sessionId);
+        if (this.sessionClose != null) {
+            sessionClose.accept(release);
+        }
+    }
+
+    @SneakyThrows
     public boolean contains(String sessionId) {
         return container.containsKey(sessionId);
     }
@@ -159,7 +169,7 @@ public class SessionManager<T> {
         this.timeFlushMap.clear();
         for (String sessionId : new ArrayList<>(container.keySet())) {
             try {
-                this.release(sessionId);
+                this.releaseAndSessionClose(sessionId);
             } catch (Exception e) {
                 log.log(Level.WARNING, "异常", e);
             }
@@ -172,12 +182,11 @@ public class SessionManager<T> {
      * @param sessionId sessionId
      * @return 刷新下sesssion的最近交互时间
      */
-    public boolean flushTime(String sessionId, long sessionTime) {
+    public boolean flushTime(String sessionId, long sessionTime, boolean force) {
         if (!stop) {
             if (container.containsKey(sessionId)) {
                 AtomicLong atomicLong = timeFlushMap.get(sessionId);
-                boolean needFlushForExpired = RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed);
-                if (needFlushForExpired) {
+                if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
                     long expiredAt = System.currentTimeMillis() + sessionTime;
                     delayQueue.add(new DelayItem(sessionId, expiredAt));
                     timeFlushMap.get(sessionId).set(expiredAt);
@@ -186,6 +195,16 @@ public class SessionManager<T> {
             }
         }
         return false;
+    }
+
+    /**
+     * 刷新时间
+     *
+     * @param sessionId sessionId
+     * @return 刷新下sesssion的最近交互时间
+     */
+    public boolean flushTime(String sessionId, long sessionTime) {
+        return flushTime(sessionId, sessionTime, false);
     }
 
     /**
@@ -205,11 +224,21 @@ public class SessionManager<T> {
         while (!stop) {
             try {
                 DelayItem item = delayQueue.take();
+                T resource = container.get(item.sessionId);
+                if (resource == null) {// 说明已经被移除
+                    continue;
+                }
+                // 自动控制测试是否需要
+                if (autoTest(resource)) {
+                    flushTime(item.sessionId, sessionTime, true);
+                    continue;
+                }
                 AtomicLong expireAt = timeFlushMap.get(item.sessionId);
                 long now = System.currentTimeMillis();
-                if (expireAt == null || now >= expireAt.get()) {
-                    T resource = this.release(item.sessionId);
-                    if (resource != null && sessionClose != null) {
+                if (now >= expireAt.get()) {
+                    // 释放资源
+                    this.release(item.sessionId);
+                    if (sessionClose != null) {
                         // 如果使用线程池关闭任务
                         VirtualThreadPool.execute(() -> {
                             try {
@@ -229,6 +258,21 @@ public class SessionManager<T> {
                 ex.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 校验验证是否成功
+     */
+    private boolean autoTest(T resource) {
+        if (this.autoFlushPredicate == null) {
+            return false;
+        }
+        try {
+            return autoFlushPredicate.test(resource);
+        } catch (Exception e) {
+            log.log(Level.WARNING, "校验失败", e);
+        }
+        return false;
     }
 
 
@@ -252,4 +296,5 @@ public class SessionManager<T> {
             return Long.compare(this.expireAt, ((DelayItem) o).expireAt);
         }
     }
+
 }
