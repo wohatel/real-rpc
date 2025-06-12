@@ -11,8 +11,8 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 
 /**
@@ -32,7 +32,7 @@ public class SessionManager<T> {
     // 清理线程
     private final Thread cleanerThread;
     private final Consumer<T> sessionClose;
-    private Predicate<T> autoFlushPredicate;
+    private BiPredicate<String, T> autoFlushPredicate;
 
     /**
      * 刷新因子(若为0.4)
@@ -229,7 +229,7 @@ public class SessionManager<T> {
                     continue;
                 }
                 // 自动控制测试是否需要
-                if (autoTest(resource)) {
+                if (autoTest(item.sessionId, resource)) {
                     flushTime(item.sessionId, sessionTime, true);
                     continue;
                 }
@@ -263,12 +263,12 @@ public class SessionManager<T> {
     /**
      * 校验验证是否成功
      */
-    private boolean autoTest(T resource) {
+    private boolean autoTest(String sessionId, T resource) {
         if (this.autoFlushPredicate == null) {
             return false;
         }
         try {
-            return autoFlushPredicate.test(resource);
+            return autoFlushPredicate.test(sessionId, resource);
         } catch (Exception e) {
             log.log(Level.WARNING, "校验失败", e);
         }

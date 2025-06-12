@@ -17,10 +17,10 @@ public class ChannelSessionTest {
     public static void main(String[] args) throws InterruptedException {
         SessionManager<String> channelSessionManager = new SessionManager<>(1_000, t -> System.out.println(t + "退出"));
 
-        channelSessionManager.setAutoFlushPredicate(t -> {
+        channelSessionManager.setAutoFlushPredicate((id, r) -> {
             long l = System.currentTimeMillis() % 3;
 
-            System.out.println(t + "此时为继续:" + l);
+            System.out.println(id + "此时为继续:" + l);
             return l != 0;
         });
 
@@ -30,14 +30,14 @@ public class ChannelSessionTest {
             channelSessionManager.initSession(UUID.randomUUID().toString(), i + "a");
         }
 
-        Thread.startVirtualThread(()->{
-            while (true){
+        Thread.startVirtualThread(() -> {
+            while (true) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                System.out.println("剩余数量"+channelSessionManager.getContainer().size());
+                System.out.println("剩余数量" + channelSessionManager.getContainer().size());
             }
         });
 
