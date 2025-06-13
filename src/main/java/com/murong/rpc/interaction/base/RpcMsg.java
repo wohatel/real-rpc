@@ -5,8 +5,6 @@ import com.murong.rpc.interaction.file.RpcFileRequest;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Objects;
 
