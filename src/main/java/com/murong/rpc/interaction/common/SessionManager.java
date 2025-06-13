@@ -43,7 +43,7 @@ public class SessionManager<T> {
     private final double flushSeed;
 
     public SessionManager(long sessionTime, Consumer<T> sessionClose) {
-        this(sessionTime, sessionClose, 0.5);
+        this(sessionTime, sessionClose, 0.618);
     }
 
     public SessionManager(long sessionTime, Consumer<T> sessionClose, double flushSeed) {

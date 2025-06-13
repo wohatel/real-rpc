@@ -48,7 +48,7 @@ public class BashSessionTest {
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         defaultClient.connect();
 
-        RpcSession session = new RpcSession(3000_000);
+        RpcSession session = new RpcSession(10_000);
         RpcSessionFuture objectRpcSessionFuture = defaultClient.startSession(session);
         RpcResponse rpcResponse = objectRpcSessionFuture.get();
         System.out.println(rpcResponse + ":建立session");
