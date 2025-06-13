@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.google.common.util.concurrent.RateLimiter;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
@@ -17,7 +18,7 @@ import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.util.FileUtil;
 import com.murong.rpc.util.ReflectUtil;
-import com.murong.rpc.util.RpcSpeedLimiter;
+import com.murong.rpc.util.RunnerUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import lombok.AccessLevel;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -239,6 +241,10 @@ public class RpcMsgTransUtil {
         if (rpcSession == null) {
             throw new RuntimeException("rpcSession 不能为null,请检查");
         }
+        boolean contains = RpcInteractionContainer.contains(rpcSession.getSessionId());
+        if (contains) {
+            throw new RuntimeException("rpcSession 会话已存在,请检查rpcSession是否重复使用");
+        }
         final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? new RpcFileTransConfig() : rpcFileTransConfig;
         // 封装进度
         RpcFileTransProcess rpcFileTransProcess = new RpcFileTransProcess();
@@ -288,7 +294,7 @@ public class RpcMsgTransUtil {
         VirtualThreadPool.execute(() -> {
             // 判断文件是否尝试压缩,并且适合压缩
             boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
-            RpcSpeedLimiter limiter = new RpcSpeedLimiter(finalConfig.getSpeedLimit());
+            RateLimiter rateLimiter = RateLimiter.create(finalConfig.getSpeedLimit());
             // 池化内存申请
             int poolSize = finalConfig.getCacheBlock();
             int applyMemory = Math.min(poolSize, NumberConstant.EIGHT);
@@ -304,21 +310,22 @@ public class RpcMsgTransUtil {
                     if (rpcFuture.isSessionFinish()) {
                         break;
                     }
-                    // **限速控制**
-                    limiter.waitSpeed(100, 50);
-                    // **检查连接可用性**
-                    boolean isOk = RpcSpeedLimiter.waitUntil(channel::isActive, 100, 50);
-                    if (!isOk) {
+                    if (!channel.isActive()) {
                         throw new RuntimeException("链接不可用");
                     }
-                    boolean isWritable = RpcSpeedLimiter.waitUntil(channel::isWritable, 100, 50);
+                    boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, rpcSession.getTimeOutMillis() / 100);
                     if (!isWritable) {
-                        continue;
+                        throw new RuntimeException("文件发送超时");
                     }
                     // **检测处理块数**差距
-                    RpcSpeedLimiter.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
+                    RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
                     // **计算当前块大小**
                     int thisChunkSize = (int) Math.min(finalConfig.getChunkSize(), fileSize - position);
+                    // **限速控制**
+                    boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
+                    if (!isEnough) {
+                        throw new RuntimeException("文件发送超时: 限速过低");
+                    }
                     // **读取文件数据到 ByteBuffer**
                     ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
                     ByteBuffer bufferIn = bufferRead.nioBuffer(0, thisChunkSize); // 转换为nio
@@ -332,8 +339,6 @@ public class RpcMsgTransUtil {
                     position += bytesRead;
                     // 已发送的数据
                     rpcFileTransProcess.setSendSize(position - writeIndex);
-                    // **限速控制**
-                    limiter.flush(thisChunkSize);
                 }
                 String transStatus = position < fileSize ? "中止" : "完成";
                 log.info("传输" + transStatus + ":" + file.getAbsolutePath());

@@ -36,6 +36,7 @@ public class SendFileToClientOfServerTest {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+                    // 主动终止
                     RpcMsgTransUtil.writeStopFile(cx.channel(), rpcSession);
 
                 });

@@ -22,6 +22,9 @@ public class RpcFileTransConfig {
         if (speedLimit <= 0) {
             throw new RuntimeException("限速不能<=0");
         }
+        if (speedLimit < chunkSize) {
+            throw new RuntimeException("限速不能小于每次发送块大小");
+        }
         if (chunkSize <= 0) {
             throw new RuntimeException("文件每次发送大小不能<=0");
         }

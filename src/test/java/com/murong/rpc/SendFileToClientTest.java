@@ -2,13 +2,17 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcRequest;
+import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
+import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.server.RpcServer;
 
 import java.io.File;
@@ -38,7 +42,10 @@ public class SendFileToClientTest {
             rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
                 if (req.getBody().equals("abcdef")) {
                     VirtualThreadPool.execute(() -> {
-                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"));
+                        RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
+                        RpcFileTransConfig rpcFileTransConfig = new RpcFileTransConfig(NumberConstant.THREE_TEN_K, true);
+//                        new RpcFileTransConfig(NumberConstant.ONE_K, true);
+                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), rpcSession, null, rpcFileTransConfig);
                     });
                 } else {
                     System.out.println(req);

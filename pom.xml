@@ -31,7 +31,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.58.Final</version>
+            <version>4.2.2.Final</version>
         </dependency>
 
         <!-- ********************** plugin ********************** -->
@@ -60,6 +60,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.14.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.4.8-jre</version>
         </dependency>
     </dependencies>
 

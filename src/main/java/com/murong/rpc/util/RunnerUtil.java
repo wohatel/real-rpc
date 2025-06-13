@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -64,5 +65,18 @@ public final class RunnerUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 尝试n次,知道测试ok
+     */
+    public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries) {
+        for (int i = 0; i < maxTries; i++) {
+            if (condition.getAsBoolean()) {
+                return true;
+            }
+            LockSupport.parkNanos(stepMillis * 1_000_000L);
+        }
+        return condition.getAsBoolean();
     }
 }
