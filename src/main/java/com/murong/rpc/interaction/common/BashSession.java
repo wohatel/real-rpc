@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -24,6 +25,7 @@ public class BashSession {
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<String> outputQueue = new LinkedBlockingQueue<>();
     private volatile boolean stop;
+    private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
 
 
     @SneakyThrows
@@ -37,8 +39,8 @@ public class BashSession {
         builder.redirectErrorStream(true); // stderr 合并到 stdout
         process = builder.start();
         this.bashSessionId = process.pid();
-VirtualThreadPool.execute(() -> readStream(process.inputReader()));
-VirtualThreadPool.execute(() -> readStream(process.errorReader()));
+        VirtualThreadPool.execute(() -> readStream(process.inputReader()));
+        VirtualThreadPool.execute(() -> readStream(process.errorReader()));
         consumeMsg(consumer);
     }
 
@@ -52,6 +54,7 @@ VirtualThreadPool.execute(() -> readStream(process.errorReader()));
 
     @SneakyThrows
     public void sendCommand(String cmd) {
+        lastOperateTime.set(System.currentTimeMillis());
         commandQueue.add(cmd);
         BufferedWriter inputWriter = process.outputWriter();
         inputWriter.write(cmd);
@@ -76,6 +79,7 @@ VirtualThreadPool.execute(() -> readStream(process.errorReader()));
      * @throws IOException 异常
      */
     public void sendCtrlC() throws IOException {
+        lastOperateTime.set(System.currentTimeMillis());
         BufferedWriter inputWriter = process.outputWriter();
         inputWriter.write("\u0003"); // Ctrl+C
         inputWriter.flush();
@@ -88,6 +92,7 @@ VirtualThreadPool.execute(() -> readStream(process.errorReader()));
      */
     public void kill2Pid(Long pid) {
         try {
+            lastOperateTime.set(System.currentTimeMillis());
             Process p = new ProcessBuilder("kill", "-2", String.valueOf(pid)).start();
             p.getInputStream().close();
             p.getErrorStream().close();
@@ -104,6 +109,7 @@ VirtualThreadPool.execute(() -> readStream(process.errorReader()));
      */
     public void kill9Pid(Long pid) {
         try {
+            lastOperateTime.set(System.currentTimeMillis());
             Process p = new ProcessBuilder("kill", "-9", String.valueOf(pid)).start();
             p.getInputStream().close();
             p.getErrorStream().close();
@@ -120,7 +126,7 @@ VirtualThreadPool.execute(() -> readStream(process.errorReader()));
      * @param consumer 输出消费
      */
     private void consumeMsg(Consumer<String> consumer) {
-VirtualThreadPool.execute(() -> {
+        VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
             while (!stop) {
                 try {
