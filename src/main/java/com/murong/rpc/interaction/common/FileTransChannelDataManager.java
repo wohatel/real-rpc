@@ -17,6 +17,7 @@ import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,10 +59,9 @@ public class FileTransChannelDataManager {
             if (!running) {// 如果已经不再运行,则无需执行
                 return;
             }
-            // 正常情况下会有data的值
-            Map.Entry<RpcFileContext, RpcFileWrapper> data = FileTransSessionManger.getData(sessionId);
-            RpcFileContext fileContext = data == null ? null : data.getKey();
-            RpcFileWrapper rpcFileWrapper = data == null ? null : data.getValue();
+            Triple<RpcFileContext, RpcFileWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
+            RpcFileContext fileContext = data.getLeft();
+            RpcFileWrapper rpcFileWrapper = data.getMiddle();
             FileTransSessionManger.release(sessionId);
             VirtualThreadPool.execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
         } else {
@@ -112,11 +112,11 @@ public class FileTransChannelDataManager {
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
-        FileTransSessionManger.init(sessionId, NumberConstant.SEVENTY_FIVE, Map.entry(context, fileWrapper));
+        Triple<RpcFileContext, RpcFileWrapper, Channel> triple = Triple.of(context, fileWrapper, channel);
+        FileTransSessionManger.init(sessionId, NumberConstant.SEVENTY_FIVE, triple);
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
-            final RpcFileTransInterrupter interrupter = new RpcFileTransInterrupter(channel, context.getRpcSession().getSessionId());
             // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
@@ -145,7 +145,7 @@ public class FileTransChannelDataManager {
                     RpcMsgTransUtil.write(channel, response);
                     if (isProcessOverride) {
                         // 同步执行
-                        RunnerUtil.execSilent(() -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize, interrupter));
+                        RunnerUtil.execSilent(() -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize));
                     }
                     handleChunks.incrementAndGet();
                 }

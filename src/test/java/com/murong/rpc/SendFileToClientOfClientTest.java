@@ -2,6 +2,7 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcRequest;
+import com.murong.rpc.interaction.common.FileTransSessionManger;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -43,10 +44,11 @@ public class SendFileToClientOfClientTest {
             }
 
             @Override
-            public void onProcess(final RpcFileContext context, RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
+            public void onProcess(final RpcFileContext context, RpcFileWrapper rpcFileWrapper, long recieveSize) {
                 System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
-                if (recieveSize > 40000){
-                    interrupter.interrupt();
+                if (recieveSize > 40000) {
+                    System.out.println("断开");
+                    RpcFileTransInterrupter.interrupt(context.getRpcSession().getSessionId());
                 }
             }
 

@@ -27,7 +27,7 @@ public interface RpcFileRequestHandler {
      * @param interrupter: 接收方主动中断接收
      * @param context      文件上下文
      */
-    default void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
+    default void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize) {
 
     }
 

@@ -4,10 +4,12 @@ import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -71,8 +73,8 @@ public class FileTransSessionManger {
         return poll;
     }
 
-    public static Map.Entry<RpcFileContext, RpcFileWrapper> getData(String sessionId) {
-        return (Map.Entry<RpcFileContext, RpcFileWrapper>) FILE_SESSION_MANAGER.getData(sessionId);
+    public static Triple<RpcFileContext, RpcFileWrapper, Channel> getData(String sessionId) {
+        return (Triple<RpcFileContext, RpcFileWrapper, Channel>) FILE_SESSION_MANAGER.getData(sessionId);
     }
 
     /**
@@ -142,4 +144,5 @@ public class FileTransSessionManger {
             ReferenceCountUtil.safeRelease(byteBuf);
         }
     }
+
 }

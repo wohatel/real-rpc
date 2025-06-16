@@ -4,22 +4,22 @@ import com.murong.rpc.interaction.common.FileTransSessionManger;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.base.RpcResponse;
 import io.netty.channel.Channel;
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Triple;
 
-@RequiredArgsConstructor
+/**
+ * @author yaochuang
+ */
 public class RpcFileTransInterrupter {
 
-    private final Channel channel;
-    private final String sessionId;
-
-    public synchronized void interrupt() {
+    public static void interrupt(String sessionId) {
         if (FileTransSessionManger.isRunning(sessionId)) {
-            FileTransSessionManger.release(sessionId);
+            Triple<RpcFileContext, RpcFileWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
             RpcResponse response = new RpcResponse();
             response.setRequestId(sessionId);
             response.setSuccess(false);
             response.setMsg("接收端终止");
-            RpcMsgTransUtil.write(channel, response);
+            RpcMsgTransUtil.write(data.getRight(), response);
+            FileTransSessionManger.release(sessionId);
         }
     }
 
