@@ -143,18 +143,22 @@ public class FileTransChannelDataManager {
                     long recieveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
                     response.setBody(String.valueOf(recieveSize));
                     RpcMsgTransUtil.write(channel, response);
-                    VirtualThreadPool.execute(isProcessOverride, () -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize, interrupter));
+                    if (isProcessOverride) {
+                        // 同步执行
+                        RunnerUtil.execSilent(() -> rpcFileRequestHandler.onProcess(context, fileWrapper, recieveSize, interrupter));
+                    }
                     handleChunks.incrementAndGet();
                 }
-                // 如果结束了,则会认为处理完毕所有的块
-                VirtualThreadPool.execute(handleChunks.get() == chunks, () -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+                if (handleChunks.get() == chunks) {
+                    RunnerUtil.execSilent(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+                }
             }
         } catch (Exception e) {
             log.log(Level.WARNING, "异常", e);
             response.setMsg(e.getMessage());
             response.setSuccess(false);
             RpcMsgTransUtil.write(channel, response);
-            VirtualThreadPool.execute(() -> rpcFileRequestHandler.onFailure(context, fileWrapper, e));
+            RunnerUtil.execSilent(() -> rpcFileRequestHandler.onFailure(context, fileWrapper, e));
         } finally {
             FileTransSessionManger.release(sessionId);
         }

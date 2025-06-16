@@ -12,7 +12,6 @@ import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
-import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.server.RpcServer;
 
 import java.io.File;
