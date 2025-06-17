@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
@@ -10,6 +11,7 @@ import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.util.JsonUtil;
 import com.murong.rpc.util.ReflectUtil;
 import com.murong.rpc.util.RunnerUtil;
 import io.netty.buffer.ByteBuf;
@@ -17,6 +19,7 @@ import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.File;
@@ -45,7 +48,9 @@ public class FileTransChannelDataManager {
                 sendStartError(rpcResponse, channel, "请勿开启重复session,请检查");
                 return;
             }
-            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getRpcSession(), rpcFileRequest.getFileName());
+            String body = rpcFileRequest.getBody();
+            RpcSessionContext sessionContext = JsonUtil.fromJson(body, RpcSessionContext.class);
+            RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getFileName(), rpcFileRequest.getRpcSession(), sessionContext);
             RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
                 sendStartError(rpcResponse, channel, "远端接受文件路径错误:发送终止");

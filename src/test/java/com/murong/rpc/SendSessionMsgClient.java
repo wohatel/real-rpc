@@ -4,6 +4,7 @@ import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
+import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.handler.RpcResponseMsgListener;
 
 /**
@@ -22,10 +23,14 @@ public class SendSessionMsgClient {
 
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         defaultClient.connect();
-        RpcSession oo = new RpcSession(10000, "oo");
+
+        Thread.sleep(100);
+
+        RpcSession oo = new RpcSession(10000);
         System.out.println(oo.getSessionId());
-        RpcSessionFuture rpcFuture = defaultClient.startSession(oo);
+        RpcSessionFuture rpcFuture = defaultClient.startSession(oo,new RpcSessionContext());
         RpcResponse response = rpcFuture.get();
+        System.out.println(response.getMsg());
         System.out.println(Thread.currentThread());
         System.out.println(response);
 
@@ -44,7 +49,6 @@ public class SendSessionMsgClient {
             }
         });
         Thread.sleep(1000);
-        defaultClient.finishSession(oo);
 
     }
 

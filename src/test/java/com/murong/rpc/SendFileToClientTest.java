@@ -44,7 +44,7 @@ public class SendFileToClientTest {
                         RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
                         RpcFileTransConfig rpcFileTransConfig = new RpcFileTransConfig(NumberConstant.THREE_TEN_K, true);
 //                        new RpcFileTransConfig(NumberConstant.ONE_K, true);
-                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), rpcSession, null, rpcFileTransConfig);
+                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), rpcSession);
                     });
                 } else {
                     System.out.println(req);

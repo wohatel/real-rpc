@@ -1,14 +1,11 @@
 package com.murong.rpc;
 
-import com.murong.rpc.client.RpcDefaultClient;
-import com.murong.rpc.interaction.base.RpcFuture;
-import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
-import com.murong.rpc.interaction.common.VirtualThreadPool;
-import com.murong.rpc.interaction.handler.RpcResponseMsgListener;
+import com.murong.rpc.interaction.common.RpcSessionContext;
+import com.murong.rpc.interaction.common.RpcSessionManager;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,9 +30,10 @@ public class SendSessionMsgServer {
         rpcServer.setRpcSessionRequestMsgHandler(new RpcSessionRequestMsgHandler() {
             @Override
             public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession) {
+                RpcSessionContext context = RpcSessionManager.getContext(rpcSession.getSessionId());
+                System.out.println("你传入了:"+context.getTopic());
                 new Thread(() -> {
                     // 主题是什么
-                    System.out.println(rpcSession.getTopic() + ":" + rpcSession.getSessionId());
                     RpcResponse response = rpcSession.toResponse();
                     response.setBody("db");
                     RpcMsgTransUtil.write(ctx.channel(), response);

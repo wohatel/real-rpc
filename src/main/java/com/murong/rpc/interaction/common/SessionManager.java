@@ -98,7 +98,7 @@ public class SessionManager<T> {
                     dataMap.put(sessionId, data);
                 }
             } else {
-                throw new RuntimeException("资源已存在");
+                throw new RuntimeException("session资源已存在");
             }
         }
     }

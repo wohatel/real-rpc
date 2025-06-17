@@ -11,25 +11,18 @@ import java.util.UUID;
  */
 @Getter
 public class RpcSession {
-    private String sessionId;
-    private long timeOutMillis;
-    private String topic;
-    private String[] metters;
+    private final String sessionId;
+    private final long timeOutMillis;
 
     public RpcSession(long timeOutMillis) {
-        this(timeOutMillis, null);
+        this(UUID.randomUUID().toString(), timeOutMillis);
     }
 
-    private RpcSession(String sessionId, long timeOutMillis, String topic, String... metters) {
+    public RpcSession(String sessionId, long timeOutMillis) {
         this.sessionId = sessionId;
         this.timeOutMillis = timeOutMillis;
-        this.topic = topic;
-        this.metters = metters;
     }
 
-    public RpcSession(long timeOutMillis, String topic, String... metters) {
-        this(UUID.randomUUID().toString(), timeOutMillis, topic, metters);
-    }
 
     public RpcResponse toResponse() {
         RpcResponse response = new RpcResponse();

@@ -1,6 +1,7 @@
 package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.google.common.util.concurrent.RateLimiter;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
@@ -142,6 +143,32 @@ public class RpcMsgTransUtil {
      * @param channel    通道
      * @param rpcSession rpc请求
      */
+    public static RpcSessionFuture sendSessionStartRequest(Channel channel, RpcSession rpcSession, RpcSessionContext context) {
+        if (rpcSession == null) {
+            throw new RuntimeException("rpcSession标识不能为空");
+        }
+        if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+            throw new RuntimeException("会话已存在,请直接发送会话消息");
+        }
+        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
+        rpcRequest.setSessionProcess(RpcSessionProcess.START);
+        if (context != null) {
+            rpcRequest.setBody(JSONObject.toJSONString(context));
+        }
+        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
+        sendMsg(channel, rpcRequest);
+        return rpcFuture;
+    }
+
+    /**
+     * 不需要针对某个请求做反应
+     * 持续性接受消息,双向协议
+     * 应用在: 建立会话基础上
+     * a发送一条(或多条消息),b也可以发送一条或多条消息; 他们之间以会话关联
+     *
+     * @param channel    通道
+     * @param rpcSession rpc请求
+     */
     public static void sendSessionFinishRequest(Channel channel, RpcSession rpcSession) {
         if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
             return;
@@ -158,8 +185,28 @@ public class RpcMsgTransUtil {
      * @param file    文件
      */
     @SneakyThrows
-    public static void writeFile(Channel channel, File file, RpcSession rpcSession, RpcFileTransHandler rpcFileTransHandler) {
-        writeFile(channel, file, rpcSession, rpcFileTransHandler, null);
+    public static void writeFile(Channel channel, File file, RpcSession rpcSession, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler) {
+        writeFile(channel, file, rpcSession, context, rpcFileTransHandler, null);
+    }
+
+    /**
+     * @param channel 发送文件的通道
+     * @param file    文件
+     */
+    @SneakyThrows
+    public static void writeFile(Channel channel, File file, RpcSession rpcSession, RpcSessionContext context) {
+        writeFile(channel, file, rpcSession, context, null);
+    }
+
+    /**
+     * @param channel 发送文件的通道
+     * @param file    文件
+     */
+    @SneakyThrows
+    public static RpcSession writeFile(Channel channel, File file, RpcSessionContext context) {
+        RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
+        writeFile(channel, file, rpcSession, context);
+        return rpcSession;
     }
 
     /**
@@ -168,7 +215,7 @@ public class RpcMsgTransUtil {
      */
     @SneakyThrows
     public static void writeFile(Channel channel, File file, RpcSession rpcSession) {
-        writeFile(channel, file, rpcSession, null, null);
+        writeFile(channel, file, rpcSession, null);
     }
 
     /**
@@ -178,7 +225,7 @@ public class RpcMsgTransUtil {
     @SneakyThrows
     public static RpcSession writeFile(Channel channel, File file) {
         RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
-        writeFile(channel, file, rpcSession);
+        writeFile(channel, file, rpcSession, null);
         return rpcSession;
     }
 
@@ -196,13 +243,16 @@ public class RpcMsgTransUtil {
     }
 
     @SneakyThrows
-    private static RpcSessionFuture writeStartFile(Channel channel, File file, RpcFileTransConfig fileTransConfig, RpcSession rpcSession) {
+    private static RpcSessionFuture writeStartFile(Channel channel, File file, RpcFileTransConfig fileTransConfig, RpcSession rpcSession, RpcSessionContext context) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
         rpcFileRequest.setLength(file.length());
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
         rpcFileRequest.setCacheBlock(fileTransConfig.getCacheBlock());
         rpcFileRequest.setFileName(file.getName());
         rpcFileRequest.setSessionProcess(RpcSessionProcess.START);
+        if (context != null) {
+            rpcFileRequest.setBody(JSONObject.toJSONString(context));
+        }
         // 设置需要返回结果
         rpcFileRequest.setNeedResponse(true);
         RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcFileRequest);
@@ -231,7 +281,7 @@ public class RpcMsgTransUtil {
      * @param rpcFileTransConfig  文件传输的限制
      * @return String             文件传输标识
      */
-    public static void writeFile(Channel channel, File file, final RpcSession rpcSession, final RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig rpcFileTransConfig) {
+    public static void writeFile(Channel channel, File file, final RpcSession rpcSession, RpcSessionContext context, final RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig rpcFileTransConfig) {
         if (file == null || !file.exists()) {
             throw new RuntimeException("文件不存在");
         }
@@ -252,7 +302,7 @@ public class RpcMsgTransUtil {
         rpcFileTransProcess.setSendSize(0L);
         rpcFileTransProcess.setRemoteHandleSize(0L);
 
-        RpcSessionFuture rpcFuture = writeStartFile(channel, file, finalConfig, rpcSession);
+        RpcSessionFuture rpcFuture = writeStartFile(channel, file, finalConfig, rpcSession, context);
         RpcResponse startResponse = rpcFuture.get();
         String responseBody = startResponse.getBody();
         JSONArray array = JSONArray.parseArray(responseBody);

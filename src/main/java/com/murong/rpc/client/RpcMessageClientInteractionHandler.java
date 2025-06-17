@@ -1,5 +1,6 @@
 package com.murong.rpc.client;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
@@ -8,15 +9,19 @@ import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
+import com.murong.rpc.interaction.common.RpcSessionContext;
+import com.murong.rpc.interaction.common.RpcSessionManager;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
+import com.murong.rpc.util.JsonUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author yaochuang
@@ -47,13 +52,20 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
 
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
-                RpcSession rpcSession = request.getRpcSession();
+                RpcSession session = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, rpcSession);
+                    RpcSessionContext rpcSessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
+                    RpcSessionManager.init(session.getSessionId(), rpcSessionContext, session.getTimeOutMillis());
+                    rpcSessionRequestMsgHandler.sessionStart(ctx, session);
                 } else if (request.isSessionRequest()) {
-                    rpcSessionRequestMsgHandler.channelRead(ctx, rpcSession, request);
+                    RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
+                    rpcSessionRequestMsgHandler.channelRead(ctx, session, request);
                 } else if (request.isSessionFinish()) {
-                    rpcSessionRequestMsgHandler.sessionStop(ctx, rpcSession);
+                    try {
+                        rpcSessionRequestMsgHandler.sessionStop(ctx, session);
+                    } finally {
+                        RpcSessionManager.release(session.getSessionId());
+                    }
                 }
             }
 
