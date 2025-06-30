@@ -2,7 +2,11 @@ package com.murong.rpc;
 
 
 import com.murong.rpc.client.RpcAutoReconnectClient;
+import com.murong.rpc.interaction.base.RpcRequest;
+import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 
 public class ReconnectClientTest {
 
@@ -16,14 +20,26 @@ public class ReconnectClientTest {
     public static void main(String[] args) throws InterruptedException {
         serverStart();
         RpcAutoReconnectClient test = test();
+
         Thread.sleep(3000);
         test.getChannel().close();
+
+
+        Thread.sleep(3000);
+        test.sendMsg(new RpcRequest());
+        test.sendMsg(new RpcRequest());
     }
 
 
     public static RpcServer serverStart() {
         RpcServer rpcServer = new RpcServer(8765);
         rpcServer.start();
+        rpcServer.setRpcSimpleRequestMsgHandler(new RpcSimpleRequestMsgHandler() {
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
+                System.out.println(request.getRequestId());
+            }
+        });
         return rpcServer;
     }
 

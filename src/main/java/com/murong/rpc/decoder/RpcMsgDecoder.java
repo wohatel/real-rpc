@@ -16,6 +16,11 @@ import java.util.List;
 public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        int readableBytes = in.readableBytes();
+        if (readableBytes < 8) {
+            in.resetReaderIndex();
+            return; // 不够读长度字段
+        }
         RpcMsg msg = new RpcMsg();
         byte isCompress = in.readByte();
         msg.setNeedCompress(isCompress == 1);

@@ -1,12 +1,15 @@
 package com.murong.rpc.server;
 
+import com.murong.rpc.initializer.RpcMessageInteractionHandler;
 import com.murong.rpc.initializer.RpcMsgChannelInitializer;
+import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -33,7 +36,12 @@ public class RpcServer implements AutoCloseable {
     private final RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
     @Getter
-    private final RpcMessageServerInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageServerInteractionHandler();
+    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler() {
+        @Override
+        protected void handleHeart(ChannelHandlerContext ctx, Object msg) {
+            RpcMsgTransUtil.sendHeart(ctx.channel());
+        }
+    };
 
     public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
         this.port = port;

@@ -1,5 +1,6 @@
 package com.murong.rpc.interaction.file;
 
+import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.FileTransSessionManger;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.base.RpcResponse;
@@ -21,6 +22,10 @@ public class RpcFileTransInterrupter {
             RpcMsgTransUtil.write(data.getRight(), response);
             FileTransSessionManger.release(sessionId);
         }
+    }
+
+    public static void interrupt(RpcSession rpcSession) {
+        interrupt(rpcSession.getSessionId());
     }
 
 }

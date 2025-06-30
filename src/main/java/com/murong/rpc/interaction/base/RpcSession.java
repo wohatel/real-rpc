@@ -1,5 +1,7 @@
 package com.murong.rpc.interaction.base;
 
+import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileRequest;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -28,6 +30,14 @@ public class RpcSession {
         RpcResponse response = new RpcResponse();
         response.setRequestId(this.sessionId);
         return response;
+    }
+
+    public RpcSessionRequest toRpcSessionRequest() {
+        return new RpcSessionRequest(this);
+    }
+
+    public RpcFileRequest toRpcFileRequest() {
+        return new RpcFileRequest(this);
     }
 
 }

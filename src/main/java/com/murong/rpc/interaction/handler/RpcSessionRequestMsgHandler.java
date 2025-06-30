@@ -2,6 +2,7 @@ package com.murong.rpc.interaction.handler;
 
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
+import com.murong.rpc.interaction.common.RpcSessionContext;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -16,7 +17,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param rpcSession
      */
-    void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession);
+    void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
 
     /**
      * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
@@ -24,13 +25,13 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param request
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionRequest request);
+    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionRequest request, final RpcSessionContext context);
 
     /**
      * 接收到对方发来的结束会话请求
      *
      * @param rpcSession 会话
      */
-    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession);
+    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
 
 }

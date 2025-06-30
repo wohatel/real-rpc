@@ -41,8 +41,8 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
 
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-        pipeline.addLast("decompress", new RpcMsgCompressEncoder());
-        pipeline.addLast("compress", new RpcMsgCompressDecoder());
+        pipeline.addLast("decompress", new RpcMsgCompressDecoder());
+        pipeline.addLast("compress", new RpcMsgCompressEncoder());
         pipeline.addLast("decoder", new RpcMsgDecoder());
         pipeline.addLast("encoder", new RpcMsgEncoder());
 

@@ -1,6 +1,5 @@
-package com.murong.rpc.client;
+package com.murong.rpc.initializer;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
@@ -21,16 +20,18 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
-import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author yaochuang
+ * description
+ *
+ * @author yaochuang 2025/06/30 17:33
  */
 @Setter
 @Getter
 @ChannelHandler.Sharable
 @Log
-public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAdapter {
+public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
+
     private RpcFileRequestHandler rpcFileRequestHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
@@ -54,15 +55,29 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    RpcSessionContext rpcSessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                    RpcSessionManager.init(session.getSessionId(), rpcSessionContext, session.getTimeOutMillis());
-                    rpcSessionRequestMsgHandler.sessionStart(ctx, session);
+                    if (RpcSessionManager.isRunning(session.getSessionId())) {
+                        RpcResponse response = request.toResponse();
+                        response.setMsg("{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复");
+                        response.setSuccess(false);
+                        RpcMsgTransUtil.write(ctx.channel(), response);
+                    } else {
+                        RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
+                        RpcSessionManager.init(session.getSessionId(), context, session.getTimeOutMillis());
+                        rpcSessionRequestMsgHandler.sessionStart(ctx, session, context);
+                    }
                 } else if (request.isSessionRequest()) {
-                    RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
-                    rpcSessionRequestMsgHandler.channelRead(ctx, session, request);
+                    boolean flushed = RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
+                    if (flushed) {
+                        RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
+                        rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
+                    }
                 } else if (request.isSessionFinish()) {
                     try {
-                        rpcSessionRequestMsgHandler.sessionStop(ctx, session);
+                        boolean running = RpcSessionManager.isRunning(request.getRpcSession().getSessionId());
+                        if (running) {
+                            RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
+                            rpcSessionRequestMsgHandler.sessionStop(ctx, session, context);
+                        }
                     } finally {
                         RpcSessionManager.release(session.getSessionId());
                     }
@@ -71,11 +86,15 @@ public class RpcMessageClientInteractionHandler extends ChannelInboundHandlerAda
 
             case file -> FileTransChannelDataManager.channelRead(ctx.channel(), rpcMsg, rpcFileRequestHandler);
 
-            case heart -> ctx.fireChannelRead(msg);
+            case heart -> this.handleHeart(ctx, msg);
 
             default -> {
             }
         }
+    }
+
+    protected void handleHeart(ChannelHandlerContext ctx, Object msg) {
+        RpcMsgTransUtil.sendHeart(ctx.channel());
     }
 
 

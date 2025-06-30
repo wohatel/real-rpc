@@ -4,6 +4,7 @@ import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
+import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.handler.RpcResponseMsgListener;
 
@@ -30,7 +31,7 @@ public class SendSessionMsgClient {
         System.out.println(oo.getSessionId());
         RpcSessionFuture rpcFuture = defaultClient.startSession(oo,new RpcSessionContext());
         RpcResponse response = rpcFuture.get();
-        System.out.println(response.getMsg());
+        System.out.println(response.getBody());
         System.out.println(Thread.currentThread());
         System.out.println(response);
 
@@ -48,7 +49,14 @@ public class SendSessionMsgClient {
                 System.out.println("超时");
             }
         });
+        RpcSessionRequest rpcSessionRequest = oo.toRpcSessionRequest();
+
+        rpcSessionRequest.setBody("你好");
+        defaultClient.sendSessionMsg(rpcSessionRequest);
         Thread.sleep(1000);
+        defaultClient.finishSession(oo);
+
+        defaultClient.close();
 
     }
 

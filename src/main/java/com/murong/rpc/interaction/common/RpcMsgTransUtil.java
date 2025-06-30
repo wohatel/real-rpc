@@ -121,17 +121,7 @@ public class RpcMsgTransUtil {
      * @param rpcSession rpc请求
      */
     public static RpcSessionFuture sendSessionStartRequest(Channel channel, RpcSession rpcSession) {
-        if (rpcSession == null) {
-            throw new RuntimeException("rpcSession标识不能为空");
-        }
-        if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
-            throw new RuntimeException("会话已存在,请直接发送会话消息");
-        }
-        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.START);
-        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
-        sendMsg(channel, rpcRequest);
-        return rpcFuture;
+        return sendSessionStartRequest(channel, rpcSession, null);
     }
 
     /**
@@ -149,6 +139,9 @@ public class RpcMsgTransUtil {
         }
         if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
             throw new RuntimeException("会话已存在,请直接发送会话消息");
+        }
+        if (RpcSessionManager.isRunning(rpcSession.getSessionId())) {
+            throw new RuntimeException("会话已存在,请创建新会话");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.START);
@@ -294,6 +287,10 @@ public class RpcMsgTransUtil {
         boolean contains = RpcInteractionContainer.contains(rpcSession.getSessionId());
         if (contains) {
             throw new RuntimeException("rpcSession 会话已存在,请检查rpcSession是否重复使用");
+        }
+        boolean running = FileTransSessionManger.isRunning(rpcSession.getSessionId());
+        if (running) {
+            throw new RuntimeException("rpcSession 会话已存在,请更换新的会话");
         }
         final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? new RpcFileTransConfig() : rpcFileTransConfig;
         // 封装进度

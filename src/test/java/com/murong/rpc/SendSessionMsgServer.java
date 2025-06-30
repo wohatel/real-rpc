@@ -5,7 +5,6 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
-import com.murong.rpc.interaction.common.RpcSessionManager;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,9 +28,8 @@ public class SendSessionMsgServer {
         RpcServer rpcServer = new RpcServer(8765);
         rpcServer.setRpcSessionRequestMsgHandler(new RpcSessionRequestMsgHandler() {
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession) {
-                RpcSessionContext context = RpcSessionManager.getContext(rpcSession.getSessionId());
-                System.out.println("你传入了:"+context.getTopic());
+            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+                System.out.println("你传入了:" + context.getTopic());
                 new Thread(() -> {
                     // 主题是什么
                     RpcResponse response = rpcSession.toResponse();
@@ -41,13 +39,16 @@ public class SendSessionMsgServer {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request) {
+            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request, RpcSessionContext context) {
                 // 这是要干嘛
                 System.out.println("read:" + request.getBody());
+                RpcResponse response = rpcSession.toResponse();
+                response.setBody("收到");
+                RpcMsgTransUtil.write(ctx.channel(), response);
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession) {
+            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("结束:");
             }
         });

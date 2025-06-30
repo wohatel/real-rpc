@@ -1,7 +1,6 @@
 package com.murong.rpc.interaction.handler;
 
 import com.murong.rpc.interaction.file.RpcFileContext;
-import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileWrapper;
 
 /**

@@ -7,12 +7,14 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.BashSession;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
+import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.SessionManager;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.internal.StringUtil;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -92,7 +94,7 @@ public class BashSessionTest {
         RpcServer rpcServer = new RpcServer(8765, new NioEventLoopGroup(), new NioEventLoopGroup());
         RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler = new RpcSessionRequestMsgHandler() {
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession) {
+            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 if (session == null) {
                     BashSession bashSession = new BashSession(rs -> {
@@ -108,7 +110,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request) {
+            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request, RpcSessionContext context) {
                 String command = request.getCommand();
                 BashSession session = sessionSessionManager.getSession(rpcSession.getSessionId());
                 sessionSessionManager.flushTime(rpcSession.getSessionId());
@@ -139,7 +141,7 @@ public class BashSessionTest {
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession) {
+            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
 
             }
 
