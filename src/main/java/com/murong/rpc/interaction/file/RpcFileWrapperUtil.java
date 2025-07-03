@@ -13,7 +13,7 @@ import java.nio.file.Path;
  * @author yaochuang 2025/05/13 14:41
  */
 @Getter
-public class RpcFileWrapper {
+public class RpcFileWrapperUtil {
 
     /**
      * 文件位置
@@ -41,16 +41,9 @@ public class RpcFileWrapper {
     /**
      * @param file 目标文件存储
      */
-    public RpcFileWrapper(File file, RpcFileTransModel transModel) {
+    public RpcFileWrapperUtil(File file, RpcFileTransModel transModel) {
         this.file = file;
         this.transModel = transModel == null ? RpcFileTransModel.REBUILD : transModel;
-    }
-
-    /**
-     * @param file 目标文件存储
-     */
-    public RpcFileWrapper(File file) {
-        this(file, null);
     }
 
     public void init(long remoteFileSize) {
@@ -126,5 +119,14 @@ public class RpcFileWrapper {
     public boolean isInterruptByInit() {
         // 不需要传输文件,并且没有异常
         return !this.needTrans && StringUtils.isBlank(this.msg);
+    }
+
+    /**
+     * 初始化阶段就结束
+     *
+     * @return
+     */
+    public static RpcFileWrapperUtil fromLocalWrapper(RpcFileLocalWrapper localWrapper) {
+        return new RpcFileWrapperUtil(localWrapper.getFile(), localWrapper.getTransModel());
     }
 }

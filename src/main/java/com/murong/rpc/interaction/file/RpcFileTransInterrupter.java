@@ -14,7 +14,7 @@ public class RpcFileTransInterrupter {
 
     public static void interrupt(String sessionId) {
         if (FileTransSessionManger.isRunning(sessionId)) {
-            Triple<RpcFileContext, RpcFileWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
+            Triple<RpcFileContext, RpcFileLocalWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
             RpcResponse response = new RpcResponse();
             response.setRequestId(sessionId);
             response.setSuccess(false);

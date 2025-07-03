@@ -12,6 +12,7 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionProcess;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.constant.NumberConstant;
+import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -306,13 +307,14 @@ public class RpcMsgTransUtil {
         Boolean needTrans = array.getBoolean(0);
         RpcFileTransModel transModel = RpcFileTransModel.nameOf(array.getString(1));
         Long writeIndex = array.getLong(2);
-        String msg = array.getString(3);
+        String filePath = array.getString(3);
+        RpcFileRemoteWrapper rpcFileRemoteWrapper = new RpcFileRemoteWrapper(filePath, transModel);
         if (!needTrans) {
             rpcFuture.setSessionFinish(true);
-            if (StringUtils.isBlank(msg)) {
-                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, transModel));
+            if (StringUtils.isBlank(startResponse.getMsg())) {
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
             } else {
-                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, transModel, startResponse.getMsg()));
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemoteWrapper, startResponse.getMsg()));
             }
             log.warning("接收方不接收文件");
             return;
@@ -326,10 +328,10 @@ public class RpcMsgTransUtil {
                 long handleSize = Long.parseLong(body);
                 rpcFileTransProcess.setRemoteHandleSize(handleSize);
                 if (isOverWriteOnProcess) {
-                    VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, transModel, rpcFileTransProcess.copy()));
+                    VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess.copy()));
                 }
                 if (handleSize == rpcFileTransProcess.getFileSize()) {
-                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, transModel));
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
                 }
             } else {
                 log.warning("发送端收到来自接收方的异常消息:" + response.getMsg());
@@ -394,7 +396,7 @@ public class RpcMsgTransUtil {
                 errorMsg.set(e.getMessage());
             } finally {
                 try {
-                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, transModel, errorMsg.get()));
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemoteWrapper, errorMsg.get()));
                     Thread.sleep(NumberConstant.ONE_POINT_FILE_K);
                     ByteBufPoolManager.destory(rpcSession.getSessionId());
                     rpcFuture.release();

@@ -1,7 +1,7 @@
 package com.murong.rpc.interaction.handler;
 
 import com.murong.rpc.interaction.file.RpcFileContext;
-import com.murong.rpc.interaction.file.RpcFileWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
 
 /**
  * 文件接收端处理事件接口
@@ -16,7 +16,7 @@ public interface RpcFileRequestHandler {
      * @param context 文件上下文
      * @return 存储文件对象（如果返回 null，表示拒绝存储）
      */
-    RpcFileWrapper getTargetFile(final RpcFileContext context);
+    RpcFileLocalWrapper getTargetFile(final RpcFileContext context);
 
     /**
      * 远程接收文件的进度,每次有变化就会触发
@@ -25,7 +25,7 @@ public interface RpcFileRequestHandler {
      *
      * @param context      文件上下文
      */
-    default void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize) {
+    default void onProcess(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper, long recieveSize) {
 
     }
 
@@ -35,7 +35,7 @@ public interface RpcFileRequestHandler {
      * @param context 文件上下文
      * @param e       发生的异常
      */
-    default void onFailure(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, final Exception e) {
+    default void onFailure(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper, final Exception e) {
 
     }
 
@@ -44,7 +44,7 @@ public interface RpcFileRequestHandler {
      *
      * @param context 文件上下文
      */
-    default void onSuccess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+    default void onSuccess(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
 
     }
 
@@ -53,7 +53,7 @@ public interface RpcFileRequestHandler {
      *
      * @param context 文件上下文
      */
-    default void onStop(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+    default void onStop(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
 
     }
 }

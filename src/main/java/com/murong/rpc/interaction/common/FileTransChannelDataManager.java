@@ -1,15 +1,14 @@
 package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
 import com.murong.rpc.interaction.file.RpcFileRequest;
-import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
-import com.murong.rpc.interaction.file.RpcFileWrapper;
+import com.murong.rpc.interaction.file.RpcFileWrapperUtil;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.util.JsonUtil;
 import com.murong.rpc.util.ReflectUtil;
@@ -19,7 +18,6 @@ import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.File;
@@ -27,7 +25,6 @@ import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
@@ -51,7 +48,7 @@ public class FileTransChannelDataManager {
             String body = rpcFileRequest.getBody();
             RpcSessionContext sessionContext = JsonUtil.fromJson(body, RpcSessionContext.class);
             RpcFileContext context = new RpcFileContext(System.currentTimeMillis(), rpcFileRequest.getLength(), rpcFileRequest.getFileName(), rpcFileRequest.getRpcSession(), sessionContext);
-            RpcFileWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
+            RpcFileLocalWrapper rpcFileWrapper = rpcFileRequestHandler.getTargetFile(context);
             if (rpcFileWrapper == null) {
                 sendStartError(rpcResponse, channel, "远端接受文件路径错误:发送终止");
                 return;
@@ -64,9 +61,9 @@ public class FileTransChannelDataManager {
             if (!running) {// 如果已经不再运行,则无需执行
                 return;
             }
-            Triple<RpcFileContext, RpcFileWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
+            Triple<RpcFileContext, RpcFileLocalWrapper, Channel> data = FileTransSessionManger.getData(sessionId);
             RpcFileContext fileContext = data.getLeft();
-            RpcFileWrapper rpcFileWrapper = data.getMiddle();
+            RpcFileLocalWrapper rpcFileWrapper = data.getMiddle();
             FileTransSessionManger.release(sessionId);
             VirtualThreadPool.execute(() -> rpcFileRequestHandler.onStop(fileContext, rpcFileWrapper));
         } else {
@@ -91,33 +88,35 @@ public class FileTransChannelDataManager {
         }
     }
 
-    private static void readInitFile(Channel channel, RpcFileRequest rpcFileRequest, RpcFileContext context, RpcFileWrapper fileWrapper, RpcFileRequestHandler rpcFileRequestHandler) {
+    private static void readInitFile(Channel channel, RpcFileRequest rpcFileRequest, RpcFileContext context, RpcFileLocalWrapper fileLocalWrapper, RpcFileRequestHandler rpcFileRequestHandler) {
+        RpcFileWrapperUtil fileWrapper = RpcFileWrapperUtil.fromLocalWrapper(fileLocalWrapper);
         fileWrapper.init(rpcFileRequest.getLength());
         List<String> body = new ArrayList<>();
         body.add(String.valueOf(fileWrapper.isNeedTrans()));
         body.add(fileWrapper.getTransModel().name());
         body.add(String.valueOf(fileWrapper.getWriteIndex()));
-        body.add(fileWrapper.getMsg());
+        body.add(fileWrapper.getFile().getAbsolutePath());
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         rpcResponse.setBody(JSONArray.toJSONString(body));
+        rpcResponse.setMsg(fileWrapper.getMsg());
         RpcMsgTransUtil.write(channel, rpcResponse);
         if (fileWrapper.isInterruptByInit()) {
-            VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileWrapper));
+            VirtualThreadPool.execute(() -> rpcFileRequestHandler.onSuccess(context, fileLocalWrapper));
             log.info("接收方文件接收结束: 无需传输");
         } else {
-            VirtualThreadPool.execute(fileWrapper.isNeedTrans(), () -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileWrapper, rpcFileRequestHandler));
+            VirtualThreadPool.execute(fileWrapper.isNeedTrans(), () -> handleAsynRecieveFile(channel, rpcFileRequest, context, fileLocalWrapper, fileWrapper.getWriteIndex(), rpcFileRequestHandler));
         }
     }
 
     @SneakyThrows
-    private static void handleAsynRecieveFile(Channel channel, final RpcFileRequest rpcFileRequest, final RpcFileContext context, final RpcFileWrapper fileWrapper, final RpcFileRequestHandler rpcFileRequestHandler) {
+    private static void handleAsynRecieveFile(Channel channel, final RpcFileRequest rpcFileRequest, final RpcFileContext context, final RpcFileLocalWrapper fileWrapper, long index, final RpcFileRequestHandler rpcFileRequestHandler) {
         File targetFile = fileWrapper.getFile();
         String sessionId = rpcFileRequest.getRpcSession().getSessionId();
-        long length = rpcFileRequest.getLength() - fileWrapper.getWriteIndex();
+        long length = rpcFileRequest.getLength() - index;
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
-        Triple<RpcFileContext, RpcFileWrapper, Channel> triple = Triple.of(context, fileWrapper, channel);
+        Triple<RpcFileContext, RpcFileLocalWrapper, Channel> triple = Triple.of(context, fileWrapper, channel);
         FileTransSessionManger.init(sessionId, NumberConstant.SEVENTY_FIVE, triple);
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestHandler.getClass(), "onProcess");
         try {
@@ -174,8 +173,9 @@ public class FileTransChannelDataManager {
         rbody.add(String.valueOf(false));
         rbody.add(null);
         rbody.add(String.valueOf(0));
-        rbody.add("远端接受文件路径错误:发送终止");
+        rbody.add(null);
         rpcResponse.setBody(JSONArray.toJSONString(rbody));
+        rpcResponse.setMsg(message);
         RpcMsgTransUtil.write(channel, rpcResponse);
     }
 }

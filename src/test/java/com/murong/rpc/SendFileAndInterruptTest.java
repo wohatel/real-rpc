@@ -3,10 +3,11 @@ package com.murong.rpc;
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
+import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
-import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.server.RpcServer;
@@ -43,9 +44,9 @@ public class SendFileAndInterruptTest {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
-                public RpcFileWrapper getTargetFile(RpcFileContext context) {
+                public RpcFileLocalWrapper getTargetFile(RpcFileContext context) {
                     System.out.println("收到了");
-                    return new RpcFileWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
+                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
 //                    return null;
                 }
 
@@ -55,16 +56,16 @@ public class SendFileAndInterruptTest {
                  * @param context 文件上下文
                  */
                 @Override
-                public void onSuccess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+                public void onSuccess(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
                     System.out.println("完成了吗");
                 }
 
-                public void onProcess(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
+                public void onProcess(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper, long recieveSize, RpcFileTransInterrupter interrupter) {
                     System.out.println("收到的总数:" + recieveSize);
                 }
 
                 @Override
-                public void onStop(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+                public void onStop(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
                     System.out.println("传输方结束结束了");
                 }
 
@@ -86,8 +87,9 @@ public class SendFileAndInterruptTest {
             RpcFileTransHandler handler = new RpcFileTransHandler() {
 
                 @Override
-                public void onSuccess(File file, final RpcFileTransModel remoteTransModel) {
+                public void onSuccess(File file, final RpcFileRemoteWrapper rpcFileRemoteWrapper) {
                     System.out.println(System.currentTimeMillis());
+                    System.out.println(rpcFileRemoteWrapper.getFilePath());
                 }
 
             };

@@ -2,11 +2,10 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcRequest;
-import com.murong.rpc.interaction.common.FileTransSessionManger;
 import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
-import com.murong.rpc.interaction.file.RpcFileWrapper;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 
 import java.io.File;
@@ -34,17 +33,17 @@ public class SendFileToClientOfClientTest {
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
             @Override
-            public RpcFileWrapper getTargetFile(RpcFileContext context) {
+            public RpcFileLocalWrapper getTargetFile(RpcFileContext context) {
 
                 System.out.println("收到了");
                 String id = context.getRpcSession().getSessionId();
                 System.out.println(id);
-                return new RpcFileWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
+                return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
 //                    return null;
             }
 
             @Override
-            public void onProcess(final RpcFileContext context, RpcFileWrapper rpcFileWrapper, long recieveSize) {
+            public void onProcess(final RpcFileContext context, RpcFileLocalWrapper rpcFileWrapper, long recieveSize) {
                 System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
                 if (recieveSize > 40000) {
                     System.out.println("断开");
@@ -57,7 +56,7 @@ public class SendFileToClientOfClientTest {
              *
              * @param context 文件上下文
              */
-            public void onStop(final RpcFileContext context, final RpcFileWrapper rpcFileWrapper) {
+            public void onStop(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
                 System.out.println("发送端终止:");
             }
         });

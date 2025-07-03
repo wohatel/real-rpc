@@ -2,7 +2,7 @@ package com.murong.rpc.interaction.common;
 
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileContext;
-import com.murong.rpc.interaction.file.RpcFileWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
@@ -12,7 +12,6 @@ import lombok.extern.java.Log;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Comparator;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -73,8 +72,8 @@ public class FileTransSessionManger {
         return poll;
     }
 
-    public static Triple<RpcFileContext, RpcFileWrapper, Channel> getData(String sessionId) {
-        return (Triple<RpcFileContext, RpcFileWrapper, Channel>) FILE_SESSION_MANAGER.getData(sessionId);
+    public static Triple<RpcFileContext, RpcFileLocalWrapper, Channel> getData(String sessionId) {
+        return (Triple<RpcFileContext, RpcFileLocalWrapper, Channel>) FILE_SESSION_MANAGER.getData(sessionId);
     }
 
     /**
