@@ -66,11 +66,9 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         rpcSessionRequestMsgHandler.sessionStart(ctx, session, context);
                     }
                 } else if (request.isSessionRequest()) {
-                    boolean flushed = RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
-                    if (flushed) {
-                        RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
-                        rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
-                    }
+                    RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
+                    RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
+                    rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
                 } else if (request.isSessionFinish()) {
                     try {
                         boolean running = RpcSessionManager.isRunning(request.getRpcSession().getSessionId());
