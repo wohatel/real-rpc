@@ -90,7 +90,7 @@ public class BashSessionTest {
     public static void start() throws Exception {
 
 
-        SessionManager<BashSession> sessionSessionManager = new SessionManager<>(10_000, BashSession::close);
+        SessionManager<BashSession> sessionSessionManager = new SessionManager<>(10_000,(id,bash)-> bash.close());
         RpcServer rpcServer = new RpcServer(8765, new NioEventLoopGroup(), new NioEventLoopGroup());
         RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler = new RpcSessionRequestMsgHandler() {
             @Override

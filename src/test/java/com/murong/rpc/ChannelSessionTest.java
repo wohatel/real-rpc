@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ChannelSessionTest {
 
     public static void main(String[] args) throws InterruptedException {
-        SessionManager<String> channelSessionManager = new SessionManager<>(1_000, t -> System.out.println(t + "退出"));
+        SessionManager<String> channelSessionManager = new SessionManager<>(1_000, (t, r) -> System.out.println(t + "退出"));
 
         channelSessionManager.setAutoFlushPredicate((id, r) -> {
             long l = System.currentTimeMillis() % 3;

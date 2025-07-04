@@ -38,14 +38,12 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         ChannelPipeline pipeline = socketChannel.pipeline();
-
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
         pipeline.addLast("decompress", new RpcMsgCompressDecoder());
         pipeline.addLast("compress", new RpcMsgCompressEncoder());
         pipeline.addLast("decoder", new RpcMsgDecoder());
         pipeline.addLast("encoder", new RpcMsgEncoder());
-
         if (initPipelineConsumer != null) {
             initPipelineConsumer.accept(pipeline);
         }

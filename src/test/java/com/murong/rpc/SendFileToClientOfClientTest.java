@@ -47,7 +47,7 @@ public class SendFileToClientOfClientTest {
                 System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
                 if (recieveSize > 40000) {
                     System.out.println("断开");
-                    RpcFileTransInterrupter.interrupt(context.getRpcSession().getSessionId());
+//                    RpcFileTransInterrupter.interrupt(context.getRpcSession().getSessionId());
                 }
             }
 

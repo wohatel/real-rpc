@@ -35,27 +35,18 @@ public class RpcServer implements AutoCloseable {
     private final EventLoopGroup childGroup;
     private final RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
-    @Getter
-    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler() {
-        @Override
-        protected void handleHeart(ChannelHandlerContext ctx, Object msg) {
-            RpcMsgTransUtil.sendHeart(ctx.channel());
-        }
-    };
+    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler(true);
 
-    public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+    public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup) {
         this.port = port;
         this.group = group;
         this.childGroup = childGroup;
-        this.rpcMsgChannelInitializer = rpcMsgChannelInitializer == null ? new RpcMsgChannelInitializer(p -> p.addLast(rpcMessageServerInteractionHandler)) : rpcMsgChannelInitializer;
+        this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer(p -> p.addLast(rpcMessageServerInteractionHandler));
     }
 
-    public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup) {
-        this(port, group, childGroup, null);
-    }
 
     public RpcServer(int port) {
-        this(port, new NioEventLoopGroup(), new NioEventLoopGroup(), null);
+        this(port, new NioEventLoopGroup(), new NioEventLoopGroup());
     }
 
 

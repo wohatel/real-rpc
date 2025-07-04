@@ -9,7 +9,7 @@ import com.murong.rpc.interaction.common.FileTransChannelDataManager;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
-import com.murong.rpc.interaction.common.RpcSessionManager;
+import com.murong.rpc.interaction.common.TransSessionManger0;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
@@ -18,6 +18,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.java.Log;
 
@@ -30,11 +31,17 @@ import lombok.extern.java.Log;
 @Getter
 @ChannelHandler.Sharable
 @Log
+@RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
 
     private RpcFileRequestHandler rpcFileRequestHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
+    /**
+     * 针对ping的回应
+     */
+    private final boolean pong;
+
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -55,29 +62,29 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
                 if (request.isSessionStart()) {
-                    if (RpcSessionManager.isRunning(session.getSessionId())) {
+                    if (TransSessionManger0.isRunning(session.getSessionId())) {
                         RpcResponse response = request.toResponse();
                         response.setMsg("{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复");
                         response.setSuccess(false);
                         RpcMsgTransUtil.write(ctx.channel(), response);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                        RpcSessionManager.init(session.getSessionId(), context, session.getTimeOutMillis());
+                        TransSessionManger0.initSession(session.getSessionId(), context, session);
                         rpcSessionRequestMsgHandler.sessionStart(ctx, session, context);
                     }
                 } else if (request.isSessionRequest()) {
-                    RpcSessionManager.flush(session.getSessionId(), session.getTimeOutMillis());
-                    RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
+                    TransSessionManger0.flush(session.getSessionId());
+                    RpcSessionContext context = TransSessionManger0.getSessionContext(session.getSessionId());
                     rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
                 } else if (request.isSessionFinish()) {
                     try {
-                        boolean running = RpcSessionManager.isRunning(request.getRpcSession().getSessionId());
+                        boolean running = TransSessionManger0.isRunning(request.getRpcSession().getSessionId());
                         if (running) {
-                            RpcSessionContext context = RpcSessionManager.getContext(session.getSessionId());
+                            RpcSessionContext context = TransSessionManger0.getSessionContext(session.getSessionId());
                             rpcSessionRequestMsgHandler.sessionStop(ctx, session, context);
                         }
                     } finally {
-                        RpcSessionManager.release(session.getSessionId());
+                        TransSessionManger0.release(session.getSessionId());
                     }
                 }
             }
@@ -91,8 +98,12 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    protected void handleHeart(ChannelHandlerContext ctx, Object msg) {
-        RpcMsgTransUtil.sendHeart(ctx.channel());
+    private void handleHeart(ChannelHandlerContext ctx, Object msg) {
+        if (pong) {
+            RpcMsgTransUtil.sendHeart(ctx.channel());
+        } else {
+            ctx.fireChannelRead(msg);
+        }
     }
 
 

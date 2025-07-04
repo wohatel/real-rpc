@@ -11,8 +11,8 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -31,7 +31,7 @@ public class SessionManager<T> {
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
     // 清理线程
     private final Thread cleanerThread;
-    private final Consumer<T> sessionClose;
+    private final BiConsumer<String, T> sessionClose;
     private BiPredicate<String, T> autoFlushPredicate;
 
     /**
@@ -42,11 +42,11 @@ public class SessionManager<T> {
      */
     private final double flushSeed;
 
-    public SessionManager(long sessionTime, Consumer<T> sessionClose) {
+    public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose) {
         this(sessionTime, sessionClose, 0.618);
     }
 
-    public SessionManager(long sessionTime, Consumer<T> sessionClose, double flushSeed) {
+    public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose, double flushSeed) {
         this.flushSeed = flushSeed;
         this.sessionTime = sessionTime;
         if (sessionTime <= 0) {
@@ -118,7 +118,7 @@ public class SessionManager<T> {
     public void releaseAndSessionClose(String sessionId) {
         T release = release(sessionId);
         if (this.sessionClose != null) {
-            sessionClose.accept(release);
+            sessionClose.accept(sessionId, release);
         }
     }
 
@@ -242,7 +242,7 @@ public class SessionManager<T> {
                         // 如果使用线程池关闭任务
                         VirtualThreadPool.execute(() -> {
                             try {
-                                sessionClose.accept(resource);
+                                sessionClose.accept(item.sessionId, resource);
                             } catch (Exception e) {
                                 log.log(Level.WARNING, "异常", e);
                             }

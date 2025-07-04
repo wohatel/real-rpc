@@ -37,7 +37,7 @@ public class SendFileToClientOfServerTest {
                         throw new RuntimeException(e);
                     }
                     // 主动终止
-                    RpcMsgTransUtil.writeStopFile(cx.channel(), rpcSession);
+//                    RpcMsgTransUtil.writeStopFile(cx.channel(), rpcSession);
 
                 });
             } else {

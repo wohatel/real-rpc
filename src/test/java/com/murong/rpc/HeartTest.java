@@ -22,7 +22,7 @@ public class HeartTest {
         RpcServer rpcServer = serverStart();
         Thread.sleep(2000);
         clientConnect();
-        Thread.sleep(50000);
+        Thread.sleep(20000);
         rpcServer.close();
     }
 

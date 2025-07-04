@@ -149,7 +149,7 @@ public class RpcInteractionContainer {
      *
      * @param future
      */
-    private static void handleTimeOut(RpcFuture future) {
+    private static void handleTimeOut(String sessionId, RpcFuture future) {
         if (future == null) {
             return;
         }

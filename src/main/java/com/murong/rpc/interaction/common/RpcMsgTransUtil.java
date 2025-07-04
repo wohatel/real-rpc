@@ -19,6 +19,7 @@ import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.util.FileUtil;
+import com.murong.rpc.util.JsonUtil;
 import com.murong.rpc.util.ReflectUtil;
 import com.murong.rpc.util.RunnerUtil;
 import io.netty.buffer.ByteBuf;
@@ -45,6 +46,7 @@ public class RpcMsgTransUtil {
         if (rpcResponse == null) {
             return;
         }
+        TransSessionManger0.flush(rpcResponse.getRequestId());
         channel.writeAndFlush(RpcMsg.fromResponse(rpcResponse));
     }
 
@@ -141,7 +143,7 @@ public class RpcMsgTransUtil {
         if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
             throw new RuntimeException("会话已存在,请直接发送会话消息");
         }
-        if (RpcSessionManager.isRunning(rpcSession.getSessionId())) {
+        if (TransSessionManger0.isRunning(rpcSession.getSessionId())) {
             throw new RuntimeException("会话已存在,请创建新会话");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
@@ -289,7 +291,7 @@ public class RpcMsgTransUtil {
         if (contains) {
             throw new RuntimeException("rpcSession 会话已存在,请检查rpcSession是否重复使用");
         }
-        boolean running = FileTransSessionManger.isRunning(rpcSession.getSessionId());
+        boolean running = TransSessionManger0.isRunning(rpcSession.getSessionId());
         if (running) {
             throw new RuntimeException("rpcSession 会话已存在,请更换新的会话");
         }
@@ -334,7 +336,7 @@ public class RpcMsgTransUtil {
                     VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
                 }
             } else {
-                log.warning("发送端收到来自接收方的异常消息:" + response.getMsg());
+                log.warning("发送端收到来自接收方的异常消息:" + response.getMsg()+ JsonUtil.toJson(response));
                 rpcFuture.setSessionFinish(true); // 标记结束
                 errorMsg.set(response.getMsg());
             }

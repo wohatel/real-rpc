@@ -22,12 +22,7 @@ public abstract class AbstractRpcClient implements Closeable {
 
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
-    protected final RpcMessageInteractionHandler rpcMessageClientInteractionHandler = new RpcMessageInteractionHandler() {
-        @Override
-        protected void handleHeart(ChannelHandlerContext ctx, Object msg) {
-            ctx.fireChannelRead(msg);
-        }
-    };
+    protected final RpcMessageInteractionHandler rpcMessageClientInteractionHandler = new RpcMessageInteractionHandler(false);
 
     public void setRpcSimpleRequestMsgHandler(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
         rpcMessageClientInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);

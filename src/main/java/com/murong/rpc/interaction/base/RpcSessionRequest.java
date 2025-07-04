@@ -32,4 +32,5 @@ public class RpcSessionRequest extends RpcRequest {
     public boolean isSessionFinish() {
         return this.sessionProcess != null && sessionProcess == RpcSessionProcess.FiNISH;
     }
+
 }
