@@ -53,8 +53,6 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
                 if (rpcSimpleRequestMsgHandler != null) {
                     rpcSimpleRequestMsgHandler.channelRead(ctx, request);
-                } else if (request.isNeedResponse()) {
-                    RpcMsgTransUtil.write(ctx.channel(), request.toResponse());
                 }
             }
 
