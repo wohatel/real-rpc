@@ -6,6 +6,9 @@ import io.netty.handler.codec.compression.JdkZlibDecoder;
 
 import java.util.List;
 
+/**
+ * @author yaochuang
+ */
 public class RpcMsgCompressDecoder extends JdkZlibDecoder {
 
     @Override

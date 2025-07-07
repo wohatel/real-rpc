@@ -13,6 +13,9 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * @author yaochuang
+ */
 public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
 
     @Override

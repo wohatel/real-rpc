@@ -23,6 +23,9 @@ import lombok.SneakyThrows;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * @author yaochuang
+ */
 @Getter
 public class RpcHeartClient extends AbstractRpcClient {
     private final AtomicBoolean alived = new AtomicBoolean(false);
