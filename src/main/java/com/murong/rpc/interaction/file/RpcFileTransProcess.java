@@ -11,16 +11,18 @@ import lombok.Setter;
 @Setter
 public class RpcFileTransProcess {
     private Long startTime = System.currentTimeMillis();
-    private Long fileSize;
+    private Long fileLength;
     private Long sendSize;
     private Long remoteHandleSize;
+    private Long startIndex;
 
     public RpcFileTransProcess copy() {
         RpcFileTransProcess rpcFileTransProcess = new RpcFileTransProcess();
         rpcFileTransProcess.setRemoteHandleSize(this.getRemoteHandleSize());
-        rpcFileTransProcess.setFileSize(this.getFileSize());
+        rpcFileTransProcess.setFileLength(this.getFileLength());
         rpcFileTransProcess.setStartTime(this.getStartTime());
         rpcFileTransProcess.setSendSize(this.getSendSize());
+        rpcFileTransProcess.setStartIndex(this.getStartIndex());
         return rpcFileTransProcess;
     }
 }

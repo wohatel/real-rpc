@@ -301,7 +301,7 @@ public class RpcMsgTransUtil {
         final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? new RpcFileTransConfig() : rpcFileTransConfig;
         // 封装进度
         RpcFileTransProcess rpcFileTransProcess = new RpcFileTransProcess();
-        rpcFileTransProcess.setFileSize(file.length());
+        rpcFileTransProcess.setFileLength(file.length());
         rpcFileTransProcess.setSendSize(0L);
         rpcFileTransProcess.setRemoteHandleSize(0L);
 
@@ -313,6 +313,7 @@ public class RpcMsgTransUtil {
         RpcFileTransModel transModel = RpcFileTransModel.nameOf(array.getString(1));
         Long writeIndex = array.getLong(2);
         String filePath = array.getString(3);
+        rpcFileTransProcess.setStartIndex(writeIndex);
         RpcFileRemote rpcFileRemote = new RpcFileRemote(filePath, transModel);
         if (!needTrans) {
             rpcFuture.setSessionFinish(true);
@@ -335,7 +336,7 @@ public class RpcMsgTransUtil {
                 if (isOverWriteOnProcess) {
                     VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, rpcFileRemote, rpcFileTransProcess.copy()));
                 }
-                if (handleSize == rpcFileTransProcess.getFileSize()) {
+                if (handleSize == rpcFileTransProcess.getFileLength() - writeIndex) {
                     VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemote));
                 }
             } else {
