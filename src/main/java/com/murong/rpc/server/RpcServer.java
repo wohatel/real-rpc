@@ -14,6 +14,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -22,18 +23,22 @@ import java.net.InetSocketAddress;
 /**
  * 绑定服务器到监听的端口，配置Channel，将入站消息通知给EchoServerHandler实例
  *
+ * @author yaochuang
  * @version 1.0.0
  * @since 2021/5/25上午12:55
  */
+@Getter
 @Log
 public class RpcServer implements AutoCloseable {
 
-    @Getter
+
     private Channel channel;
     private final int port;
     private final EventLoopGroup group;
     private final EventLoopGroup childGroup;
-    private final RpcMsgChannelInitializer rpcMsgChannelInitializer;
+
+    @Setter
+    private RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
     private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler(true);
 
