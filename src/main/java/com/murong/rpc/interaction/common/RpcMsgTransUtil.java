@@ -13,7 +13,7 @@ import com.murong.rpc.interaction.base.RpcSessionProcess;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
+import com.murong.rpc.interaction.file.RpcFileRemote;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
@@ -47,7 +47,7 @@ public class RpcMsgTransUtil {
         if (rpcResponse == null) {
             return;
         }
-        TransSessionManger0.flush(rpcResponse.getRequestId());
+        TransSessionManger.flush(rpcResponse.getRequestId());
         channel.writeAndFlush(RpcMsg.fromResponse(rpcResponse));
     }
 
@@ -144,7 +144,7 @@ public class RpcMsgTransUtil {
         if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
             throw new RuntimeException("会话已存在,请直接发送会话消息");
         }
-        if (TransSessionManger0.isRunning(rpcSession.getSessionId())) {
+        if (TransSessionManger.isRunning(rpcSession.getSessionId())) {
             throw new RuntimeException("会话已存在,请创建新会话");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
@@ -294,7 +294,7 @@ public class RpcMsgTransUtil {
         if (contains) {
             throw new RuntimeException("rpcSession 会话已存在,请检查rpcSession是否重复使用");
         }
-        boolean running = TransSessionManger0.isRunning(rpcSession.getSessionId());
+        boolean running = TransSessionManger.isRunning(rpcSession.getSessionId());
         if (running) {
             throw new RuntimeException("rpcSession 会话已存在,请更换新的会话");
         }
@@ -313,13 +313,13 @@ public class RpcMsgTransUtil {
         RpcFileTransModel transModel = RpcFileTransModel.nameOf(array.getString(1));
         Long writeIndex = array.getLong(2);
         String filePath = array.getString(3);
-        RpcFileRemoteWrapper rpcFileRemoteWrapper = new RpcFileRemoteWrapper(filePath, transModel);
+        RpcFileRemote rpcFileRemote = new RpcFileRemote(filePath, transModel);
         if (!needTrans) {
             rpcFuture.setSessionFinish(true);
             if (StringUtils.isBlank(startResponse.getMsg())) {
-                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemote));
             } else {
-                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemoteWrapper, startResponse.getMsg()));
+                VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemote, startResponse.getMsg()));
             }
             log.warning("接收方不接收文件");
             return;
@@ -333,10 +333,10 @@ public class RpcMsgTransUtil {
                 long handleSize = Long.parseLong(body);
                 rpcFileTransProcess.setRemoteHandleSize(handleSize);
                 if (isOverWriteOnProcess) {
-                    VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess.copy()));
+                    VirtualThreadPool.execute(() -> rpcFileTransHandler.onProcess(file, rpcFileRemote, rpcFileTransProcess.copy()));
                 }
                 if (handleSize == rpcFileTransProcess.getFileSize()) {
-                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemote));
                 }
             } else {
                 log.warning("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
@@ -401,7 +401,7 @@ public class RpcMsgTransUtil {
                 errorMsg.set(e.getMessage());
             } finally {
                 try {
-                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemoteWrapper, errorMsg.get()));
+                    VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onFailure(file, rpcFileRemote, errorMsg.get()));
                     Thread.sleep(NumberConstant.ONE_POINT_FILE_K);
                     ByteBufPoolManager.destory(rpcSession.getSessionId());
                     rpcFuture.release();

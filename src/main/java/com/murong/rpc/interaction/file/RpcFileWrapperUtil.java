@@ -126,7 +126,7 @@ public class RpcFileWrapperUtil {
      *
      * @return
      */
-    public static RpcFileWrapperUtil fromLocalWrapper(RpcFileLocalWrapper localWrapper) {
+    public static RpcFileWrapperUtil fromLocalWrapper(RpcFileLocal localWrapper) {
         return new RpcFileWrapperUtil(localWrapper.getFile(), localWrapper.getTransModel());
     }
 }

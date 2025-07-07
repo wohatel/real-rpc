@@ -3,8 +3,8 @@ package com.murong.rpc.interaction.handler;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapperImpl;
+import com.murong.rpc.interaction.file.RpcFileLocal;
+import com.murong.rpc.interaction.file.RpcFileTransWrapper;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -20,7 +20,7 @@ public interface RpcFileRequestHandler {
      * @param context 文件上下文
      * @return 存储文件对象（如果返回 null，表示拒绝存储）
      */
-    RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
+    RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
 
     /**
      * 远程接收文件的进度,每次有变化就会触发
@@ -28,7 +28,7 @@ public interface RpcFileRequestHandler {
      * 注意: 如果处理逻辑比较久,建议异步操作
      *
      */
-    default void onProcess(ChannelHandlerContext ctx, final RpcSession rpcSession,  final RpcFileLocalWrapperImpl rpcFileWrapper, long recieveSize) {
+    default void onProcess(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcFileTransWrapper rpcFileWrapper, long recieveSize) {
 
     }
 
@@ -37,7 +37,7 @@ public interface RpcFileRequestHandler {
      *
      * @param e       发生的异常
      */
-    default void onFailure(ChannelHandlerContext ctx, final RpcSession rpcSession,  final RpcFileLocalWrapperImpl rpcFileWrapper, final Exception e) {
+    default void onFailure(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcFileTransWrapper rpcFileWrapper, final Exception e) {
 
     }
 
@@ -45,7 +45,7 @@ public interface RpcFileRequestHandler {
      * 文件整体传输完毕
      *
      */
-    default void onSuccess(ChannelHandlerContext ctx, final RpcSession rpcSession,  final RpcFileLocalWrapperImpl rpcFileWrapper) {
+    default void onSuccess(ChannelHandlerContext ctx, final RpcSession rpcSession,  final RpcFileTransWrapper rpcFileWrapper) {
 
     }
 
@@ -53,7 +53,7 @@ public interface RpcFileRequestHandler {
      * 远端发出终止传输信号
      *
      */
-    default void onStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcFileLocalWrapperImpl rpcFileWrapper) {
+    default void onStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcFileTransWrapper rpcFileWrapper) {
 
     }
 }

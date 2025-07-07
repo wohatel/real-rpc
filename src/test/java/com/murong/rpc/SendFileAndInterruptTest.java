@@ -5,11 +5,10 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapperImpl;
-import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocal;
+import com.murong.rpc.interaction.file.RpcFileTransWrapper;
+import com.murong.rpc.interaction.file.RpcFileRemote;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
-import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
@@ -48,9 +47,9 @@ public class SendFileAndInterruptTest {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
-                public RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {
+                public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {
                     System.out.println("收到了");
-                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
+                    return new RpcFileLocal(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
 //                    return null;
                 }
 
@@ -59,12 +58,12 @@ public class SendFileAndInterruptTest {
                  *
                  */
                 @Override
-                public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileLocalWrapperImpl rpcFileWrapper) {
+                public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileTransWrapper rpcFileWrapper) {
                     System.out.println("完成了吗");
                 }
 
                 @Override
-                public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileLocalWrapperImpl rpcFileWrapper) {
+                public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileTransWrapper rpcFileWrapper) {
                     System.out.println("传输方结束结束了");
                 }
 
@@ -86,7 +85,7 @@ public class SendFileAndInterruptTest {
             RpcFileTransHandler handler = new RpcFileTransHandler() {
 
                 @Override
-                public void onSuccess(File file, final RpcFileRemoteWrapper rpcFileRemoteWrapper) {
+                public void onSuccess(File file, final RpcFileRemote rpcFileRemoteWrapper) {
                     System.out.println(System.currentTimeMillis());
                     System.out.println(rpcFileRemoteWrapper.getFilePath());
                 }

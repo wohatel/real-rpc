@@ -13,7 +13,7 @@ import java.io.File;
  */
 @RequiredArgsConstructor
 @Getter
-public class RpcFileLocalWrapperImpl {
+public class RpcFileTransWrapper {
     /**
      * 本地接受文件的位置
      */

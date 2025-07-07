@@ -2,11 +2,6 @@ package com.murong.rpc.interaction.file;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * description
@@ -15,7 +10,7 @@ import java.nio.file.Path;
  */
 @Getter
 @RequiredArgsConstructor
-public class RpcFileRemoteWrapper {
+public class RpcFileRemote {
     /**
      * 文件位置
      */

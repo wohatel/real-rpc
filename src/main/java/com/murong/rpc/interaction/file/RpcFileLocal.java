@@ -10,7 +10,7 @@ import java.io.File;
  * @author yaochuang 2025/05/13 14:41
  */
 @Getter
-public class RpcFileLocalWrapper {
+public class RpcFileLocal {
     /**
      * 文件位置
      */
@@ -23,7 +23,7 @@ public class RpcFileLocalWrapper {
     /**
      * @param file 目标文件存储
      */
-    public RpcFileLocalWrapper(File file, RpcFileTransModel transModel) {
+    public RpcFileLocal(File file, RpcFileTransModel transModel) {
         this.file = file;
         this.transModel = transModel == null ? RpcFileTransModel.REBUILD : transModel;
     }
@@ -31,7 +31,7 @@ public class RpcFileLocalWrapper {
     /**
      * @param file 目标文件存储
      */
-    public RpcFileLocalWrapper(File file) {
+    public RpcFileLocal(File file) {
         this(file, null);
     }
 

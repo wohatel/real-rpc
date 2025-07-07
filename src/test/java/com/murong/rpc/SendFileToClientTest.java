@@ -8,7 +8,7 @@ import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
@@ -61,11 +61,11 @@ public class SendFileToClientTest {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
-                public RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
+                public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
 
                     System.out.println("收到了");
 
-                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
+                    return new RpcFileLocal(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
 //                    return null;
                 }
 

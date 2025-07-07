@@ -5,8 +5,8 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
-import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocal;
+import com.murong.rpc.interaction.file.RpcFileRemote;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
@@ -41,11 +41,11 @@ public class ReconnectSendFileTest {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
-                public RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
+                public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
                     System.out.println("收到了");
                     System.out.println(fileInfo.getFileHash());
                     System.out.println("收到了");
-                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abc" + rpcSession.getSessionId() + ".zip"));
+                    return new RpcFileLocal(new File("/Users/yaochuang/test/abc" + rpcSession.getSessionId() + ".zip"));
                 }
             });
             rpcServer.start();
@@ -63,17 +63,17 @@ public class ReconnectSendFileTest {
             }
             RpcFileTransHandler handler = new RpcFileTransHandler() {
                 @Override
-                public void onProcess(File file, RpcFileRemoteWrapper rpcFileRemoteWrapper, RpcFileTransProcess rpcFileTransProcess) {
+                public void onProcess(File file, RpcFileRemote rpcFileRemoteWrapper, RpcFileTransProcess rpcFileTransProcess) {
                     RpcFileTransHandler.super.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess);
                 }
 
                 @Override
-                public void onFailure(File file, RpcFileRemoteWrapper rpcFileRemoteWrapper, String errorMsg) {
+                public void onFailure(File file, RpcFileRemote rpcFileRemoteWrapper, String errorMsg) {
                     RpcFileTransHandler.super.onFailure(file, rpcFileRemoteWrapper, errorMsg);
                 }
 
                 @Override
-                public void onSuccess(File file, RpcFileRemoteWrapper rpcFileRemoteWrapper) {
+                public void onSuccess(File file, RpcFileRemote rpcFileRemoteWrapper) {
                     System.out.println(rpcFileRemoteWrapper.getFilePath());
                     System.out.println(rpcFileRemoteWrapper.getFilePath());
                     System.out.println(rpcFileRemoteWrapper.getFilePath());

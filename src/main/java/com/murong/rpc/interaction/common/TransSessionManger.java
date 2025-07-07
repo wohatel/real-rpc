@@ -2,17 +2,12 @@ package com.murong.rpc.interaction.common;
 
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
-import com.murong.rpc.interaction.file.RpcFileInfo;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
-import com.murong.rpc.interaction.file.RpcFileLocalWrapperImpl;
+import com.murong.rpc.interaction.file.RpcFileTransWrapper;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -28,12 +23,12 @@ import java.util.logging.Level;
  * @author yaochuang 2025/04/10 09:25
  */
 @Log
-public class TransSessionManger0 {
+public class TransSessionManger {
 
     /**
      * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
      */
-    private static final SessionManager<Boolean> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, TransSessionManger0::release);
+    private static final SessionManager<Boolean> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, TransSessionManger::release);
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
     private static final Map<String, Object> SESSION_DATA = new ConcurrentHashMap<>();
     private static final Map<String, RpcSession> SESSION = new ConcurrentHashMap<>();
@@ -108,7 +103,7 @@ public class TransSessionManger0 {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(String sessionId, int cacheBlock, RpcFileLocalWrapperImpl data, RpcSession rpcSession) {
+    public static void initFile(String sessionId, int cacheBlock, RpcFileTransWrapper data, RpcSession rpcSession) {
         if (isRunning(sessionId)) {
             throw new RuntimeException("文件session已存在");
         }
@@ -130,8 +125,8 @@ public class TransSessionManger0 {
         return poll;
     }
 
-    public static RpcFileLocalWrapperImpl getFileData(String sessionId) {
-        return (RpcFileLocalWrapperImpl) SESSION_DATA.get(sessionId);
+    public static RpcFileTransWrapper getFileData(String sessionId) {
+        return (RpcFileTransWrapper) SESSION_DATA.get(sessionId);
     }
 
     /**
