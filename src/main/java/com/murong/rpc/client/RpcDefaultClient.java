@@ -35,19 +35,15 @@ public class RpcDefaultClient extends AbstractRpcClient {
     protected Integer port;
     protected NioEventLoopGroup nioEventLoopGroup;
 
-    public RpcDefaultClient(String host, int port, NioEventLoopGroup nioEventLoopGroup, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+    public RpcDefaultClient(String host, int port, NioEventLoopGroup nioEventLoopGroup) {
         this.host = host;
         this.port = port;
         this.nioEventLoopGroup = nioEventLoopGroup;
-        this.rpcMsgChannelInitializer = rpcMsgChannelInitializer == null ? new RpcMsgChannelInitializer() : rpcMsgChannelInitializer;
+        this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
     }
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, null);
-    }
-
-    public RpcDefaultClient(String host, int port, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
-        this(host, port, NoShutNioEventLoopGroup.acquireNioEventLoopGroup(), rpcMsgChannelInitializer);
+        this(host, port, NoShutNioEventLoopGroup.acquireNioEventLoopGroup());
     }
 
     public ChannelFuture connect() {

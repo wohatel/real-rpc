@@ -2,8 +2,9 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcAutoReconnectClient;
 import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
-import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
 import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
@@ -11,6 +12,7 @@ import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
 import com.murong.rpc.server.RpcServer;
+import io.netty.channel.ChannelHandlerContext;
 
 import java.io.File;
 
@@ -39,10 +41,11 @@ public class ReconnectSendFileTest {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
                 @Override
-                public RpcFileLocalWrapper getTargetFile(RpcFileContext context) {
+                public RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
                     System.out.println("收到了");
-                    String id = context.getRpcSession().getSessionId();
-                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abc" + id + ".zip"));
+                    System.out.println(fileInfo.getFileHash());
+                    System.out.println("收到了");
+                    return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abc" + rpcSession.getSessionId() + ".zip"));
                 }
             });
             rpcServer.start();
@@ -77,7 +80,7 @@ public class ReconnectSendFileTest {
                     System.out.println(rpcFileRemoteWrapper.getFilePath());
                 }
             };
-            RpcFileTransConfig config = new RpcFileTransConfig(100 * 1024 * 1024l, true);
+            RpcFileTransConfig config = new RpcFileTransConfig(100 * 1024 * 1024l, true, true);
 
             defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"), new RpcSession(10000), null, handler, config);
         });

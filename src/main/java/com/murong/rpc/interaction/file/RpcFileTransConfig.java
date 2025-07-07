@@ -7,18 +7,18 @@ import lombok.Data;
 public class RpcFileTransConfig {
 
     public RpcFileTransConfig() {
-        this(NumberConstant.M_10, NumberConstant.K_512, NumberConstant.EIGHT, true, NumberConstant.SEVENTY_FIVE);
+        this(NumberConstant.M_10, true);
     }
 
     public RpcFileTransConfig(long speedLimit, boolean tryCompress) {
-        this(speedLimit, NumberConstant.K_512, NumberConstant.EIGHT, tryCompress, NumberConstant.SEVENTY_FIVE);
+        this(speedLimit, tryCompress, false);
     }
 
-    public RpcFileTransConfig(long speedLimit, long chunkSize, boolean tryCompress) {
-        this(speedLimit, chunkSize, NumberConstant.EIGHT, tryCompress, NumberConstant.SEVENTY_FIVE);
+    public RpcFileTransConfig(long speedLimit, boolean tryCompress, boolean sendFileMd5) {
+        this(speedLimit, NumberConstant.K_512, NumberConstant.FIVE, tryCompress, NumberConstant.SEVENTY_FIVE, sendFileMd5);
     }
 
-    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent) {
+    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
         if (speedLimit <= 0) {
             throw new RuntimeException("限速不能<=0");
         }
@@ -36,6 +36,7 @@ public class RpcFileTransConfig {
         this.cacheBlock = cacheBlock;
         this.compressRatePercent = compressRatePercent;
         this.tryCompress = tryCompress;
+        this.sendFileMd5 = sendFileMd5;
     }
 
     /**
@@ -49,7 +50,7 @@ public class RpcFileTransConfig {
     private final long chunkSize;
 
     /**
-     * 限制: 本地和远端缓存的块数,时会暂停发送,默认8
+     * 限制: 本地和远端缓存的块数,时会暂停发送,默认5
      */
     private final int cacheBlock;
 
@@ -64,6 +65,11 @@ public class RpcFileTransConfig {
      * 默认为70
      */
     private final int compressRatePercent;
+
+    /**
+     * 是否计算文件Md5
+     */
+    private final boolean sendFileMd5;
 
 
 }

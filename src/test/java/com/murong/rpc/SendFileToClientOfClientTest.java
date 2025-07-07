@@ -2,11 +2,14 @@ package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
 import com.murong.rpc.interaction.base.RpcRequest;
-import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.common.RpcSessionContext;
+import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
-import com.murong.rpc.interaction.file.RpcFileTransInterrupter;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapperImpl;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import io.netty.channel.ChannelHandlerContext;
 
 import java.io.File;
 
@@ -33,22 +36,25 @@ public class SendFileToClientOfClientTest {
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
             @Override
-            public RpcFileLocalWrapper getTargetFile(RpcFileContext context) {
-
+            public RpcFileLocalWrapper getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 System.out.println("收到了");
-                String id = context.getRpcSession().getSessionId();
-                System.out.println(id);
-                return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.APPEND);
-//                    return null;
+
+                return new RpcFileLocalWrapper(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.REBUILD);
             }
 
             @Override
-            public void onProcess(final RpcFileContext context, RpcFileLocalWrapper rpcFileWrapper, long recieveSize) {
-                System.out.println("接收大小:" + recieveSize + " 总大小:" + context.getLength());
-                if (recieveSize > 40000) {
-                    System.out.println("断开");
-//                    RpcFileTransInterrupter.interrupt(context.getRpcSession().getSessionId());
-                }
+            public void onProcess(ChannelHandlerContext ctx, RpcSession rpcSession,RpcFileLocalWrapperImpl rpcFileWrapper, long recieveSize) {
+                System.out.println(recieveSize);
+            }
+
+            @Override
+            public void onFailure(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileLocalWrapperImpl rpcFileWrapper, Exception e) {
+                RpcFileRequestHandler.super.onFailure(ctx, rpcSession,  rpcFileWrapper, e);
+            }
+
+            @Override
+            public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileLocalWrapperImpl rpcFileWrapper) {
+                RpcFileRequestHandler.super.onSuccess(ctx, rpcSession, rpcFileWrapper);
             }
 
             /**
@@ -56,7 +62,7 @@ public class SendFileToClientOfClientTest {
              *
              * @param context 文件上下文
              */
-            public void onStop(final RpcFileContext context, final RpcFileLocalWrapper rpcFileWrapper) {
+            public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, final RpcFileLocalWrapperImpl rpcFileWrapper) {
                 System.out.println("发送端终止:");
             }
         });

@@ -1,6 +1,5 @@
 package com.murong.rpc.interaction.base;
 
-import com.murong.rpc.interaction.file.RpcFileContext;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import lombok.Getter;
 

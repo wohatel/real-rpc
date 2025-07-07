@@ -29,7 +29,6 @@ public class SessionManager<T> {
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
     private final Map<String, Object> dataMap = new ConcurrentHashMap<>();
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
-    // 清理线程
     private final Thread cleanerThread;
     private final BiConsumer<String, T> sessionClose;
     private BiPredicate<String, T> autoFlushPredicate;

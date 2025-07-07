@@ -18,6 +18,8 @@ public class NumberConstant {
     public static final int CODE_SUCCESS = 200;
     public static final int TEN = 10;
     public static final int EIGHT = 8;
+
+    public static final int FIVE = 5;
     public static final int THREE_TEN = 30;
     public static final int TEN_EIGHT_K = 18_000;
 

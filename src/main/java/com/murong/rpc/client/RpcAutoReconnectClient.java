@@ -32,12 +32,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     private Bootstrap bootstrap;
 
-    public RpcAutoReconnectClient(String host, int port, NioEventLoopGroup nioEventLoopGroup, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
-        super(host, port, nioEventLoopGroup, rpcMsgChannelInitializer);
-    }
-
     public RpcAutoReconnectClient(String host, int port, NioEventLoopGroup nioEventLoopGroup) {
-        this(host, port, nioEventLoopGroup, null);
+        super(host, port, nioEventLoopGroup);
     }
 
     public RpcAutoReconnectClient(String host, int port) {

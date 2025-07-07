@@ -89,7 +89,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
-            case file -> FileTransChannelDataManager.channelRead(ctx.channel(), rpcMsg, rpcFileRequestHandler);
+            case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileRequestHandler);
 
             case heart -> this.handleHeart(ctx, msg);
 

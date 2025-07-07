@@ -1,7 +1,6 @@
 package com.murong.rpc;
 
 import com.murong.rpc.client.RpcDefaultClient;
-import com.murong.rpc.initializer.RpcMsgChannelInitializer;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
@@ -55,7 +54,7 @@ public class ChannelActiveThenSendTest {
             };
 
 
-            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new RpcMsgChannelInitializer(p -> p.addLast(channelInboundHandlerAdapter)));
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.connect();
 
         });

@@ -2,14 +2,16 @@ package com.murong.rpc.interaction.common;
 
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
-import com.murong.rpc.interaction.file.RpcFileContext;
+import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocalWrapper;
+import com.murong.rpc.interaction.file.RpcFileLocalWrapperImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Comparator;
@@ -106,7 +108,7 @@ public class TransSessionManger0 {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(String sessionId, int cacheBlock, Triple<RpcFileContext, RpcFileLocalWrapper, Channel> data, RpcSession rpcSession) {
+    public static void initFile(String sessionId, int cacheBlock, RpcFileLocalWrapperImpl data, RpcSession rpcSession) {
         if (isRunning(sessionId)) {
             throw new RuntimeException("文件session已存在");
         }
@@ -128,8 +130,8 @@ public class TransSessionManger0 {
         return poll;
     }
 
-    public static Triple<RpcFileContext, RpcFileLocalWrapper, Channel> getFileData(String sessionId) {
-        return (Triple<RpcFileContext, RpcFileLocalWrapper, Channel>) SESSION_DATA.get(sessionId);
+    public static RpcFileLocalWrapperImpl getFileData(String sessionId) {
+        return (RpcFileLocalWrapperImpl) SESSION_DATA.get(sessionId);
     }
 
     /**
@@ -191,7 +193,6 @@ public class TransSessionManger0 {
         private ByteBuf byteBuf;
         private long buffer;  //每次传输的大小
         private long serial;  // 编号
-        private long length;  //文件总大小
     }
 
     public static void releaseFileChunk(FileChunkItem item) {

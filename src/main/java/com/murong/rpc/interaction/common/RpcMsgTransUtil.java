@@ -12,6 +12,7 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionProcess;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.constant.NumberConstant;
+import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileRemoteWrapper;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
@@ -227,10 +228,7 @@ public class RpcMsgTransUtil {
 
     @SneakyThrows
     private static void writeBodyFile(Channel channel, File file, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress) {
-        String fileName = file.getName();
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
-        rpcFileRequest.setLength(file.length());
-        rpcFileRequest.setFileName(fileName);
         rpcFileRequest.setSessionProcess(RpcSessionProcess.ING);
         rpcFileRequest.setBuffer(chunkSize);
         rpcFileRequest.setSerial(serial);
@@ -241,10 +239,15 @@ public class RpcMsgTransUtil {
     @SneakyThrows
     private static RpcSessionFuture writeStartFile(Channel channel, File file, RpcFileTransConfig fileTransConfig, RpcSession rpcSession, RpcSessionContext context) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
-        rpcFileRequest.setLength(file.length());
+        RpcFileInfo rpcFileInfo = new RpcFileInfo();
+        rpcFileInfo.setFileName(file.getName());
+        rpcFileInfo.setLength(file.length());
+        if (fileTransConfig.isSendFileMd5()) {
+            rpcFileInfo.setFileHash(FileUtil.fileSha256Hash(file));
+        }
+        rpcFileRequest.setFileInfo(rpcFileInfo);
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
         rpcFileRequest.setCacheBlock(fileTransConfig.getCacheBlock());
-        rpcFileRequest.setFileName(file.getName());
         rpcFileRequest.setSessionProcess(RpcSessionProcess.START);
         if (context != null) {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));
@@ -336,7 +339,7 @@ public class RpcMsgTransUtil {
                     VirtualThreadPool.execute(rpcFileTransHandler != null, () -> rpcFileTransHandler.onSuccess(file, rpcFileRemoteWrapper));
                 }
             } else {
-                log.warning("发送端收到来自接收方的异常消息:" + response.getMsg()+ JsonUtil.toJson(response));
+                log.warning("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
                 rpcFuture.setSessionFinish(true); // 标记结束
                 errorMsg.set(response.getMsg());
             }

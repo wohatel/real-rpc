@@ -40,14 +40,14 @@ public class RpcHeartClient extends AbstractRpcClient {
      * @param timeOutMillis          超过此事件没有通信认为超时
      * @param rpcHeartTimeOutHandler 超时后的处理
      */
-    public RpcHeartClient(String host, int port, long timeOutMillis, RpcHeartTimeOutHandler rpcHeartTimeOutHandler, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+    public RpcHeartClient(String host, int port, long timeOutMillis, RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
         if (timeOutMillis <= 0) {
             throw new RuntimeException("超时时间配置异常");
         }
         this.host = host;
         this.port = port;
         this.timeOutMillis = timeOutMillis;
-        this.rpcMsgChannelInitializer = rpcMsgChannelInitializer == null ? new RpcMsgChannelInitializer() : rpcMsgChannelInitializer;
+        this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
         long timeBy3 = timeOutMillis / 3;
         long interval; // 心跳探查间隔
         if (timeBy3 >= 3000L) {
@@ -63,10 +63,6 @@ public class RpcHeartClient extends AbstractRpcClient {
         }
         this.idleStateHandler = new IdleStateHandler(timeOutMillis, interval, timeOutMillis, TimeUnit.MILLISECONDS);
         this.rpcHeartTimeOutHandler = rpcHeartTimeOutHandler;
-    }
-
-    public RpcHeartClient(String host, int port, long timeOutMillis, RpcHeartTimeOutHandler rpcHeartTimeOutHandler) {
-        this(host, port, timeOutMillis, rpcHeartTimeOutHandler, null);
     }
 
     public RpcHeartClient(String host, int port, long timeOutMillis) {
