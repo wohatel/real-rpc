@@ -242,7 +242,7 @@ public class RpcMsgTransUtil {
         RpcFileInfo rpcFileInfo = new RpcFileInfo();
         rpcFileInfo.setFileName(file.getName());
         rpcFileInfo.setLength(file.length());
-        if (fileTransConfig.isSendFileMd5()) {
+        if (fileTransConfig.isSendFileHash()) {
             rpcFileInfo.setFileHash(FileUtil.fileSha256Hash(file));
         }
         rpcFileRequest.setFileInfo(rpcFileInfo);
