@@ -39,7 +39,7 @@ public class SendFileToClientOfClientTest {
             public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 System.out.println("收到了");
 
-                return new RpcFileLocal(new File("/Users/yaochuang/test/abcf94e83d9f75c2104596ffc3f20d5d247.zip"), RpcFileTransModel.REBUILD);
+                return new RpcFileLocal(new File("/Users/yaochuang/test/abc2a35cf7d-a84a-4f0b-b8c6-1dabe3406585.zip"), RpcFileTransModel.RESUME);
             }
 
             @Override
@@ -54,7 +54,7 @@ public class SendFileToClientOfClientTest {
 
             @Override
             public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileTransWrapper rpcFileWrapper) {
-                RpcFileRequestHandler.super.onSuccess(ctx, rpcSession, rpcFileWrapper);
+                System.out.println();
             }
 
             /**

@@ -14,11 +14,11 @@ public class RpcFileTransConfig {
         this(speedLimit, tryCompress, false);
     }
 
-    public RpcFileTransConfig(long speedLimit, boolean tryCompress, boolean sendFileMd5) {
-        this(speedLimit, NumberConstant.K_512, NumberConstant.FIVE, tryCompress, NumberConstant.SEVENTY_FIVE, sendFileMd5);
+    public RpcFileTransConfig(long speedLimit, boolean tryCompress, boolean sendFileHash) {
+        this(speedLimit, NumberConstant.K_512, NumberConstant.FIVE, tryCompress, NumberConstant.SEVENTY_FIVE, sendFileHash);
     }
 
-    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
+    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileHash) {
         if (speedLimit <= 0) {
             throw new RuntimeException("限速不能<=0");
         }
@@ -36,7 +36,7 @@ public class RpcFileTransConfig {
         this.cacheBlock = cacheBlock;
         this.compressRatePercent = compressRatePercent;
         this.tryCompress = tryCompress;
-        this.sendFileMd5 = sendFileMd5;
+        this.sendFileHash = sendFileHash;
     }
 
     /**
@@ -69,7 +69,7 @@ public class RpcFileTransConfig {
     /**
      * 是否计算文件Md5
      */
-    private final boolean sendFileMd5;
+    private final boolean sendFileHash;
 
 
 }
