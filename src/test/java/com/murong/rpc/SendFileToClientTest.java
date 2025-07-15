@@ -9,7 +9,6 @@ import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
-import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.server.RpcServer;
@@ -43,7 +42,6 @@ public class SendFileToClientTest {
                 if (req.getBody().equals("abcdef")) {
                     VirtualThreadPool.execute(() -> {
                         RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
-                        RpcFileTransConfig rpcFileTransConfig = new RpcFileTransConfig(NumberConstant.THREE_TEN_K, true);
 //                        new RpcFileTransConfig(NumberConstant.ONE_K, true);
                         RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), rpcSession);
                     });

@@ -107,7 +107,7 @@ public class TransSessionManger {
         if (isRunning(sessionId)) {
             throw new RuntimeException("文件session已存在");
         }
-        PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock, Comparator.comparingInt(t -> (int) (t.getSerial())));
+        PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));
         SESSION_MANAGER.initSession(sessionId, true, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         FILE_ITEM_MAP.put(sessionId, queue);
         if (data != null) {

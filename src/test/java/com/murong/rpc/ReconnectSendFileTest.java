@@ -7,7 +7,6 @@ import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileRemote;
-import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
 import com.murong.rpc.interaction.handler.RpcFileTransHandler;
@@ -80,9 +79,8 @@ public class ReconnectSendFileTest {
                     System.out.println(rpcFileRemoteWrapper.getFilePath());
                 }
             };
-            RpcFileTransConfig config = new RpcFileTransConfig(100 * 1024 * 1024l, true, true);
 
-            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"), new RpcSession(10000), null, handler, config);
+            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"), new RpcSession(10000), null, handler);
         });
 
 

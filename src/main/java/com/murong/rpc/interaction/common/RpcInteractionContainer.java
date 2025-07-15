@@ -48,7 +48,7 @@ public class RpcInteractionContainer {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
                 throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
             } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
-                throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
+                throw new RuntimeException("会话不存在或已结束,无需结束会话");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
                 rpcFuture.setRequestId(rpcSession.getSessionId());

@@ -1,22 +1,14 @@
 package com.murong.rpc.interaction.file;
 
-import com.murong.rpc.interaction.constant.NumberConstant;
+import lombok.Builder;
 import lombok.Data;
 
+/**
+ * @author yaochuang
+ */
 @Data
+@Builder
 public class RpcFileTransConfig {
-
-    public RpcFileTransConfig() {
-        this(NumberConstant.M_10, true);
-    }
-
-    public RpcFileTransConfig(long speedLimit, boolean tryCompress) {
-        this(speedLimit, tryCompress, false);
-    }
-
-    public RpcFileTransConfig(long speedLimit, boolean tryCompress, boolean sendFileHash) {
-        this(speedLimit, NumberConstant.K_512, NumberConstant.FIVE, tryCompress, NumberConstant.SEVENTY_FIVE, sendFileHash);
-    }
 
     public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileHash) {
         if (speedLimit <= 0) {
@@ -34,42 +26,48 @@ public class RpcFileTransConfig {
         this.speedLimit = speedLimit;
         this.chunkSize = chunkSize;
         this.cacheBlock = cacheBlock;
-        this.compressRatePercent = compressRatePercent;
         this.tryCompress = tryCompress;
+        this.compressRatePercent = compressRatePercent;
         this.sendFileHash = sendFileHash;
     }
 
     /**
-     * 限速值,限速
+     * 限速值,限速5M
      */
-    private final long speedLimit;
+    @Builder.Default
+    private long speedLimit = 5 * 1024 * 1024;
 
     /**
-     * 每块传输大小
+     * 每块传输大小(512K)
      */
-    private final long chunkSize;
+    @Builder.Default
+    private long chunkSize = 512 * 1024;
 
     /**
      * 限制: 本地和远端缓存的块数,时会暂停发送,默认5
      */
-    private final int cacheBlock;
+    @Builder.Default
+    private int cacheBlock = 5;
 
     /**
      * 尝试压缩
      */
-    private final boolean tryCompress;
+    @Builder.Default
+    private boolean tryCompress = false;
 
     /**
      * 当压缩率效率该值的时候才尝试压缩
      * (0-100), 压缩率越小,表示压缩效果越好
      * 默认为70
      */
-    private final int compressRatePercent;
+    @Builder.Default
+    private int compressRatePercent = 70;
 
     /**
      * 是否计算文件Md5
      */
-    private final boolean sendFileHash;
+    @Builder.Default
+    private boolean sendFileHash = false;
 
 
 }

@@ -82,10 +82,6 @@ public class RpcDefaultClient extends AbstractRpcClient {
         this.sendFile(file, rpcSession, context, null);
     }
 
-    public void sendFile(File file, RpcSessionContext context) {
-        this.sendFile(file, new RpcSession(NumberConstant.TEN_EIGHT_K), context, null);
-    }
-
     public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler) {
         this.sendFile(file, rpcSession, context, rpcFileTransHandler, null);
     }

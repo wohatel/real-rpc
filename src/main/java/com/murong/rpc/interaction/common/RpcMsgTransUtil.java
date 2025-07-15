@@ -298,7 +298,7 @@ public class RpcMsgTransUtil {
         if (running) {
             throw new RuntimeException("rpcSession 会话已存在,请更换新的会话");
         }
-        final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? new RpcFileTransConfig() : rpcFileTransConfig;
+        final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? RpcFileTransConfig.builder().build() : rpcFileTransConfig;
         // 封装进度
         RpcFileTransProcess rpcFileTransProcess = new RpcFileTransProcess();
         rpcFileTransProcess.setFileLength(file.length());
