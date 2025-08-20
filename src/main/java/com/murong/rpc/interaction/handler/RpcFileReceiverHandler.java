@@ -12,7 +12,7 @@ import io.netty.channel.ChannelHandlerContext;
  *
  * @author yaochuang 2025/03/28 09:44
  */
-public interface RpcFileRequestHandler {
+public interface RpcFileReceiverHandler {
 
     /**
      * 确定文件存储位置（在文件传输开始前调用）

@@ -10,7 +10,7 @@ import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -57,7 +57,7 @@ public class SendFileToClientTest {
     public static void clientConnect() {
         VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-            defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
+            defaultClient.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
 

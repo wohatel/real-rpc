@@ -8,10 +8,9 @@ import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileTransWrapper;
 import com.murong.rpc.interaction.file.RpcFileRemote;
-import com.murong.rpc.interaction.file.RpcFileTransConfig;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
-import com.murong.rpc.interaction.handler.RpcFileTransHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
+import com.murong.rpc.interaction.handler.RpcFileSenderHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.internal.PlatformDependent;
@@ -45,7 +44,7 @@ public class SendFileAndInterruptTest {
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
-            rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
+            rpcServer.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {
                     System.out.println("收到了");
@@ -82,7 +81,7 @@ public class SendFileAndInterruptTest {
                 throw new RuntimeException(e);
             }
 
-            RpcFileTransHandler handler = new RpcFileTransHandler() {
+            RpcFileSenderHandler handler = new RpcFileSenderHandler() {
 
                 @Override
                 public void onSuccess(File file, final RpcFileRemote rpcFileRemoteWrapper) {

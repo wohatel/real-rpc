@@ -2,7 +2,7 @@ package com.murong.rpc.server;
 
 import com.murong.rpc.initializer.RpcMessageInteractionHandler;
 import com.murong.rpc.initializer.RpcMsgChannelInitializer;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.bootstrap.ServerBootstrap;
@@ -53,8 +53,8 @@ public class RpcServer implements AutoCloseable {
     }
 
 
-    public void setRpcFileRequestHandler(RpcFileRequestHandler rpcFileRequestHandler) {
-        rpcMessageServerInteractionHandler.setRpcFileRequestHandler(rpcFileRequestHandler);
+    public void setRpcFileRequestHandler(RpcFileReceiverHandler rpcFileReceiverHandler) {
+        rpcMessageServerInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
     }
 
     public void setRpcSimpleRequestMsgHandler(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {

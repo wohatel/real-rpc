@@ -10,7 +10,7 @@ import java.io.File;
  *
  * @author yaochuang 2025/03/27 13:29
  */
-public interface RpcFileTransHandler {
+public interface RpcFileSenderHandler {
 
     /**
      * 传输进度

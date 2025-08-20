@@ -8,8 +8,8 @@ import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileRemote;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
-import com.murong.rpc.interaction.handler.RpcFileTransHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
+import com.murong.rpc.interaction.handler.RpcFileSenderHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -38,7 +38,7 @@ public class ReconnectSendFileTest {
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
-            rpcServer.setRpcFileRequestHandler(new RpcFileRequestHandler() {
+            rpcServer.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
                     System.out.println("收到了");
@@ -60,15 +60,15 @@ public class ReconnectSendFileTest {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            RpcFileTransHandler handler = new RpcFileTransHandler() {
+            RpcFileSenderHandler handler = new RpcFileSenderHandler() {
                 @Override
                 public void onProcess(File file, RpcFileRemote rpcFileRemoteWrapper, RpcFileTransProcess rpcFileTransProcess) {
-                    RpcFileTransHandler.super.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess);
+                    RpcFileSenderHandler.super.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess);
                 }
 
                 @Override
                 public void onFailure(File file, RpcFileRemote rpcFileRemoteWrapper, String errorMsg) {
-                    RpcFileTransHandler.super.onFailure(file, rpcFileRemoteWrapper, errorMsg);
+                    RpcFileSenderHandler.super.onFailure(file, rpcFileRemoteWrapper, errorMsg);
                 }
 
                 @Override

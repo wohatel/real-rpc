@@ -10,7 +10,7 @@ import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.TransSessionManger;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.murong.rpc.util.JsonUtil;
@@ -34,7 +34,7 @@ import lombok.extern.java.Log;
 @RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
 
-    private RpcFileRequestHandler rpcFileRequestHandler;
+    private RpcFileReceiverHandler rpcFileReceiverHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
     /**
@@ -87,7 +87,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
-            case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileRequestHandler);
+            case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
 
             case heart -> this.handleHeart(ctx, msg);
 

@@ -13,7 +13,7 @@ import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
-import com.murong.rpc.interaction.handler.RpcFileTransHandler;
+import com.murong.rpc.interaction.handler.RpcFileSenderHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -82,12 +82,12 @@ public class RpcDefaultClient extends AbstractRpcClient {
         this.sendFile(file, rpcSession, context, null);
     }
 
-    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler) {
-        this.sendFile(file, rpcSession, context, rpcFileTransHandler, null);
+    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileSenderHandler rpcFileSenderHandler) {
+        this.sendFile(file, rpcSession, context, rpcFileSenderHandler, null);
     }
 
-    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileTransHandler rpcFileTransHandler, RpcFileTransConfig config) {
-        RpcMsgTransUtil.writeFile(channel, file, rpcSession, context, rpcFileTransHandler, config);
+    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileSenderHandler rpcFileSenderHandler, RpcFileTransConfig config) {
+        RpcMsgTransUtil.writeFile(channel, file, rpcSession, context, rpcFileSenderHandler, config);
     }
 
     public void interruptSendFile(RpcSession rpcSession) {

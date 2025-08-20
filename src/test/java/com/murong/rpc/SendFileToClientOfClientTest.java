@@ -8,7 +8,7 @@ import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
 import com.murong.rpc.interaction.file.RpcFileTransWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class SendFileToClientOfClientTest {
     public static void clientConnect() {
 
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-        defaultClient.setRpcFileRequestHandler(new RpcFileRequestHandler() {
+        defaultClient.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
             @Override
             public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 System.out.println("收到了");
@@ -49,7 +49,7 @@ public class SendFileToClientOfClientTest {
 
             @Override
             public void onFailure(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileTransWrapper rpcFileWrapper, Exception e) {
-                RpcFileRequestHandler.super.onFailure(ctx, rpcSession,  rpcFileWrapper, e);
+                RpcFileReceiverHandler.super.onFailure(ctx, rpcSession,  rpcFileWrapper, e);
             }
 
             @Override

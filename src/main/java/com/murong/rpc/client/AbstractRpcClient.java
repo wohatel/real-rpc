@@ -2,7 +2,7 @@ package com.murong.rpc.client;
 
 import com.murong.rpc.initializer.RpcMessageInteractionHandler;
 import com.murong.rpc.initializer.RpcMsgChannelInitializer;
-import com.murong.rpc.interaction.handler.RpcFileRequestHandler;
+import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.Channel;
@@ -26,8 +26,8 @@ public abstract class AbstractRpcClient implements Closeable {
         rpcMessageClientInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);
     }
 
-    public void setRpcFileRequestHandler(RpcFileRequestHandler rpcFileRequestHandler) {
-        rpcMessageClientInteractionHandler.setRpcFileRequestHandler(rpcFileRequestHandler);
+    public void setRpcFileRequestHandler(RpcFileReceiverHandler rpcFileReceiverHandler) {
+        rpcMessageClientInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
     }
 
     public void setRpcSessionRequestHandler(RpcSessionRequestMsgHandler rpcSessionRequestHandler) {
