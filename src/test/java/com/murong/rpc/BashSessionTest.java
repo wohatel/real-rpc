@@ -146,7 +146,7 @@ public class BashSessionTest {
             }
 
         };
-        rpcServer.setRpcSessionRequestMsgHandler(rpcSessionRequestMsgHandler);
+        rpcServer.onSessionMsgReceive(rpcSessionRequestMsgHandler);
         rpcServer.start();
     }
 

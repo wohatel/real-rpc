@@ -6,7 +6,7 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
-import com.murong.rpc.interaction.file.RpcFileTransWrapper;
+import com.murong.rpc.interaction.file.RpcFileReceiveWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,26 +34,26 @@ public class SendFileToClientOfClientTest {
     public static void clientConnect() {
 
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-        defaultClient.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
+        defaultClient.onFileReceive(new RpcFileReceiverHandler() {
             @Override
             public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 System.out.println("收到了");
 
-                return new RpcFileLocal(new File("/Users/yaochuang/test/abc2a35cf7d-a84a-4f0b-b8c6-1dabe3406585.zip"), RpcFileTransModel.RESUME);
+                return new RpcFileLocal(new File("/Users/yaochuang/test/abc2a35cf7d-a84a-4f0b-b8c6-1dabe3406585.zip"), RpcFileTransModel.REBUILD);
             }
 
             @Override
-            public void onProcess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileTransWrapper rpcFileWrapper, long recieveSize) {
+            public void onProcess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
                 System.out.println(recieveSize);
             }
 
             @Override
-            public void onFailure(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileTransWrapper rpcFileWrapper, Exception e) {
+            public void onFailure(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper, Exception e) {
                 RpcFileReceiverHandler.super.onFailure(ctx, rpcSession,  rpcFileWrapper, e);
             }
 
             @Override
-            public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileTransWrapper rpcFileWrapper) {
+            public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println();
             }
 
@@ -62,7 +62,7 @@ public class SendFileToClientOfClientTest {
              *
              * @param context 文件上下文
              */
-            public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, final RpcFileTransWrapper rpcFileWrapper) {
+            public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, final RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println("发送端终止:");
             }
         });

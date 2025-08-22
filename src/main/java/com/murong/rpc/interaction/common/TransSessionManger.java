@@ -2,7 +2,7 @@ package com.murong.rpc.interaction.common;
 
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
-import com.murong.rpc.interaction.file.RpcFileTransWrapper;
+import com.murong.rpc.interaction.file.RpcFileReceiveWrapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
@@ -103,7 +103,7 @@ public class TransSessionManger {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(String sessionId, int cacheBlock, RpcFileTransWrapper data, RpcSession rpcSession) {
+    public static void initFile(String sessionId, int cacheBlock, RpcFileReceiveWrapper data, RpcSession rpcSession) {
         if (isRunning(sessionId)) {
             throw new RuntimeException("文件session已存在");
         }
@@ -125,8 +125,8 @@ public class TransSessionManger {
         return poll;
     }
 
-    public static RpcFileTransWrapper getFileData(String sessionId) {
-        return (RpcFileTransWrapper) SESSION_DATA.get(sessionId);
+    public static RpcFileReceiveWrapper getFileData(String sessionId) {
+        return (RpcFileReceiveWrapper) SESSION_DATA.get(sessionId);
     }
 
     /**

@@ -6,10 +6,7 @@ import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileLocal;
-import com.murong.rpc.interaction.file.RpcFileRemote;
-import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
-import com.murong.rpc.interaction.handler.RpcFileSenderHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -38,7 +35,7 @@ public class ReconnectSendFileTest {
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
-            rpcServer.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
+            rpcServer.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
                     System.out.println("收到了");
@@ -60,27 +57,11 @@ public class ReconnectSendFileTest {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            RpcFileSenderHandler handler = new RpcFileSenderHandler() {
-                @Override
-                public void onProcess(File file, RpcFileRemote rpcFileRemoteWrapper, RpcFileTransProcess rpcFileTransProcess) {
-                    RpcFileSenderHandler.super.onProcess(file, rpcFileRemoteWrapper, rpcFileTransProcess);
-                }
-
-                @Override
-                public void onFailure(File file, RpcFileRemote rpcFileRemoteWrapper, String errorMsg) {
-                    RpcFileSenderHandler.super.onFailure(file, rpcFileRemoteWrapper, errorMsg);
-                }
-
-                @Override
-                public void onSuccess(File file, RpcFileRemote rpcFileRemoteWrapper) {
-                    System.out.println(rpcFileRemoteWrapper.getFilePath());
-                    System.out.println(rpcFileRemoteWrapper.getFilePath());
-                    System.out.println(rpcFileRemoteWrapper.getFilePath());
-                    System.out.println(rpcFileRemoteWrapper.getFilePath());
-                }
-            };
-
-            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip"), new RpcSession(10000), null, handler);
+            defaultClient.sendFile(new File("/Users/yaochuang/test/tilemaker.zip")).onSuccess(desc -> {
+                System.out.println("结束");
+            }).onProcess((desc, process) -> {
+                System.out.println(process.getSendSize());
+            });
         });
 
 

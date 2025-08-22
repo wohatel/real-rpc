@@ -38,12 +38,12 @@ public class SendFileToClientTest {
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
-            rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
+            rpcServer.onMsgReceive((cx, req) -> {
                 if (req.getBody().equals("abcdef")) {
                     VirtualThreadPool.execute(() -> {
                         RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
 //                        new RpcFileTransConfig(NumberConstant.ONE_K, true);
-                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), rpcSession);
+                        RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), null);
                     });
                 } else {
                     System.out.println(req);
@@ -57,7 +57,7 @@ public class SendFileToClientTest {
     public static void clientConnect() {
         VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-            defaultClient.setRpcFileRequestHandler(new RpcFileReceiverHandler() {
+            defaultClient.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
 

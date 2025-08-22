@@ -44,7 +44,7 @@ public class SendMsgTcp {
 VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
             AtomicLong start = new AtomicLong(0L);
-            rpcServer.setRpcSimpleRequestMsgHandler((ctx, req) -> {
+            rpcServer.onMsgReceive((ctx, req) -> {
 
                 start.compareAndSet(0l, System.currentTimeMillis());
 

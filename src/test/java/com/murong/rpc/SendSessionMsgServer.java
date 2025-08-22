@@ -26,7 +26,7 @@ public class SendSessionMsgServer {
      */
     public static void serverStart() {
         RpcServer rpcServer = new RpcServer(8765);
-        rpcServer.setRpcSessionRequestMsgHandler(new RpcSessionRequestMsgHandler() {
+        rpcServer.onSessionMsgReceive(new RpcSessionRequestMsgHandler() {
             @Override
             public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("你传入了:" + context.getTopic());

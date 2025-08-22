@@ -1,6 +1,6 @@
 package com.murong.rpc;
 
-import com.murong.rpc.interaction.base.RpcSession;
+import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.server.RpcServer;
@@ -26,11 +26,10 @@ public class SendFileToClientOfServerTest {
 
     public static void serverStart() {
         RpcServer rpcServer = new RpcServer(8765);
-        rpcServer.setRpcSimpleRequestMsgHandler((cx, req) -> {
+        rpcServer.onMsgReceive((cx, req) -> {
             if (req.getBody().equals("abcdef")) {
                 VirtualThreadPool.execute(() -> {
-                    RpcSession rpcSession = RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"));
-
+                    RpcFileSenderWrapper rpcFileSenderWrapper = RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), null);
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -41,7 +40,7 @@ public class SendFileToClientOfServerTest {
 
                 });
             } else {
-                System.out.println(req+"rtyuio");
+                System.out.println(req + "rtyuio");
             }
 
         });

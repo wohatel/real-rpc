@@ -34,7 +34,7 @@ public class ReconnectClientTest {
     public static RpcServer serverStart() {
         RpcServer rpcServer = new RpcServer(8765);
         rpcServer.start();
-        rpcServer.setRpcSimpleRequestMsgHandler(new RpcSimpleRequestMsgHandler() {
+        rpcServer.onMsgReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
                 System.out.println(request.getRequestId());

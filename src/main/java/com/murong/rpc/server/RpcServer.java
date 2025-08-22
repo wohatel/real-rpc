@@ -53,15 +53,15 @@ public class RpcServer implements AutoCloseable {
     }
 
 
-    public void setRpcFileRequestHandler(RpcFileReceiverHandler rpcFileReceiverHandler) {
+    public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
         rpcMessageServerInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
     }
 
-    public void setRpcSimpleRequestMsgHandler(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
+    public void onMsgReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
         rpcMessageServerInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);
     }
 
-    public void setRpcSessionRequestMsgHandler(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+    public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         rpcMessageServerInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestMsgHandler);
     }
 

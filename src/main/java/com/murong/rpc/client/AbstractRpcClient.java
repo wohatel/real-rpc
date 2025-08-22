@@ -22,15 +22,15 @@ public abstract class AbstractRpcClient implements Closeable {
 
     protected final RpcMessageInteractionHandler rpcMessageClientInteractionHandler = new RpcMessageInteractionHandler(false);
 
-    public void setRpcSimpleRequestMsgHandler(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
+    public void onMsgReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
         rpcMessageClientInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);
     }
 
-    public void setRpcFileRequestHandler(RpcFileReceiverHandler rpcFileReceiverHandler) {
+    public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
         rpcMessageClientInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
     }
 
-    public void setRpcSessionRequestHandler(RpcSessionRequestMsgHandler rpcSessionRequestHandler) {
+    public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestHandler) {
         rpcMessageClientInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestHandler);
     }
 

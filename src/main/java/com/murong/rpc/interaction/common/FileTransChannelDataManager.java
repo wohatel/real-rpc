@@ -6,7 +6,7 @@ import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileLocal;
-import com.murong.rpc.interaction.file.RpcFileTransWrapper;
+import com.murong.rpc.interaction.file.RpcFileReceiveWrapper;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileWrapperUtil;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
@@ -63,7 +63,7 @@ public class FileTransChannelDataManager {
             if (!running) {// 如果已经不再运行,则无需执行
                 return;
             }
-            RpcFileTransWrapper data = TransSessionManger.getFileData(rpcSession.getSessionId());
+            RpcFileReceiveWrapper data = TransSessionManger.getFileData(rpcSession.getSessionId());
             TransSessionManger.release(rpcSession.getSessionId());
             VirtualThreadPool.execute(() -> rpcFileReceiverHandler.onStop(ctx, rpcSession, data));
         } else {
@@ -100,7 +100,7 @@ public class FileTransChannelDataManager {
         rpcResponse.setMsg(fileWrapper.getMsg());
         RpcMsgTransUtil.write(ctx.channel(), rpcResponse);
         if (fileWrapper.isInterruptByInit()) {
-            RpcFileTransWrapper impl = new RpcFileTransWrapper(fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, 0L);
+            RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, 0L);
             VirtualThreadPool.execute(() -> rpcFileReceiverHandler.onSuccess(ctx, rpcFileRequest.getRpcSession(), impl));
             log.info("接收方文件接收结束: 无需传输");
         } else {
@@ -116,7 +116,7 @@ public class FileTransChannelDataManager {
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
-        RpcFileTransWrapper impl = new RpcFileTransWrapper(fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, length);
+        RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, length);
         TransSessionManger.initFile(rpcSession.getSessionId(), NumberConstant.SEVENTY_FIVE, impl, rpcFileRequest.getRpcSession());
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {

@@ -8,12 +8,12 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
+import com.murong.rpc.interaction.file.RpcFileSenderInput;
+import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.constant.NumberConstant;
-import com.murong.rpc.interaction.file.RpcFileTransConfig;
-import com.murong.rpc.interaction.handler.RpcFileSenderHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -72,22 +72,12 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return f;
     }
 
-    public RpcSession sendFile(File file) {
-        RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
-        this.sendFile(file, rpcSession, null);
-        return rpcSession;
+    public RpcFileSenderWrapper sendFile(File file) {
+        return this.sendFile(file, null);
     }
 
-    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context) {
-        this.sendFile(file, rpcSession, context, null);
-    }
-
-    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileSenderHandler rpcFileSenderHandler) {
-        this.sendFile(file, rpcSession, context, rpcFileSenderHandler, null);
-    }
-
-    public void sendFile(File file, RpcSession rpcSession, RpcSessionContext context, RpcFileSenderHandler rpcFileSenderHandler, RpcFileTransConfig config) {
-        RpcMsgTransUtil.writeFile(channel, file, rpcSession, context, rpcFileSenderHandler, config);
+    public RpcFileSenderWrapper sendFile(File file, RpcFileSenderInput input) {
+        return RpcMsgTransUtil.writeFile(channel, file, input);
     }
 
     public void interruptSendFile(RpcSession rpcSession) {
@@ -116,8 +106,8 @@ public class RpcDefaultClient extends AbstractRpcClient {
     /**
      * 建立会话
      *
-     * @param rpcSession
-     * @return
+     * @param rpcSession rpcSession
+     * @return RpcSessionFuture
      */
     public RpcSessionFuture startSession(RpcSession rpcSession) {
         return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession);

@@ -32,7 +32,7 @@ public class SendMsgToCliet {
 
 VirtualThreadPool.execute(() -> {
             RpcServer rpcServer = new RpcServer(8765);
-            rpcServer.setRpcSimpleRequestMsgHandler((ctx, req) -> {
+            rpcServer.onMsgReceive((ctx, req) -> {
                 System.out.println("开始");
                 RpcRequest request = new RpcRequest();
                 RpcFuture rpcFuture = RpcMsgTransUtil.sendSynMsg(ctx.channel(), request);
@@ -51,7 +51,7 @@ VirtualThreadPool.execute(() -> {
     public static void clientConnect() {
 VirtualThreadPool.execute(() -> {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-            defaultClient.setRpcSimpleRequestMsgHandler((ctx, req) -> {
+            defaultClient.onMsgReceive((ctx, req) -> {
                 RpcResponse response = req.toResponse();
                 response.setBody("这是响应结果");
                 RpcMsgTransUtil.write(ctx.channel(), response);
