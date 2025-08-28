@@ -9,7 +9,6 @@ import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
 import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
 import com.murong.rpc.interaction.file.RpcFileSenderInput;
-import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
@@ -72,14 +71,13 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return f;
     }
 
-    public RpcFileSenderWrapper sendFile(File file) {
-        return this.sendFile(file, null);
+    public void sendFile(File file, RpcFileSenderInput input) {
+        RpcMsgTransUtil.writeFile(channel, file, input);
     }
 
-    public RpcFileSenderWrapper sendFile(File file, RpcFileSenderInput input) {
-        return RpcMsgTransUtil.writeFile(channel, file, input);
-    }
-
+    /**
+     * 强制中断传输可能引发异常操作,谨慎使用
+     */
     public void interruptSendFile(RpcSession rpcSession) {
         RpcMsgTransUtil.writeStopFile(this.channel, rpcSession);
     }
@@ -125,8 +123,6 @@ public class RpcDefaultClient extends AbstractRpcClient {
 
     /**
      * 关闭会话
-     *
-     * @return
      */
     public void finishSession(RpcSession rpcSession) {
         RpcMsgTransUtil.sendSessionFinishRequest(channel, rpcSession);

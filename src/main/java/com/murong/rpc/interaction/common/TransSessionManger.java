@@ -89,7 +89,7 @@ public class TransSessionManger {
                 releaseFileChunk(fileChunkItem);
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "文件块添加异常:", e);
+            log.log(Level.WARNING, "文件块-接收-打印异常信息:", e);
             releaseFileChunk(fileChunkItem);
             return false;
         }
@@ -103,7 +103,8 @@ public class TransSessionManger {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(String sessionId, int cacheBlock, RpcFileReceiveWrapper data, RpcSession rpcSession) {
+    public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data) {
+        String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RuntimeException("文件session已存在");
         }

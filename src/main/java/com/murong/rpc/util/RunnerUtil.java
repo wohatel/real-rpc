@@ -75,8 +75,19 @@ public final class RunnerUtil {
             if (condition.getAsBoolean()) {
                 return true;
             }
-            LockSupport.parkNanos(stepMillis * 1_000_000L);
+            RunnerUtil.sleep(stepMillis);
         }
         return condition.getAsBoolean();
     }
+
+    /**
+     * 包装线程sleep
+     */
+    public static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+        }
+    }
+
 }

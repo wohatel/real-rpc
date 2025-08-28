@@ -59,7 +59,7 @@ public class SendFileToClientTest {
             RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
             defaultClient.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
-                public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
+                public RpcFileLocal getTargetFile(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
 
                     System.out.println("收到了");
 

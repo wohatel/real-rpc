@@ -11,6 +11,8 @@ public class NumberConstant {
     public static final int K_ONE = 10_000;
     public static final long M_128 = 128 * 1024 * 1024;
     public static final long M_10 = 10 * 1024 * 1024;
+    public static final long M_50 = 50 * 1024 * 1024;
+    public static final long M_G = 1024 * 1024 * 1024;
     public static final long M_5 = 5 * 1024 * 1024;
     public static final long M_1 = 1024 * 1024;
     public static final long K_512 = 512 * 1024;

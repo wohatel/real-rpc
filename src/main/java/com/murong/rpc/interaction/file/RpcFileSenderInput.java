@@ -4,7 +4,6 @@ import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -13,11 +12,11 @@ import lombok.Getter;
  * @author yaochuang 2025/03/27 13:29
  */
 @Builder
-@Data
 @Getter
 public class RpcFileSenderInput {
     @Builder.Default
     private RpcSession rpcSession = new RpcSession(NumberConstant.TEN_EIGHT_K);
     private RpcSessionContext context;
     private RpcFileTransConfig rpcFileTransConfig;
+    private RpcFileSenderListener rpcFileSenderListener;
 }

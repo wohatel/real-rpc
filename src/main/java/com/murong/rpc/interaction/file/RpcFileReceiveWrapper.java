@@ -1,6 +1,8 @@
 package com.murong.rpc.interaction.file;
 
+import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.common.RpcSessionContext;
+import com.murong.rpc.interaction.common.TransSessionManger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +20,9 @@ public class RpcFileReceiveWrapper {
      * 本地接受文件的位置
      */
     private final File file;
+
+    private final RpcSession rpcSession;
+
     /**
      * 文件是否追加或续传
      */
@@ -38,4 +43,11 @@ public class RpcFileReceiveWrapper {
      */
     private final long needTransLength;
 
+    /**
+     * 中断的同时,可能触发文件接收异常事件
+     * RpcFileSenderListener.onFailure()
+     */
+    public void interruptReceive() {
+        TransSessionManger.release(rpcSession.getSessionId());
+    }
 }

@@ -44,7 +44,7 @@ public class SendFileAndInterruptTest {
             RpcServer rpcServer = new RpcServer(8765);
             rpcServer.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
-                public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {
+                public RpcFileLocal getTargetFile(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {
                     System.out.println("收到了");
                     return new RpcFileLocal(new File("/Users/yaochuang/test/abc123456123234.java"), RpcFileTransModel.REBUILD);
 //                    return null;
@@ -55,13 +55,8 @@ public class SendFileAndInterruptTest {
                  *
                  */
                 @Override
-                public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileReceiveWrapper rpcFileWrapper) {
+                public void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
                     System.out.println("完成了吗");
-                }
-
-                @Override
-                public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, final RpcFileReceiveWrapper rpcFileWrapper) {
-                    System.out.println("传输方结束结束了");
                 }
 
             });
@@ -79,10 +74,7 @@ public class SendFileAndInterruptTest {
                 throw new RuntimeException(e);
             }
 
-            defaultClient.sendFile(new File("/Users/yaochuang/test/归档.zip")).onSuccess(desc->{
-                System.out.println(System.currentTimeMillis());
-                System.out.println(desc.getLocalFile().length());
-            });
+            defaultClient.sendFile(new File("/Users/yaochuang/test/归档.zip"), null);
 
             try {
                 Thread.sleep(10000l);

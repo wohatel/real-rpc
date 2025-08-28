@@ -1,8 +1,11 @@
 package com.murong.rpc;
 
-import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
+import com.murong.rpc.interaction.file.RpcFileSenderInput;
+import com.murong.rpc.interaction.file.RpcFileSenderListener;
+import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
+import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.server.RpcServer;
 
 import java.io.File;
@@ -29,7 +32,24 @@ public class SendFileToClientOfServerTest {
         rpcServer.onMsgReceive((cx, req) -> {
             if (req.getBody().equals("abcdef")) {
                 VirtualThreadPool.execute(() -> {
-                    RpcFileSenderWrapper rpcFileSenderWrapper = RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), null);
+                    RpcFileSenderInput.RpcFileSenderInputBuilder builder = RpcFileSenderInput.builder();
+                    builder.rpcFileSenderListener(new RpcFileSenderListener() {
+                        @Override
+                        public void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper) {
+                            System.out.println("结束");
+                        }
+
+                        @Override
+                        public void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
+
+                        }
+
+                        @Override
+                        public void onProcess(RpcFileSenderWrapper rpcFileSenderWrapper, RpcFileTransProcess process) {
+
+                        }
+                    });
+                    RpcMsgTransUtil.writeFile(cx.channel(), new File("/Users/yaochuang/test/tilemaker.zip"), builder.build());
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {

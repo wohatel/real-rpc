@@ -18,4 +18,10 @@ public interface RpcResponseMsgListener {
      */
     default void onTimeout() {
     }
+
+    /**
+     * 中止session
+     */
+    default void onSessionInterrupt() {
+    }
 }

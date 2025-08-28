@@ -36,24 +36,28 @@ public class SendFileToClientOfClientTest {
         RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         defaultClient.onFileReceive(new RpcFileReceiverHandler() {
             @Override
-            public RpcFileLocal getTargetFile(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
+            public RpcFileLocal getTargetFile(final RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 System.out.println("收到了");
 
                 return new RpcFileLocal(new File("/Users/yaochuang/test/abc2a35cf7d-a84a-4f0b-b8c6-1dabe3406585.zip"), RpcFileTransModel.REBUILD);
             }
 
             @Override
-            public void onProcess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
+            public void onProcess(RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
                 System.out.println(recieveSize);
+                if (recieveSize > 2 * 1024 * 1024) {
+                    System.out.println("尝试中断");
+                    rpcFileWrapper.interruptReceive();
+                }
             }
 
             @Override
-            public void onFailure(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper, Exception e) {
-                RpcFileReceiverHandler.super.onFailure(ctx, rpcSession,  rpcFileWrapper, e);
+            public void onFailure(RpcFileReceiveWrapper rpcFileWrapper, Exception e) {
+                RpcFileReceiverHandler.super.onFailure(rpcFileWrapper, e);
             }
 
             @Override
-            public void onSuccess(ChannelHandlerContext ctx, RpcSession rpcSession, RpcFileReceiveWrapper rpcFileWrapper) {
+            public void onSuccess(RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println();
             }
 
@@ -62,7 +66,7 @@ public class SendFileToClientOfClientTest {
              *
              * @param context 文件上下文
              */
-            public void onStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context, final RpcFileReceiveWrapper rpcFileWrapper) {
+            public void onStop(RpcSessionContext context, final RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println("发送端终止:");
             }
         });
