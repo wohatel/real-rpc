@@ -3,7 +3,6 @@ package com.murong.rpc.interaction.common;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.google.common.util.concurrent.RateLimiter;
-import com.murong.rpc.constant.RpcSysEnum;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
@@ -16,7 +15,6 @@ import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileInfo;
 import com.murong.rpc.interaction.file.RpcFileRequest;
 import com.murong.rpc.interaction.file.RpcFileSenderInput;
-import com.murong.rpc.interaction.file.RpcFileSenderListener;
 import com.murong.rpc.interaction.file.RpcFileSenderListenerProxy;
 import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransConfig;
@@ -25,7 +23,6 @@ import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcResponseMsgListener;
 import com.murong.rpc.util.FileUtil;
 import com.murong.rpc.util.JsonUtil;
-import com.murong.rpc.util.OneTimeLock;
 import com.murong.rpc.util.RunnerUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -197,7 +194,7 @@ public class RpcMsgTransUtil {
         rpcFileInfo.setFileName(file.getName());
         rpcFileInfo.setLength(file.length());
         if (fileTransConfig.isSendFileHash()) {
-            rpcFileInfo.setFileHash(FileUtil.fileSha256Hash(file));
+            rpcFileInfo.setFileHash(FileUtil.md5(file));
         }
         rpcFileRequest.setFileInfo(rpcFileInfo);
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());

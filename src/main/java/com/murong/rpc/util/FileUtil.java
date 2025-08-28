@@ -10,12 +10,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.MessageDigest;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -97,8 +95,8 @@ public class FileUtil {
     }
 
     @SneakyThrows
-    public static String fileSha256Hash(File file) {
-        return DigestUtils.sha256Hex(new FileInputStream(file));
+    public static String md5(File file) {
+        return DigestUtils.md5Hex(new FileInputStream(file));
     }
 
 
