@@ -3,13 +3,13 @@ package com.murong.rpc.client;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.initializer.RpcMsgChannelInitializer;
-import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
 import com.murong.rpc.interaction.handler.RpcHeartTimeOutHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -36,6 +36,7 @@ public class RpcHeartClient extends AbstractRpcClient {
     private final String host;
     private final long timeOutMillis;
     private final int port;
+    private NioEventLoopGroup nioEventLoopGroup;
 
     /**
      * @param host                   链接地址
@@ -81,7 +82,7 @@ public class RpcHeartClient extends AbstractRpcClient {
             throw new RuntimeException("不支持多次链接:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
-        b.group(NoShutNioEventLoopGroup.acquireNioEventLoopGroup());
+        b.group(nioEventLoopGroup);
         b.channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true);
         b.handler(this.rpcMsgChannelInitializer);
         ChannelFuture connect = b.connect(host, port);

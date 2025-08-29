@@ -7,7 +7,6 @@ import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.base.RpcSessionFuture;
 import com.murong.rpc.interaction.base.RpcSessionRequest;
-import com.murong.rpc.interaction.common.NoShutNioEventLoopGroup;
 import com.murong.rpc.interaction.file.RpcFileSenderInput;
 import com.murong.rpc.interaction.common.RpcInteractionContainer;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
@@ -45,8 +44,9 @@ public class RpcDefaultClient extends AbstractRpcClient {
     }
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, NoShutNioEventLoopGroup.acquireNioEventLoopGroup());
+        this(host, port, new NioEventLoopGroup());
     }
+
 
     public ChannelFuture connect() {
         if (this.channel != null) {

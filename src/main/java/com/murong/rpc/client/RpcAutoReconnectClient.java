@@ -35,8 +35,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         super(host, port, nioEventLoopGroup);
     }
 
+
     public RpcAutoReconnectClient(String host, int port) {
-        super(host, port);
+        this(host, port, new NioEventLoopGroup());
     }
 
     /**
