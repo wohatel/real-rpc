@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -16,9 +17,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RpcSessionContext {
+    /**
+     * 会话主题
+     */
     private String topic;
-    private long startTime;
+    /**
+     * 会话事项
+     */
     private List<String> matters;
-    private String destPath;
-    private JSONObject body;
+    /**
+     * 回话正文信息
+     */
+    private JSONObject parameters;
 }
