@@ -2,7 +2,7 @@ package com.murong.rpc.interaction.common;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
-@Log
+@Slf4j
 public class ByteBufPoolManager {
 
     private static final Map<String, ByteBufPool> POOL_MAP = new ConcurrentHashMap<>();
@@ -100,7 +100,7 @@ public class ByteBufPoolManager {
                         byteBuf.release();
                     }
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "销毁异常", e);
+                    log.error("销毁异常", e);
                 }
             }
             list.clear();

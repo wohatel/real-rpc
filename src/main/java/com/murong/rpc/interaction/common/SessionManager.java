@@ -2,7 +2,7 @@ package com.murong.rpc.interaction.common;
 
 import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.logging.Level;
 
 /**
  * description
@@ -21,7 +20,7 @@ import java.util.logging.Level;
  * @author yaochuang 2025/04/22 18:57
  */
 @Data
-@Log
+@Slf4j
 public class SessionManager<T> {
     private final Long sessionTime;
     private volatile boolean stop;
@@ -170,7 +169,7 @@ public class SessionManager<T> {
             try {
                 this.releaseAndSessionClose(sessionId);
             } catch (Exception e) {
-                log.log(Level.WARNING, "异常", e);
+                log.error("销毁管理器异常", e);
             }
         }
     }
@@ -243,7 +242,7 @@ public class SessionManager<T> {
                             try {
                                 sessionClose.accept(item.sessionId, resource);
                             } catch (Exception e) {
-                                log.log(Level.WARNING, "异常", e);
+                                log.error("cleanerLoop异常", e);
                             }
                         });
                     }
@@ -269,7 +268,7 @@ public class SessionManager<T> {
         try {
             return autoFlushPredicate.test(sessionId, resource);
         } catch (Exception e) {
-            log.log(Level.WARNING, "校验失败", e);
+            log.error("autoTest校验失败", e);
         }
         return false;
     }

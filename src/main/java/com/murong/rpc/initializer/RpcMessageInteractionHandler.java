@@ -20,7 +20,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * description
@@ -30,17 +30,13 @@ import lombok.extern.java.Log;
 @Setter
 @Getter
 @ChannelHandler.Sharable
-@Log
+@Slf4j
 @RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
 
     private RpcFileReceiverHandler rpcFileReceiverHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
-    /**
-     * 针对ping的回应
-     */
-    private final boolean pong;
 
 
     @Override
@@ -89,20 +85,9 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
 
             case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
 
-            case heart -> this.handleHeart(ctx, msg);
 
             default -> {
             }
         }
     }
-
-    private void handleHeart(ChannelHandlerContext ctx, Object msg) {
-        if (pong) {
-            RpcMsgTransUtil.sendHeart(ctx.channel());
-        } else {
-            ctx.fireChannelRead(msg);
-        }
-    }
-
-
 }

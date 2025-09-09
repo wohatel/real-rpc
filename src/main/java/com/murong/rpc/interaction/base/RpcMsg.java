@@ -58,13 +58,6 @@ public class RpcMsg extends AbstractCompressAble {
         return rpcMsg;
     }
 
-    public static RpcMsg fromHeart() {
-        RpcMsg rpcMsg = new RpcMsg();
-        rpcMsg.setRpcCommandType(RpcCommandType.heart);
-        rpcMsg.setNeedCompress(false);
-        return rpcMsg;
-    }
-
     @SuppressWarnings("unchecked")
     public <T> T getPayload(Class<T> clazz) {
         if (payload == null) {

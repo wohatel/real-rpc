@@ -19,7 +19,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,7 +32,7 @@ import java.util.logging.Level;
 /**
  * @author yaochuang
  */
-@Log
+@Slf4j
 public class FileTransChannelDataManager {
 
     @SneakyThrows
@@ -157,7 +157,7 @@ public class FileTransChannelDataManager {
                 }
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "文件块-合并-打印异常信息", e);
+            log.error("文件块-合并-打印异常信息", e);
             response.setMsg(e.getMessage());
             response.setSuccess(false);
             RpcMsgTransUtil.write(ctx.channel(), response);

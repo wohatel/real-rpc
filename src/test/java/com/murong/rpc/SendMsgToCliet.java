@@ -7,6 +7,7 @@ import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.server.RpcServer;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * description
@@ -50,7 +51,7 @@ VirtualThreadPool.execute(() -> {
 
     public static void clientConnect() {
 VirtualThreadPool.execute(() -> {
-            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new NioEventLoopGroup());
             defaultClient.onMsgReceive((ctx, req) -> {
                 RpcResponse response = req.toResponse();
                 response.setBody("这是响应结果");

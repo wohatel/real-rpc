@@ -47,7 +47,7 @@ public class BashSessionTest {
 
     public static void clientConnect() throws IOException {
 
-        RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+        RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new NioEventLoopGroup());
         defaultClient.connect();
 
         RpcSession session = new RpcSession(10_000);

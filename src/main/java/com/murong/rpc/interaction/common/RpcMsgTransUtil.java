@@ -25,23 +25,28 @@ import com.murong.rpc.util.FileUtil;
 import com.murong.rpc.util.JsonUtil;
 import com.murong.rpc.util.RunnerUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.CharsetUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-@Log
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcMsgTransUtil {
+
 
     public static void write(Channel channel, RpcResponse rpcResponse) {
         if (rpcResponse == null) {
@@ -61,6 +66,27 @@ public class RpcMsgTransUtil {
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
     }
 
+    /**
+     * 发送udp消息
+     *
+     */
+    public static void sendUdpMsg(Channel channel, String msg, InetSocketAddress to) {
+        byte[] bytes = msg.getBytes(CharsetUtil.UTF_8);
+        ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
+        DatagramPacket datagramPacket = new DatagramPacket(byteBuf, to);
+        channel.writeAndFlush(datagramPacket);
+    }
+
+    /**
+     * 读取udp发送的消息
+     *
+     */
+    public static String readUdpMsg(DatagramPacket packet) {
+        ByteBuf content = packet.content();
+        return content.toString(CharsetUtil.UTF_8);
+    }
+
+
     public static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (rpcRequest == null) {
             return;
@@ -72,13 +98,6 @@ public class RpcMsgTransUtil {
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
         channel.writeAndFlush(build);
-    }
-
-    public static void sendHeart(Channel channel) {
-        if (channel == null || !channel.isActive()) {
-            throw new RuntimeException("连接不可用");
-        }
-        channel.writeAndFlush(RpcMsg.fromHeart());
     }
 
     public static RpcFuture sendSynMsg(Channel channel, RpcRequest rpcRequest) {
@@ -305,7 +324,7 @@ public class RpcMsgTransUtil {
                         releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
                     }
                 } else {
-                    log.warning("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
+                    log.error("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
                     rpcFuture.setSessionFinish(true); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
@@ -377,7 +396,7 @@ public class RpcMsgTransUtil {
             }
         } catch (Exception e) {
             rpcFuture.setSessionFinish(true);
-            log.log(Level.WARNING, "文件块-发送-打印异常信息:", e);
+            log.error("文件块-发送-打印异常信息:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
         }
     }

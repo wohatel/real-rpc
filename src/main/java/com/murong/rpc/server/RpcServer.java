@@ -8,13 +8,12 @@ import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
 
@@ -26,21 +25,19 @@ import java.net.InetSocketAddress;
  * @since 2021/5/25上午12:55
  */
 @Getter
-@Log
+@Slf4j
 public class RpcServer implements AutoCloseable {
-
 
     private Channel channel;
     private final int port;
-    private final EventLoopGroup group;
-    private final EventLoopGroup childGroup;
-
+    private final NioEventLoopGroup group;
+    private final NioEventLoopGroup childGroup;
     @Setter
     private RpcMsgChannelInitializer rpcMsgChannelInitializer;
 
-    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler(true);
+    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler();
 
-    public RpcServer(int port, EventLoopGroup group, EventLoopGroup childGroup) {
+    public RpcServer(int port, NioEventLoopGroup group, NioEventLoopGroup childGroup) {
         this.port = port;
         this.group = group;
         this.childGroup = childGroup;
@@ -78,7 +75,7 @@ public class RpcServer implements AutoCloseable {
         ChannelFuture future = b.bind().sync().addListener(futureListener -> {
             if (!futureListener.isSuccess()) {
                 Throwable cause = futureListener.cause();
-                log.warning("Netty 服务启动失败，原因：" + cause);
+                log.error("Netty 服务启动失败，原因：", cause);
             }
         });
         this.channel = future.channel(); // 用于关闭server
@@ -87,7 +84,7 @@ public class RpcServer implements AutoCloseable {
                 group.shutdownGracefully();
                 childGroup.shutdownGracefully();
                 if (!futureListener.isSuccess()) {
-                    log.warning("Netty 服务关闭异常：" + futureListener.cause());
+                    log.error("Netty 服务关闭异常：", futureListener.cause());
                 } else {
                     log.info("Netty 服务已关闭");
                 }

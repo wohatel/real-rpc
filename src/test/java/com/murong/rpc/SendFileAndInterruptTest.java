@@ -11,6 +11,7 @@ import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.internal.PlatformDependent;
 
 import java.io.File;
@@ -66,7 +67,7 @@ public class SendFileAndInterruptTest {
 
     public static void clientConnect() {
         VirtualThreadPool.execute(() -> {
-            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new NioEventLoopGroup());
             defaultClient.connect();
             try {
                 Thread.sleep(1000);

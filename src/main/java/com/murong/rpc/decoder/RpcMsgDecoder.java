@@ -38,8 +38,6 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
             msg.setPayload(JSON.parseObject(jsonBytes, RpcSessionRequest.class));
         } else if (msg.getRpcCommandType() == RpcCommandType.response) {
             msg.setPayload(JSON.parseObject(jsonBytes, RpcResponse.class));
-        } else if (msg.getRpcCommandType() == RpcCommandType.heart) {
-            msg.setPayload(null);
         } else if (msg.getRpcCommandType() == RpcCommandType.file) {
             RpcFileRequest rpcFileRequest = JSON.parseObject(jsonBytes, RpcFileRequest.class);
             msg.setPayload(rpcFileRequest);

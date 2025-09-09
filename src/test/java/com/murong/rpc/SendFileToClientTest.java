@@ -13,6 +13,7 @@ import com.murong.rpc.interaction.file.RpcFileTransModel;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.File;
 
@@ -56,7 +57,7 @@ public class SendFileToClientTest {
 
     public static void clientConnect() {
         VirtualThreadPool.execute(() -> {
-            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new NioEventLoopGroup());
             defaultClient.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {

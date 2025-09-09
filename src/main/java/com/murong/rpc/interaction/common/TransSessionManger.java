@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.logging.Level;
  *
  * @author yaochuang 2025/04/10 09:25
  */
-@Log
+@Slf4j
 public class TransSessionManger {
 
     /**
@@ -89,7 +89,7 @@ public class TransSessionManger {
                 releaseFileChunk(fileChunkItem);
             }
         } catch (Exception e) {
-            log.log(Level.WARNING, "文件块-接收-打印异常信息:", e);
+            log.error("文件块-接收-打印异常信息:", e);
             releaseFileChunk(fileChunkItem);
             return false;
         }

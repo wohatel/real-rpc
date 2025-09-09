@@ -9,6 +9,7 @@ import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * description
@@ -54,7 +55,7 @@ public class ChannelActiveThenSendTest {
             };
 
 
-            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765);
+            RpcDefaultClient defaultClient = new RpcDefaultClient("127.0.0.1", 8765, new NioEventLoopGroup());
             defaultClient.connect();
 
         });

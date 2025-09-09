@@ -10,12 +10,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
-@Log
+@Slf4j
 public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     @Getter
@@ -33,11 +33,6 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     public RpcAutoReconnectClient(String host, int port, NioEventLoopGroup nioEventLoopGroup) {
         super(host, port, nioEventLoopGroup);
-    }
-
-
-    public RpcAutoReconnectClient(String host, int port) {
-        this(host, port, new NioEventLoopGroup());
     }
 
     /**
@@ -75,12 +70,12 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                 initClient(newChannel);
                 // 监听关闭，关闭后自动重连（异步调度，避免递归）
                 newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                    log.warning("连接断开，将尝试重连...");
+                    log.error("连接断开，将尝试重连...");
                     closeFuture.channel().eventLoop().execute(this::autoReconnect);
                 });
             } else {
                 Throwable cause = connectFuture.cause();
-                log.log(Level.WARNING, "连接失败: " + host + ":" + port, cause);
+                log.error("连接失败: " + host + ":" + port, cause);
 
                 // 清理失败 channel
                 if (newChannel != null && newChannel.isOpen()) {

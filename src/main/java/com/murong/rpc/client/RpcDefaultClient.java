@@ -20,7 +20,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.Getter;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 
@@ -28,7 +28,7 @@ import java.io.File;
 /**
  * @author yaochuang
  */
-@Log
+@Slf4j
 public class RpcDefaultClient extends AbstractRpcClient {
     @Getter
     protected String host;
@@ -42,11 +42,6 @@ public class RpcDefaultClient extends AbstractRpcClient {
         this.nioEventLoopGroup = nioEventLoopGroup;
         this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
     }
-
-    public RpcDefaultClient(String host, int port) {
-        this(host, port, new NioEventLoopGroup());
-    }
-
 
     public ChannelFuture connect() {
         if (this.channel != null) {
@@ -64,7 +59,7 @@ public class RpcDefaultClient extends AbstractRpcClient {
                     initClient(f.channel());
                     log.info("链接to-" + host + ":" + port + "成功");
                 } else {
-                    log.warning("链接to-" + host + ":" + port + "失败");
+                    log.error("链接to-" + host + ":" + port + "失败");
                 }
             }
         });

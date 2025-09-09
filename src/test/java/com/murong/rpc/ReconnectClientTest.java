@@ -7,6 +7,7 @@ import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.murong.rpc.server.RpcServer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 public class ReconnectClientTest {
 
@@ -44,7 +45,7 @@ public class ReconnectClientTest {
     }
 
     public static RpcAutoReconnectClient test() {
-        RpcAutoReconnectClient client = new RpcAutoReconnectClient("127.0.0.1", 8765);
+        RpcAutoReconnectClient client = new RpcAutoReconnectClient("127.0.0.1", 8765, new NioEventLoopGroup());
         client.autoReconnect();
         return client;
     }

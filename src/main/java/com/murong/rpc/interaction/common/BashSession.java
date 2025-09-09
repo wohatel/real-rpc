@@ -3,7 +3,7 @@ package com.murong.rpc.interaction.common;
 import com.murong.rpc.util.RunnerUtil;
 import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 @Data
-@Log
+@Slf4j
 public class BashSession {
     private final Process process;
     private long bashSessionId;
@@ -98,7 +98,7 @@ public class BashSession {
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
         } catch (IOException | InterruptedException e) {
-            log.log(Level.WARNING, "执行kill -2", e);
+            log.error("执行kill -2", e);
         }
     }
 
@@ -115,7 +115,7 @@ public class BashSession {
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
         } catch (IOException | InterruptedException e) {
-            log.log(Level.WARNING, "执行kill -9 异常", e);
+            log.error("执行kill -9 异常", e);
         }
     }
 
@@ -143,7 +143,7 @@ public class BashSession {
                     // 注意消费线程
                     consumer.accept(String.join("\n", batch));
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "消费异常", e);
+                    log.error("消费异常", e);
                 }
             }
         });

@@ -1,21 +1,20 @@
 package com.murong.rpc.util;
 
 import lombok.SneakyThrows;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
-@Log
+@Slf4j
 public final class RunnerUtil {
     public static <T> T execSilent(Supplier<T> supplier) {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.log(Level.WARNING, "异常", e);
+            log.error("execSilent异常", e);
             return null;
         }
     }
@@ -24,7 +23,7 @@ public final class RunnerUtil {
         try {
             runnable.run();
         } catch (Exception e) {
-            log.log(Level.WARNING, "异常", e);
+            log.error("execSilent-runnable异常", e);
         }
     }
 
@@ -37,7 +36,7 @@ public final class RunnerUtil {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.log(Level.WARNING, "异常", e);
+            log.error("execSilentExceptionTo异常", e);
             return result;
         }
     }
