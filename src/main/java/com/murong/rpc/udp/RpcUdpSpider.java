@@ -39,7 +39,7 @@ public class RpcUdpSpider {
 
     @SneakyThrows
     public void bindAsClient() {
-        // 表示随机绑定一个端口,主要是客户端向服务端发送数据
+        // 表示随机绑定一个端口,一般是知道了服务端地址,然后客户端随机分配一个端口通信
         bind(0);
     }
 

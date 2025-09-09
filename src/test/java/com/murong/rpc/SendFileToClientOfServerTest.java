@@ -6,7 +6,7 @@ import com.murong.rpc.interaction.file.RpcFileSenderInput;
 import com.murong.rpc.interaction.file.RpcFileSenderListener;
 import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
-import com.murong.rpc.server.RpcServer;
+import com.murong.rpc.tcp.RpcServer;
 
 import java.io.File;
 
