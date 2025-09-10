@@ -7,6 +7,7 @@ import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.common.VirtualThreadPool;
 import com.murong.rpc.tcp.RpcServer;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -43,7 +44,7 @@ public class SendMsgTcp {
     public static void serverStart() {
 
         VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765);
+            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
             AtomicLong start = new AtomicLong(0L);
             rpcServer.onMsgReceive((ctx, req) -> {
 

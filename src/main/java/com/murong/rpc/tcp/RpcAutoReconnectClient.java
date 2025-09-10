@@ -6,12 +6,10 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,8 +29,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     private Bootstrap bootstrap;
 
-    public RpcAutoReconnectClient(String host, int port, NioEventLoopGroup nioEventLoopGroup) {
-        super(host, port, nioEventLoopGroup);
+    public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
+        super(host, port, eventLoopGroup);
     }
 
     /**
@@ -41,8 +39,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     private ChannelFuture tryConnect() {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
-            bootstrap.group(nioEventLoopGroup);
-            bootstrap.channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true);
+            bootstrap.group(eventLoopGroup);
+            bootstrap.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
             bootstrap.handler(this.rpcMsgChannelInitializer);
         }
         return bootstrap.connect(host, port);
@@ -99,6 +97,4 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         this.setAllowAutoConnect(false);
         super.close();
     }
-
-
 }

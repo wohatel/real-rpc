@@ -32,7 +32,7 @@ public class SendMsgToCliet {
     public static void serverStart() {
 
 VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765);
+            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
             rpcServer.onMsgReceive((ctx, req) -> {
                 System.out.println("开始");
                 RpcRequest request = new RpcRequest();

@@ -8,6 +8,13 @@ import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueServerSocketChannel;
+import io.netty.channel.local.LocalEventLoopGroup;
+import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
@@ -30,17 +37,19 @@ public class RpcServer implements AutoCloseable {
 
     private Channel channel;
     private final int port;
-    private final NioEventLoopGroup group;
-    private final NioEventLoopGroup childGroup;
+    private final MultiThreadIoEventLoopGroup group;
+    private final MultiThreadIoEventLoopGroup childGroup;
     @Setter
     private RpcMsgChannelInitializer rpcMsgChannelInitializer;
+    private final Class<? extends Channel> serverChannelClass;
 
     private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler();
 
-    public RpcServer(int port, NioEventLoopGroup group, NioEventLoopGroup childGroup) {
+    public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup) {
         this.port = port;
         this.group = group;
         this.childGroup = childGroup;
+        serverChannelClass = getServerChannelClass();
         this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer(p -> p.addLast(rpcMessageServerInteractionHandler));
     }
 
@@ -98,6 +107,25 @@ public class RpcServer implements AutoCloseable {
         if (this.channel != null) {
             this.channel.close();
         }
+    }
+
+    /**
+     * 返回类型
+     */
+    protected Class<? extends Channel> getServerChannelClass() {
+        if (this.group instanceof NioEventLoopGroup) {
+            return NioServerSocketChannel.class;
+        }
+        if (this.group instanceof EpollEventLoopGroup) {
+            return EpollServerSocketChannel.class;
+        }
+        if (this.group instanceof KQueueEventLoopGroup) {
+            return KQueueServerSocketChannel.class;
+        }
+        if (this.group instanceof LocalEventLoopGroup) {
+            return LocalServerChannel.class;
+        }
+        throw new RuntimeException("group 类型暂时不支持");
     }
 
 }

@@ -13,8 +13,16 @@ import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueSocketChannel;
+import io.netty.channel.local.LocalChannel;
+import io.netty.channel.local.LocalEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
@@ -34,22 +42,24 @@ public class RpcDefaultClient extends AbstractRpcClient {
     protected String host;
     @Getter
     protected Integer port;
-    protected NioEventLoopGroup nioEventLoopGroup;
+    protected MultiThreadIoEventLoopGroup eventLoopGroup;
+    protected Class<? extends Channel> channelClass;
 
-    public RpcDefaultClient(String host, int port, NioEventLoopGroup nioEventLoopGroup) {
+    public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
         this.host = host;
         this.port = port;
-        this.nioEventLoopGroup = nioEventLoopGroup;
+        this.eventLoopGroup = eventLoopGroup;
+        this.channelClass = getChannelClass();
         this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
     }
 
     public ChannelFuture connect() {
-        if (this.channel != null) {
+        if (this.channel != null && this.channel.isActive()) {
             throw new RuntimeException("不支持多次链接:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
-        b.group(nioEventLoopGroup);
-        b.channel(NioSocketChannel.class).option(ChannelOption.TCP_NODELAY, true);
+        b.group(eventLoopGroup);
+        b.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
         b.handler(rpcMsgChannelInitializer);
         ChannelFuture f = b.connect(host, port);
         f.addListener(new GenericFutureListener() {
@@ -134,4 +144,22 @@ public class RpcDefaultClient extends AbstractRpcClient {
         return RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
     }
 
+    /**
+     * 返回类型
+     */
+    protected Class<? extends Channel> getChannelClass() {
+        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
+            return NioSocketChannel.class;
+        }
+        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
+            return EpollSocketChannel.class;
+        }
+        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
+            return KQueueSocketChannel.class;
+        }
+        if (this.eventLoopGroup instanceof LocalEventLoopGroup) {
+            return LocalChannel.class;
+        }
+        throw new RuntimeException("eventLoopGroup 类型暂时不支持");
+    }
 }

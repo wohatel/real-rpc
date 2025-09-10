@@ -1,6 +1,7 @@
 package com.murong.rpc;
 
 import com.murong.rpc.tcp.RpcServer;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * description
@@ -15,7 +16,7 @@ public class ServerTest {
      * @throws InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
-        RpcServer rpcServer = new RpcServer(8765);
+        RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
         rpcServer.start();
     }
 

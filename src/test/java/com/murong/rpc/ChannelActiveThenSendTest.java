@@ -31,7 +31,7 @@ public class ChannelActiveThenSendTest {
     public static void serverStart() {
 
         VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765);
+            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
             rpcServer.start();
         });
 

@@ -32,7 +32,7 @@ public class ReconnectClientTest {
 
 
     public static RpcServer serverStart() {
-        RpcServer rpcServer = new RpcServer(8765);
+        RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
         rpcServer.start();
         rpcServer.onMsgReceive(new RpcSimpleRequestMsgHandler() {
             @Override

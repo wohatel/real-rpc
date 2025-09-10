@@ -8,6 +8,7 @@ import com.murong.rpc.interaction.common.RpcSessionContext;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.tcp.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 /**
  * description
@@ -25,7 +26,7 @@ public class SendSessionMsgServer {
      * 发送消息测试
      */
     public static void serverStart() {
-        RpcServer rpcServer = new RpcServer(8765);
+        RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
         rpcServer.onSessionMsgReceive(new RpcSessionRequestMsgHandler() {
             @Override
             public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {

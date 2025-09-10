@@ -41,7 +41,7 @@ public class SendFileAndInterruptTest {
 
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765);
+            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
             rpcServer.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo rpcFileInfo) {

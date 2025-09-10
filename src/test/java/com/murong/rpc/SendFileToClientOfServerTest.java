@@ -7,6 +7,7 @@ import com.murong.rpc.interaction.file.RpcFileSenderListener;
 import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.tcp.RpcServer;
+import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.io.File;
 
@@ -28,7 +29,7 @@ public class SendFileToClientOfServerTest {
     }
 
     public static void serverStart() {
-        RpcServer rpcServer = new RpcServer(8765);
+        RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
         rpcServer.onMsgReceive((cx, req) -> {
             if (req.getBody().equals("abcdef")) {
                 VirtualThreadPool.execute(() -> {

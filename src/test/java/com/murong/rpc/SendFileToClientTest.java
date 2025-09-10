@@ -37,7 +37,7 @@ public class SendFileToClientTest {
 
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765);
+            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
             rpcServer.onMsgReceive((cx, req) -> {
                 if (req.getBody().equals("abcdef")) {
                     VirtualThreadPool.execute(() -> {
