@@ -43,8 +43,8 @@ public class TransSessionManger {
     /**
      * 初始化
      *
-     * @param sessionId
-     * @param context
+     * @param sessionId 会话id
+     * @param context   上下文信息
      */
     public static void initSession(String sessionId, RpcSessionContext context, RpcSession rpcSession) {
         if (isRunning(sessionId)) {
@@ -60,8 +60,8 @@ public class TransSessionManger {
     /**
      * 刷新时间
      *
-     * @param sessionId
-     * @param sessionTime
+     * @param sessionId   会话id
+     * @param sessionTime 会话保留时长
      */
     public static boolean flush(String sessionId, long sessionTime) {
         return SESSION_MANAGER.flushTime(sessionId, sessionTime);

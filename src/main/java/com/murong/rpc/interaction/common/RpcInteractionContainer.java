@@ -23,7 +23,7 @@ public class RpcInteractionContainer {
     /**
      * 校验并刷新session请求时长
      *
-     * @param rpcSessionRequest
+     * @param rpcSessionRequest session请求
      */
     static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
@@ -138,8 +138,8 @@ public class RpcInteractionContainer {
     /**
      * 校验是否存在key
      *
-     * @param requestId
-     * @return
+     * @param requestId 请求id
+     * @return boolean
      */
     public static boolean contains(String requestId) {
         return RPC_FUTURE_SESSION_MANAGER.contains(requestId);
@@ -148,7 +148,7 @@ public class RpcInteractionContainer {
     /**
      * 处理timeout
      *
-     * @param future
+     * @param future future对象
      */
     private static void handleTimeOut(String sessionId, RpcFuture future) {
         if (future == null) {

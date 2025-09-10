@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+
 /**
  * description
  *
@@ -33,11 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
-
     private RpcFileReceiverHandler rpcFileReceiverHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
-
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -51,7 +50,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     rpcSimpleRequestMsgHandler.channelRead(ctx, request);
                 }
             }
-
+            
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
@@ -84,7 +83,6 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             }
 
             case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
-
 
             default -> {
             }

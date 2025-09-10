@@ -199,7 +199,7 @@ public class SessionManager<T> {
      * 刷新时间
      *
      * @param sessionId sessionId
-     * @return 刷新下sesssion的最近交互时间
+     * @return 刷新下会话的最近交互时间
      */
     public boolean flushTime(String sessionId, long sessionTime) {
         return flushTime(sessionId, sessionTime, false);
@@ -209,7 +209,7 @@ public class SessionManager<T> {
      * 刷新时间
      *
      * @param sessionId sessionId
-     * @return 刷新下sesssion的最近交互时间
+     * @return 刷新下会话的最近交互时间
      */
     public boolean flushTime(String sessionId) {
         return this.flushTime(sessionId, sessionTime);
