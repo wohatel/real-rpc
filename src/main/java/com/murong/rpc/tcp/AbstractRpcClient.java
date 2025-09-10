@@ -6,15 +6,15 @@ import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
 import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import lombok.Data;
 
-import java.io.Closeable;
 
 /**
  * @author yaochuang
  */
 @Data
-public abstract class AbstractRpcClient implements Closeable {
+public abstract class AbstractRpcClient {
 
     protected Channel channel;
 
@@ -34,11 +34,11 @@ public abstract class AbstractRpcClient implements Closeable {
         rpcMessageClientInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestHandler);
     }
 
-    @Override
-    public void close() {
+    public ChannelFuture close() {
         if (channel != null) {
-            channel.close();
+            return channel.close();
         }
+        return null;
     }
 
     /**

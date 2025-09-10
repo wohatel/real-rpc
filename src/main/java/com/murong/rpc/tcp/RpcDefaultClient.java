@@ -39,11 +39,11 @@ import java.io.File;
 @Slf4j
 public class RpcDefaultClient extends AbstractRpcClient {
     @Getter
-    protected String host;
+    protected final String host;
     @Getter
-    protected Integer port;
-    protected MultiThreadIoEventLoopGroup eventLoopGroup;
-    protected Class<? extends Channel> channelClass;
+    protected final Integer port;
+    protected final MultiThreadIoEventLoopGroup eventLoopGroup;
+    protected final Class<? extends Channel> channelClass;
 
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
         this.host = host;
@@ -62,15 +62,12 @@ public class RpcDefaultClient extends AbstractRpcClient {
         b.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
         b.handler(rpcMsgChannelInitializer);
         ChannelFuture f = b.connect(host, port);
-        f.addListener(new GenericFutureListener() {
-            @Override
-            public void operationComplete(Future future) throws Exception {
-                if (future.isSuccess()) {
-                    initClient(f.channel());
-                    log.info("链接to-" + host + ":" + port + "成功");
-                } else {
-                    log.error("链接to-" + host + ":" + port + "失败");
-                }
+        f.addListener(future -> {
+            if (future.isSuccess()) {
+                initClient(f.channel());
+                log.info("链接to-" + host + ":" + port + "成功");
+            } else {
+                log.error("链接to-" + host + ":" + port + "失败");
             }
         });
         return f;
@@ -119,8 +116,8 @@ public class RpcDefaultClient extends AbstractRpcClient {
     /**
      * 建立会话
      *
-     * @param rpcSession
-     * @return
+     * @param rpcSession session
+     * @return RpcSessionFuture
      */
     public RpcSessionFuture startSession(RpcSession rpcSession, RpcSessionContext context) {
         return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession, context);
@@ -136,9 +133,8 @@ public class RpcDefaultClient extends AbstractRpcClient {
     /**
      * 获取session内置对象
      *
-     * @param rpcSession
-     * @param rpcSession
-     * @return
+     * @param rpcSession session
+     * @return RpcSessionFuture
      */
     public RpcSessionFuture getSessionFuture(RpcSession rpcSession) {
         return RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
@@ -147,6 +143,7 @@ public class RpcDefaultClient extends AbstractRpcClient {
     /**
      * 返回类型
      */
+    @SuppressWarnings("deprecation")
     protected Class<? extends Channel> getChannelClass() {
         if (this.eventLoopGroup instanceof NioEventLoopGroup) {
             return NioSocketChannel.class;

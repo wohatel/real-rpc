@@ -9,6 +9,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
@@ -33,7 +34,7 @@ import java.net.InetSocketAddress;
  */
 @Getter
 @Slf4j
-public class RpcServer implements AutoCloseable {
+public class RpcServer {
 
     private Channel channel;
     private final int port;
@@ -41,7 +42,7 @@ public class RpcServer implements AutoCloseable {
     private final MultiThreadIoEventLoopGroup childGroup;
     @Setter
     private RpcMsgChannelInitializer rpcMsgChannelInitializer;
-    private final Class<? extends Channel> serverChannelClass;
+    private final Class<? extends ServerChannel> serverChannelClass;
 
     private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler();
 
@@ -52,12 +53,6 @@ public class RpcServer implements AutoCloseable {
         serverChannelClass = getServerChannelClass();
         this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer(p -> p.addLast(rpcMessageServerInteractionHandler));
     }
-
-
-    public RpcServer(int port) {
-        this(port, new NioEventLoopGroup(), new NioEventLoopGroup());
-    }
-
 
     public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
         rpcMessageServerInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
@@ -76,43 +71,33 @@ public class RpcServer implements AutoCloseable {
      */
     @SneakyThrows
     public ChannelFuture start() {
-        if (this.channel != null) {
+        if (this.channel != null && this.channel.isActive()) {
             throw new RuntimeException("RpcServer: 不要重复启动");
         }
         ServerBootstrap b = new ServerBootstrap();
-        b.group(group, childGroup).channel(NioServerSocketChannel.class).localAddress(new InetSocketAddress(port)).childHandler(rpcMsgChannelInitializer);
-        ChannelFuture future = b.bind().sync().addListener(futureListener -> {
+        b.group(group, childGroup).channel(serverChannelClass).localAddress(new InetSocketAddress(port)).childHandler(rpcMsgChannelInitializer);
+        ChannelFuture future = b.bind().addListener(futureListener -> {
             if (!futureListener.isSuccess()) {
                 Throwable cause = futureListener.cause();
                 log.error("Netty 服务启动失败，原因：", cause);
             }
         });
         this.channel = future.channel(); // 用于关闭server
-        future.channel().closeFuture().addListener(futureListener -> {
-            if (futureListener.isSuccess()) {
-                group.shutdownGracefully();
-                childGroup.shutdownGracefully();
-                if (!futureListener.isSuccess()) {
-                    log.error("Netty 服务关闭异常：", futureListener.cause());
-                } else {
-                    log.info("Netty 服务已关闭");
-                }
-            }
-        });
         return future;
     }
 
-    @Override
-    public void close() {
+    public ChannelFuture close() {
         if (this.channel != null) {
-            this.channel.close();
+            return this.channel.close();
         }
+        return null;
     }
 
     /**
      * 返回类型
      */
-    protected Class<? extends Channel> getServerChannelClass() {
+    @SuppressWarnings("deprecation")
+    protected Class<? extends ServerChannel> getServerChannelClass() {
         if (this.group instanceof NioEventLoopGroup) {
             return NioServerSocketChannel.class;
         }
@@ -127,5 +112,4 @@ public class RpcServer implements AutoCloseable {
         }
         throw new RuntimeException("group 类型暂时不支持");
     }
-
 }

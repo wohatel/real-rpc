@@ -4,7 +4,12 @@ import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -16,13 +21,15 @@ import java.net.InetSocketAddress;
  * @author yaochuang
  */
 public class RpcUdpSpider {
-    private final NioEventLoopGroup nioEventLoopGroup;
+    private final MultiThreadIoEventLoopGroup eventLoopGroup;
     private final SimpleChannelInboundHandler<DatagramPacket> clientChannelHandler;
     private Channel channel;
+    private final Class<? extends Channel> channelClass;
 
-    public RpcUdpSpider(NioEventLoopGroup nioEventLoopGroup, SimpleChannelInboundHandler<DatagramPacket> clientChannelHandler) {
-        this.nioEventLoopGroup = nioEventLoopGroup;
+    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, SimpleChannelInboundHandler<DatagramPacket> clientChannelHandler) {
+        this.eventLoopGroup = eventLoopGroup;
         this.clientChannelHandler = clientChannelHandler;
+        this.channelClass = getChannelClass();
     }
 
     @SneakyThrows
@@ -31,8 +38,8 @@ public class RpcUdpSpider {
             return;
         }
         Bootstrap b = new Bootstrap();
-        b.group(nioEventLoopGroup);
-        b.channel(NioDatagramChannel.class).option(ChannelOption.SO_BROADCAST, true);
+        b.group(eventLoopGroup);
+        b.channel(channelClass).option(ChannelOption.SO_BROADCAST, true);
         b.handler(this.clientChannelHandler);
         this.channel = b.bind(port).sync().channel();
     }
@@ -50,4 +57,21 @@ public class RpcUdpSpider {
         RpcMsgTransUtil.sendUdpMsg(this.channel, msg, to);
     }
 
+
+    /**
+     * 返回类型
+     */
+    @SuppressWarnings("deprecation")
+    protected Class<? extends Channel> getChannelClass() {
+        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
+            return NioDatagramChannel.class;
+        }
+        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
+            return EpollDatagramChannel.class;
+        }
+        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
+            return KQueueDatagramChannel.class;
+        }
+        throw new RuntimeException("udp的eventLoopGroup类型不支持");
+    }
 }

@@ -93,8 +93,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * 主动关停
      */
     @Override
-    public void close() {
+    public ChannelFuture close() {
         this.setAllowAutoConnect(false);
-        super.close();
+        return super.close();
     }
 }
