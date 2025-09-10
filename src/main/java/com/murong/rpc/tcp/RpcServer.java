@@ -11,12 +11,16 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueIoHandler;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.local.LocalEventLoopGroup;
+import io.netty.channel.local.LocalIoHandler;
 import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
@@ -96,18 +100,17 @@ public class RpcServer {
     /**
      * 返回类型
      */
-    @SuppressWarnings("deprecation")
     protected Class<? extends ServerChannel> getServerChannelClass() {
-        if (this.group instanceof NioEventLoopGroup) {
+        if (this.group.isIoType(NioIoHandler.class)) {
             return NioServerSocketChannel.class;
         }
-        if (this.group instanceof EpollEventLoopGroup) {
+        if (this.group.isIoType(EpollIoHandler.class)) {
             return EpollServerSocketChannel.class;
         }
-        if (this.group instanceof KQueueEventLoopGroup) {
+        if (this.group.isIoType(KQueueIoHandler.class)) {
             return KQueueServerSocketChannel.class;
         }
-        if (this.group instanceof LocalEventLoopGroup) {
+        if (this.group.isIoType(LocalIoHandler.class)) {
             return LocalServerChannel.class;
         }
         throw new RuntimeException("group 类型暂时不支持");

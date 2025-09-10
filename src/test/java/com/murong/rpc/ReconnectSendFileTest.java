@@ -13,7 +13,10 @@ import com.murong.rpc.interaction.file.RpcFileSenderWrapper;
 import com.murong.rpc.interaction.file.RpcFileTransProcess;
 import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
 import com.murong.rpc.tcp.RpcServer;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 
 import java.io.File;
 
@@ -39,7 +42,8 @@ public class ReconnectSendFileTest {
 
     public static void serverStart() {
         VirtualThreadPool.execute(() -> {
-            RpcServer rpcServer = new RpcServer(8765,new NioEventLoopGroup(),new NioEventLoopGroup());
+            MultiThreadIoEventLoopGroup eventLoop = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+            RpcServer rpcServer = new RpcServer(8765,eventLoop,eventLoop);
             rpcServer.onFileReceive(new RpcFileReceiverHandler() {
                 @Override
                 public RpcFileLocal getTargetFile(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo) {
