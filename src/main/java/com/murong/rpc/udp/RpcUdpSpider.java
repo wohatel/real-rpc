@@ -8,9 +8,12 @@ import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.kqueue.KQueueDatagramChannel;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueIoHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.SneakyThrows;
@@ -61,15 +64,14 @@ public class RpcUdpSpider {
     /**
      * 返回类型
      */
-    @SuppressWarnings("deprecation")
     protected Class<? extends Channel> getChannelClass() {
-        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
+        if (this.eventLoopGroup.isIoType(NioIoHandler.class)) {
             return NioDatagramChannel.class;
         }
-        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
+        if (this.eventLoopGroup.isIoType(EpollIoHandler.class)) {
             return EpollDatagramChannel.class;
         }
-        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
+        if (this.eventLoopGroup.isIoType(KQueueIoHandler.class)) {
             return KQueueDatagramChannel.class;
         }
         throw new RuntimeException("udp的eventLoopGroup类型不支持");
