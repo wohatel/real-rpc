@@ -1,7 +1,8 @@
 package com.murong.rpc.tcp;
 
 
-import com.murong.rpc.initializer.RpcMsgChannelInitializer;
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcSession;
@@ -35,7 +36,7 @@ import java.io.File;
  * @author yaochuang
  */
 @Slf4j
-public class RpcDefaultClient extends AbstractRpcClient {
+public class RpcDefaultClient extends RpcDataReceiver {
     @Getter
     protected final String host;
     @Getter
@@ -43,26 +44,26 @@ public class RpcDefaultClient extends AbstractRpcClient {
     protected final MultiThreadIoEventLoopGroup eventLoopGroup;
     protected final Class<? extends Channel> channelClass;
 
+
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
         this.host = host;
         this.port = port;
         this.eventLoopGroup = eventLoopGroup;
         this.channelClass = getChannelClass();
-        this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
     }
 
     public ChannelFuture connect() {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RuntimeException("不支持多次链接:RpcDefaultClient");
+            throw new RpcException(RpcErrorEnum.CONNECT, "连接存活中:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
         b.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
         b.handler(rpcMsgChannelInitializer);
         ChannelFuture f = b.connect(host, port);
+        this.channel = f.channel();
         f.addListener(future -> {
             if (future.isSuccess()) {
-                initClient(f.channel());
                 log.info("链接to-" + host + ":" + port + "成功");
             } else {
                 log.error("链接to-" + host + ":" + port + "失败");
@@ -96,7 +97,7 @@ public class RpcDefaultClient extends AbstractRpcClient {
 
     public void sendSessionMsg(RpcSessionRequest rpcSessionRequest) {
         if (!RpcInteractionContainer.contains(rpcSessionRequest.getRpcSession().getSessionId())) {
-            throw new RuntimeException("会话不存在,请先构建会话");
+            throw new RpcException(RpcErrorEnum.CONNECT, "会话不存在,请先构建会话");
         }
         RpcMsgTransUtil.sendSessionRequest(channel, rpcSessionRequest);
     }
@@ -154,6 +155,7 @@ public class RpcDefaultClient extends AbstractRpcClient {
         if (this.eventLoopGroup.isIoType(LocalIoHandler.class)) {
             return LocalChannel.class;
         }
-        throw new RuntimeException("eventLoopGroup 类型暂时不支持");
+        throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup 类型暂时不支持");
     }
+
 }

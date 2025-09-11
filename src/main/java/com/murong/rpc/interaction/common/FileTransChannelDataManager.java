@@ -1,6 +1,8 @@
 package com.murong.rpc.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcResponse;
 import com.murong.rpc.interaction.base.RpcSession;
@@ -129,10 +131,10 @@ public class FileTransChannelDataManager {
                         if (!TransSessionManger.isRunning(rpcSession.getSessionId())) {
                             break;
                         }
-                        throw new RuntimeException("文件块接收超时");
+                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件块接收超时");
                     }
                     if (i != poll.getSerial()) {
-                        throw new RuntimeException("文件块丢失:" + i);
+                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件块丢失:" + i);
                     }
                     ByteBuf byteBuf = poll.getByteBuf();
                     try {

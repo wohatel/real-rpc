@@ -1,5 +1,7 @@
 package com.murong.rpc.interaction.file;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,16 +14,16 @@ public class RpcFileTransConfig {
 
     public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileHash) {
         if (speedLimit <= 0) {
-            throw new RuntimeException("限速不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "限速不能<=0");
         }
         if (speedLimit < chunkSize) {
-            throw new RuntimeException("限速不能小于每次发送块大小");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "限速不能小于每次发送块大小");
         }
         if (chunkSize <= 0) {
-            throw new RuntimeException("文件每次发送大小不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "文件每次发送大小不能<=0");
         }
         if (cacheBlock <= 0) {
-            throw new RuntimeException("允许发送端和接受端处理文件块数差距不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "允许发送端和接受端处理文件块数差距不能<=0");
         }
         this.speedLimit = speedLimit;
         this.chunkSize = chunkSize;

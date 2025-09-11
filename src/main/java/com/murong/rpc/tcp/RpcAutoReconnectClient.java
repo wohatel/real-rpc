@@ -1,5 +1,7 @@
 package com.murong.rpc.tcp;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -37,6 +39,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * 尝试链接
      */
     private ChannelFuture tryConnect() {
+        if (this.channel != null && this.channel.isActive()) {
+            throw new RpcException(RpcErrorEnum.CONNECT, "连接存活中:RpcAutoReconnectClient");
+        }
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup);
@@ -49,7 +54,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     @Override
     public ChannelFuture connect() {
-        throw new RuntimeException("RpcAutoReconnectClient不支持connect链接,请改用autoReconnect()");
+        throw new RpcException(RpcErrorEnum.CONNECT, "RpcAutoReconnectClient不支持connect链接,请改用autoReconnect()");
     }
 
     /**
@@ -65,7 +70,6 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             Channel newChannel = connectFuture.channel();
             if (connectFuture.isSuccess()) {
                 log.info("连接成功: " + host + ":" + port);
-                initClient(newChannel);
                 // 监听关闭，关闭后自动重连（异步调度，避免递归）
                 newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
                     log.error("连接断开，将尝试重连...");

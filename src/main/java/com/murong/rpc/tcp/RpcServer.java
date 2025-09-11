@@ -1,12 +1,8 @@
 package com.murong.rpc.tcp;
 
-import com.murong.rpc.initializer.RpcMessageInteractionHandler;
-import com.murong.rpc.initializer.RpcMsgChannelInitializer;
-import com.murong.rpc.interaction.handler.RpcFileReceiverHandler;
-import com.murong.rpc.interaction.handler.RpcSessionRequestMsgHandler;
-import com.murong.rpc.interaction.handler.RpcSimpleRequestMsgHandler;
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -19,7 +15,6 @@ import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,36 +29,17 @@ import java.net.InetSocketAddress;
  */
 @Getter
 @Slf4j
-public class RpcServer {
-
-    private Channel channel;
+public class RpcServer extends RpcDataReceiver {
     private final int port;
     private final MultiThreadIoEventLoopGroup group;
     private final MultiThreadIoEventLoopGroup childGroup;
-    @Setter
-    private RpcMsgChannelInitializer rpcMsgChannelInitializer;
     private final Class<? extends ServerChannel> serverChannelClass;
-
-    private final RpcMessageInteractionHandler rpcMessageServerInteractionHandler = new RpcMessageInteractionHandler();
 
     public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup) {
         this.port = port;
         this.group = group;
         this.childGroup = childGroup;
         serverChannelClass = getServerChannelClass();
-        this.rpcMsgChannelInitializer = new RpcMsgChannelInitializer(p -> p.addLast(rpcMessageServerInteractionHandler));
-    }
-
-    public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
-        rpcMessageServerInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
-    }
-
-    public void onMsgReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
-        rpcMessageServerInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);
-    }
-
-    public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
-        rpcMessageServerInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestMsgHandler);
     }
 
     /**
@@ -72,7 +48,7 @@ public class RpcServer {
     @SneakyThrows
     public ChannelFuture start() {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RuntimeException("RpcServer: 不要重复启动");
+            throw new RpcException(RpcErrorEnum.CONNECT, "RpcServer: 不要重复启动");
         }
         ServerBootstrap b = new ServerBootstrap();
         b.group(group, childGroup).channel(serverChannelClass).localAddress(new InetSocketAddress(port)).childHandler(rpcMsgChannelInitializer);
@@ -84,13 +60,6 @@ public class RpcServer {
         });
         this.channel = future.channel(); // 用于关闭server
         return future;
-    }
-
-    public ChannelFuture close() {
-        if (this.channel != null) {
-            return this.channel.close();
-        }
-        return null;
     }
 
     /**
@@ -109,6 +78,6 @@ public class RpcServer {
         if (this.group.isIoType(LocalIoHandler.class)) {
             return LocalServerChannel.class;
         }
-        throw new RuntimeException("group 类型暂时不支持");
+        throw new RpcException(RpcErrorEnum.CONNECT, "group 类型暂时不支持");
     }
 }

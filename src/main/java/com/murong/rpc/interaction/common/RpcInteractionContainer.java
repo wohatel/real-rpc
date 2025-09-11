@@ -1,6 +1,8 @@
 package com.murong.rpc.interaction.common;
 
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcRequest;
 import com.murong.rpc.interaction.base.RpcResponse;
@@ -27,15 +29,15 @@ public class RpcInteractionContainer {
      */
     static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
-            throw new RuntimeException("rpcSessionRequest 不能为null");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSessionRequest 不能为null");
         }
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         if (rpcSession == null) {
-            throw new RuntimeException("session 标识不能为null");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 标识不能为null");
         }
         if (contains(rpcSession.getSessionId())) {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.START) {
-                throw new RuntimeException("不可重复开启会话");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "不可重复开启会话");
             }
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
             if (!rpcFuture.isSessionFinish()) {
@@ -46,9 +48,9 @@ public class RpcInteractionContainer {
             return rpcFuture;
         } else {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
-                throw new RuntimeException("会话不存在或已结束,不可以发送会话消息");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在或已结束,不可以发送会话消息");
             } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
-                throw new RuntimeException("会话不存在或已结束,无需结束会话");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在或已结束,无需结束会话");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
                 rpcFuture.setRequestId(rpcSession.getSessionId());
@@ -122,7 +124,7 @@ public class RpcInteractionContainer {
             RPC_FUTURE_SESSION_MANAGER.initSession(rpcRequest.getRequestId(), rpcFuture, System.currentTimeMillis() + timeOut);
             return rpcFuture;
         } else {
-            throw new RuntimeException("超时时间配置不合法");
+            throw new RpcException(RpcErrorEnum.SEND_MSG,"超时时间配置不合法");
         }
     }
 

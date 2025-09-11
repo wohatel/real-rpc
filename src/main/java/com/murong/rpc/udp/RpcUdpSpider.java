@@ -1,5 +1,7 @@
 package com.murong.rpc.udp;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.common.RpcMsgTransUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -71,6 +73,6 @@ public class RpcUdpSpider {
         if (this.eventLoopGroup.isIoType(KQueueIoHandler.class)) {
             return KQueueDatagramChannel.class;
         }
-        throw new RuntimeException("udp的eventLoopGroup类型不支持");
+        throw new RpcException(RpcErrorEnum.RUNTIME, "udp的eventLoopGroup类型不支持");
     }
 }

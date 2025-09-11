@@ -3,6 +3,8 @@ package com.murong.rpc.interaction.common;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.google.common.util.concurrent.RateLimiter;
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.base.RpcFuture;
 import com.murong.rpc.interaction.base.RpcMsg;
 import com.murong.rpc.interaction.base.RpcRequest;
@@ -61,7 +63,7 @@ public class RpcMsgTransUtil {
             return;
         }
         if (channel == null || !channel.isActive()) {
-            throw new RuntimeException("连接不可用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "连接不可用");
         }
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
     }
@@ -92,7 +94,7 @@ public class RpcMsgTransUtil {
             return;
         }
         if (channel == null || !channel.isActive()) {
-            throw new RuntimeException("连接不可用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "连接不可用");
         }
         RpcInteractionContainer.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
@@ -124,10 +126,10 @@ public class RpcMsgTransUtil {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null) {
-            throw new RuntimeException("会话不存在,请尝试开启新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
         }
         if (sessionFuture.isSessionFinish()) {
-            throw new RuntimeException("会话已结束,请尝试开启新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已结束,请尝试开启新的会话");
         }
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
         RpcInteractionContainer.verifySessionRequest(rpcSessionRequest);
@@ -158,13 +160,13 @@ public class RpcMsgTransUtil {
      */
     public static RpcSessionFuture sendSessionStartRequest(Channel channel, RpcSession rpcSession, RpcSessionContext context) {
         if (rpcSession == null) {
-            throw new RuntimeException("rpcSession标识不能为空");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
         }
         if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
-            throw new RuntimeException("会话已存在,请直接发送会话消息");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请直接发送会话消息");
         }
         if (TransSessionManger.isRunning(rpcSession.getSessionId())) {
-            throw new RuntimeException("会话已存在,请创建新会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请创建新会话");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.START);
@@ -262,21 +264,21 @@ public class RpcMsgTransUtil {
      */
     private static void writeFile(Channel channel, File file, final RpcSession rpcSession, RpcSessionContext context, RpcFileTransConfig rpcFileTransConfig, RpcFileSenderListenerProxy listener) {
         if (file == null || !file.exists()) {
-            throw new RuntimeException("文件不存在");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "文件不存在");
         }
         if (file.isDirectory()) {
-            throw new RuntimeException("传输的文件是个目录,请检查");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "传输的文件是个目录,请检查");
         }
         if (rpcSession == null) {
-            throw new RuntimeException("rpcSession 不能为null,请检查");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 不能为null,请检查");
         }
         boolean contains = RpcInteractionContainer.contains(rpcSession.getSessionId());
         if (contains) {
-            throw new RuntimeException("rpcSession 会话已存在,请检查rpcSession是否重复使用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请检查rpcSession是否重复使用");
         }
         boolean running = TransSessionManger.isRunning(rpcSession.getSessionId());
         if (running) {
-            throw new RuntimeException("rpcSession 会话已存在,请更换新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请更换新的会话");
         }
         final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? RpcFileTransConfig.builder().build() : rpcFileTransConfig;
         // 封装进度
@@ -365,11 +367,11 @@ public class RpcMsgTransUtil {
                     break;
                 }
                 if (!channel.isActive()) {
-                    throw new RuntimeException("链接不可用");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "链接不可用");
                 }
                 boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, rpcSession.getTimeOutMillis() / 100);
                 if (!isWritable) {
-                    throw new RuntimeException("文件发送超时");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "文件发送超时");
                 }
                 // **检测处理块数**差距
                 RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
@@ -378,7 +380,7 @@ public class RpcMsgTransUtil {
                 // **限速控制**
                 boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
                 if (!isEnough) {
-                    throw new RuntimeException("文件发送超时: 限速过低");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "文件发送超时: 限速过低");
                 }
                 // **读取文件数据到 ByteBuffer**
                 ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());

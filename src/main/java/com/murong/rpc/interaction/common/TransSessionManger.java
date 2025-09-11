@@ -1,5 +1,7 @@
 package com.murong.rpc.interaction.common;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import com.murong.rpc.interaction.base.RpcSession;
 import com.murong.rpc.interaction.constant.NumberConstant;
 import com.murong.rpc.interaction.file.RpcFileReceiveWrapper;
@@ -48,7 +50,7 @@ public class TransSessionManger {
      */
     public static void initSession(String sessionId, RpcSessionContext context, RpcSession rpcSession) {
         if (isRunning(sessionId)) {
-            throw new RuntimeException("session已存在");
+            throw new RpcException(RpcErrorEnum.CONNECT, "session已存在");
         }
         SESSION_MANAGER.initSession(sessionId, false, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         if (context != null) {
@@ -106,7 +108,7 @@ public class TransSessionManger {
     public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
-            throw new RuntimeException("文件session已存在");
+            throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件session已存在");
         }
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));
         SESSION_MANAGER.initSession(sessionId, true, rpcSession.getTimeOutMillis() + System.currentTimeMillis());

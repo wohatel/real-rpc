@@ -1,5 +1,7 @@
 package com.murong.rpc.util;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import io.netty.util.internal.StringUtil;
 import lombok.Data;
 
@@ -21,13 +23,13 @@ public class RpcInputStreamWrapper implements Closeable {
 
     public void verify() {
         if (inputStream == null) {
-            throw new RuntimeException("inputStream 为null");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "inputStream 为null");
         }
         if (StringUtil.isNullOrEmpty(name)) {
-            throw new RuntimeException("name");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "name不能为空");
         }
         if (StringUtil.isNullOrEmpty(id)) {
-            throw new RuntimeException("id不能为空");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "id不能为空");
         }
     }
 

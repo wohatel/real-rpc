@@ -1,5 +1,7 @@
 package com.murong.rpc.interaction.common;
 
+import com.murong.rpc.constant.RpcErrorEnum;
+import com.murong.rpc.constant.RpcException;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +50,7 @@ public class SessionManager<T> {
         this.flushSeed = flushSeed;
         this.sessionTime = sessionTime;
         if (sessionTime <= 0) {
-            throw new RuntimeException("会话时间错误");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "会话时间错误");
         }
         this.sessionClose = sessionClose;
         cleanerThread = Thread.startVirtualThread(this::cleanerLoop);
@@ -96,7 +98,7 @@ public class SessionManager<T> {
                     dataMap.put(sessionId, data);
                 }
             } else {
-                throw new RuntimeException("session资源已存在");
+                throw new RpcException(RpcErrorEnum.RUNTIME, "session资源已存在");
             }
         }
     }

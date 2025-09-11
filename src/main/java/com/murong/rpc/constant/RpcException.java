@@ -1,0 +1,30 @@
+package com.murong.rpc.constant;
+
+/**
+ * description
+ *
+ * @author yaochuang 2025/08/28 09:41
+ */
+public class RpcException extends RuntimeException {
+
+    private int code;
+
+    public RpcException(String message) {
+        super(message);
+    }
+
+    public RpcException(RpcErrorEnum rpcError) {
+        this(rpcError.msg);
+        this.code = rpcError.getCode();
+    }
+
+    public RpcException(RpcErrorEnum rpcError, String message) {
+        this(message);
+        this.code = rpcError.getCode();
+    }
+
+    public RpcException(String message, Throwable cause) {
+        super(message, cause);
+        this.code = RpcErrorEnum.RUNTIME.getCode();
+    }
+}
