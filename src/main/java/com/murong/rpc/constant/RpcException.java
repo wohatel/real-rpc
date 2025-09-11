@@ -1,10 +1,13 @@
 package com.murong.rpc.constant;
 
+import lombok.Getter;
+
 /**
  * description
  *
  * @author yaochuang 2025/08/28 09:41
  */
+@Getter
 public class RpcException extends RuntimeException {
 
     private int code;
