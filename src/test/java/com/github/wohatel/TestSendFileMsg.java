@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.Random;
 
 /**
- * description
+ * 发起文件的传输是相互的,服务端也可以向客户端发文件
  *
  * @author yaochuang 2025/09/11 16:55
  */
