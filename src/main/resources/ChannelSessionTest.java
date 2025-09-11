@@ -1,7 +1,6 @@
 package com.murong.rpc;
 
-import com.murong.rpc.interaction.common.SessionManager;
-import io.netty.channel.Channel;
+import com.github.wohatel.interaction.common.SessionManager;
 
 import java.util.Random;
 import java.util.UUID;
