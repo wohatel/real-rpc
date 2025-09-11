@@ -5,6 +5,7 @@ import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -35,21 +36,23 @@ public class RpcUdpSpider {
     }
 
     @SneakyThrows
-    public void bind(int port) {
+    public ChannelFuture bind(int port) {
         if (this.channel != null && this.channel.isActive()) {
-            return;
+            throw new RpcException(RpcErrorEnum.CONNECT, "重复绑定");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
         b.channel(channelClass).option(ChannelOption.SO_BROADCAST, true);
         b.handler(this.clientChannelHandler);
-        this.channel = b.bind(port).sync().channel();
+        ChannelFuture bind = b.bind(port);
+        this.channel = bind.channel();
+        return bind;
     }
 
     @SneakyThrows
-    public void bindAsClient() {
+    public ChannelFuture bindAsClient() {
         // 表示随机绑定一个端口,一般是知道了服务端地址,然后客户端随机分配一个端口通信
-        bind(0);
+        return bind(0);
     }
 
     /**

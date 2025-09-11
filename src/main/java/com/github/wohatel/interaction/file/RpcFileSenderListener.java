@@ -10,16 +10,21 @@ public interface RpcFileSenderListener {
     /**
      * 传输成功触发
      */
-    void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper);
+    default void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper) {
+
+    }
 
     /**
      * 传输失败后触发
      */
-    void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg);
+    default void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
+
+    }
 
     /**
      * 监控传输进程
      */
-    void onProcess(RpcFileSenderWrapper rpcFileSenderWrapper, RpcFileTransProcess process);
+    default void onProcess(RpcFileSenderWrapper rpcFileSenderWrapper, RpcFileTransProcess process) {
+    }
 
 }

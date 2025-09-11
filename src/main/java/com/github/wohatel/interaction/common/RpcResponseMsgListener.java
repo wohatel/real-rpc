@@ -1,4 +1,4 @@
-package com.github.wohatel.interaction.handler;
+package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.interaction.base.RpcResponse;
 

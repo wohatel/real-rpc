@@ -17,7 +17,9 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param rpcSession
      */
-    void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
+    default void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
+
+    }
 
     /**
      * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
@@ -32,6 +34,8 @@ public interface RpcSessionRequestMsgHandler {
      *
      * @param rpcSession 会话
      */
-    void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context);
+    default void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
+
+    }
 
 }

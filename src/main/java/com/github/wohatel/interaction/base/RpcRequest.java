@@ -19,15 +19,15 @@ public class RpcRequest extends AbstractCompressAble {
     private String body;    //  请求body体
     private boolean needResponse; // 请求到达服务端后,要求服务端给予响应
 
+
     /**
      * 构建一个压缩的请求
      */
-    public static RpcRequest compressRequest() {
+    public static RpcRequest withBody(String body) {
         RpcRequest request = new RpcRequest();
-        request.setNeedCompress(true);
+        request.setBody(body);
         return request;
     }
-
 
     /**
      * 构建一个压缩的响应

@@ -12,7 +12,6 @@ import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileWrapperUtil;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandlerExecProxy;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.ReflectUtil;
 import com.github.wohatel.util.RunnerUtil;

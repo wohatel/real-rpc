@@ -14,6 +14,11 @@ public class RpcSessionRequest extends RpcRequest {
         this.rpcSession = rpcSession;
     }
 
+    public RpcSessionRequest(RpcSession rpcSession, String body) {
+        this.rpcSession = rpcSession;
+        this.setBody(body);
+    }
+
     @Override
     public RpcResponse toResponse() {
         RpcResponse response = new RpcResponse();

@@ -1,8 +1,8 @@
-package com.github.wohatel.interaction.handler;
+package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.constant.RpcSysEnum;
-import com.github.wohatel.interaction.common.VirtualThreadPool;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
+import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.util.OneTimeLock;
 
 /**

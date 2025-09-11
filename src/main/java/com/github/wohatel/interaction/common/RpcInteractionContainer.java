@@ -11,7 +11,6 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.NumberConstant;
-import com.github.wohatel.interaction.handler.RpcResponseMsgListener;
 import lombok.Getter;
 
 import java.util.ArrayList;

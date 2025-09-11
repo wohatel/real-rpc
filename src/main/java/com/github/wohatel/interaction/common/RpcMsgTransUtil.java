@@ -22,7 +22,6 @@ import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransConfig;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
-import com.github.wohatel.interaction.handler.RpcResponseMsgListener;
 import com.github.wohatel.util.FileUtil;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.RunnerUtil;

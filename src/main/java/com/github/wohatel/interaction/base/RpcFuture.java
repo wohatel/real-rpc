@@ -3,7 +3,7 @@ package com.github.wohatel.interaction.base;
 
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.common.RpcInteractionContainer;
-import com.github.wohatel.interaction.handler.RpcResponseMsgListener;
+import com.github.wohatel.interaction.common.RpcResponseMsgListener;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
