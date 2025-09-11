@@ -97,7 +97,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
 
     public void sendSessionMsg(RpcSessionRequest rpcSessionRequest) {
         if (!RpcInteractionContainer.contains(rpcSessionRequest.getRpcSession().getSessionId())) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "会话不存在,请先构建会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请先构建会话");
         }
         RpcMsgTransUtil.sendSessionRequest(channel, rpcSessionRequest);
     }
