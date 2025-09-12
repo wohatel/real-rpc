@@ -92,6 +92,8 @@ public class TestExecShell {
             @Override
             public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("关闭session");
+                // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
+                sessionManager.release(rpcSession.getSessionId());
             }
         };
 
