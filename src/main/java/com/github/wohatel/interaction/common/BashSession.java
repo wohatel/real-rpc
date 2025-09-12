@@ -28,11 +28,15 @@ public class BashSession {
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
 
 
-    @SneakyThrows
     public BashSession(Consumer<String> consumer) {
         this("bash", consumer);
     }
 
+    /**
+     *
+     * @param bashEnv  bash环境, "bash"
+     * @param consumer 构建消费者, 处理日志
+     */
     @SneakyThrows
     public BashSession(String bashEnv, Consumer<String> consumer) {
         ProcessBuilder builder = new ProcessBuilder(bashEnv);
