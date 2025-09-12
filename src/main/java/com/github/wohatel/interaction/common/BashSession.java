@@ -34,7 +34,12 @@ public class BashSession {
 
     /**
      *
-     * @param bashEnv  bash环境, "bash"
+     * @param bashEnv  bash环境
+     *                 "bash" 基本上类linux系统都支持
+     *                 "zsh"  很多机器都支持
+     *                 "ash"  Alpine Linux 默认 shell（BusyBox 的一部分）
+     *                 ....
+     *                 默认构建的是"bash"环境
      * @param consumer 构建消费者, 处理日志
      */
     @SneakyThrows
