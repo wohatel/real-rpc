@@ -1,8 +1,6 @@
 package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcSession;
-import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileLocal;
@@ -12,18 +10,14 @@ import com.github.wohatel.interaction.file.RpcFileSenderListener;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
-import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
-import io.netty.util.internal.StringUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.Random;
 
 /**
  * 发起文件的传输是相互的,服务端也可以向客户端发文件
@@ -53,7 +47,7 @@ public class TestSendFileMsg {
      *
      */
     @Test
-    void clientSendSessionMsg() throws InterruptedException {
+    void clientSendFile() throws InterruptedException {
 
         server.onFileReceive(new RpcFileReceiverHandler() {
 

@@ -6,6 +6,7 @@ import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.FileTransChannelDataManager;
+import com.github.wohatel.interaction.common.RpcBaseAction;
 import com.github.wohatel.interaction.common.RpcInteractionContainer;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
@@ -14,6 +15,8 @@ import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.util.JsonUtil;
+import com.github.wohatel.util.LinkedNode;
+import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -46,29 +49,55 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
 
             case request -> {
                 RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
-                if (rpcSimpleRequestMsgHandler != null) {
-                    rpcSimpleRequestMsgHandler.channelRead(ctx, request);
+                RpcBaseAction rpcBaseAction = RpcBaseAction.fromString(request.getRequestType());
+                switch (rpcBaseAction) {
+                    case BASE_INQUIRY_SESSION -> {
+                        String sessionId = request.getBody();
+                        boolean running = TransSessionManger.isRunning(sessionId);
+                        RpcResponse response = request.toResponse();
+                        response.setSuccess(running);
+                        RpcMsgTransUtil.write(ctx.channel(), response);
+                    }
+                    case null, default -> {
+                        if (rpcSimpleRequestMsgHandler != null) {
+                            rpcSimpleRequestMsgHandler.channelRead(ctx, request);
+                        }
+                    }
                 }
+
             }
-            
+
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
+                LinkedNode<String, Boolean> linkedNode = null;
                 if (request.isSessionStart()) {
+                    RpcResponse response = request.toResponse();
                     if (TransSessionManger.isRunning(session.getSessionId())) {
-                        RpcResponse response = request.toResponse();
-                        response.setMsg("{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复");
-                        response.setSuccess(false);
-                        RpcMsgTransUtil.write(ctx.channel(), response);
+                        String errorMsg = "{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复";
+                        linkedNode = LinkedNode.build(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
                         TransSessionManger.initSession(session.getSessionId(), context, session);
-                        rpcSessionRequestMsgHandler.sessionStart(ctx, session, context);
+                        linkedNode = RunnerUtil.execSilentException(() -> LinkedNode.build(null, rpcSessionRequestMsgHandler.sessionStart(ctx, session, context)), e -> LinkedNode.build(e.getMessage(), false));
+                    }
+                    response.setSuccess(linkedNode.getValue());
+                    response.setMsg(linkedNode.getKey());
+                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    if (!linkedNode.getValue()) {
+                        TransSessionManger.release(session.getSessionId());
                     }
                 } else if (request.isSessionRequest()) {
-                    TransSessionManger.flush(session.getSessionId());
-                    RpcSessionContext context = TransSessionManger.getSessionContext(session.getSessionId());
-                    rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
+                    if (TransSessionManger.isRunning(session.getSessionId())) {
+                        TransSessionManger.flush(session.getSessionId());
+                        RpcSessionContext context = TransSessionManger.getSessionContext(session.getSessionId());
+                        rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
+                    } else {
+                        RpcResponse response = request.toResponse();
+                        response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常:会话id重复");
+                        response.setSuccess(false);
+                        RpcMsgTransUtil.write(ctx.channel(), response);
+                    }
                 } else if (request.isSessionFinish()) {
                     try {
                         boolean running = TransSessionManger.isRunning(request.getRpcSession().getSessionId());

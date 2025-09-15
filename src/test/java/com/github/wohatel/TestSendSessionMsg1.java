@@ -1,10 +1,12 @@
 package com.github.wohatel;
 
+import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
+import com.github.wohatel.interaction.common.TransSessionManger;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -54,18 +56,17 @@ public class TestSendSessionMsg1 {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public boolean sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + context.getTopic());
-                // 服务端可以直接结束会话
-                // RpcMsgTransUtil.sendSessionFinishRequest(ctx.channel(), rpcSession);
+                // 同一开启会话
+                return true;
             }
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request, RpcSessionContext context) {
                 // 服务端收到客户端消息后,直接打印
                 System.out.println(request.getBody());
-
                 // 打印归打印,什么时候发消息看我心情看我心情
                 if (new Random().nextInt() % 3 == 0) {
                     RpcSessionRequest rpcSessionRequest = new RpcSessionRequest(rpcSession);
@@ -96,6 +97,11 @@ public class TestSendSessionMsg1 {
         RpcSessionContext rpcSessionContext = new RpcSessionContext();
         rpcSessionContext.setTopic("还钱的事");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
+
+        RpcResponse rpcResponse = rpcSessionFuture.get();
+        if (rpcResponse.isSuccess()) {
+            System.out.println("session 会话开启成功");
+        }
 
         client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
         client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));

@@ -9,5 +9,6 @@ import lombok.Getter;
  */
 @Getter
 public enum RpcSessionProcess {
+    // 开启,进行中,结束,查询
     START, ING, FiNISH
 }

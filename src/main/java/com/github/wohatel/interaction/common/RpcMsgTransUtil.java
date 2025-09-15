@@ -187,6 +187,9 @@ public class RpcMsgTransUtil {
      * @param rpcSession rpc请求
      */
     public static void sendSessionFinishRequest(Channel channel, RpcSession rpcSession) {
+        // 本地优先关闭
+        TransSessionManger.release(rpcSession.getSessionId());
+        // 告知远端关闭
         if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
             return;
         }
@@ -195,6 +198,7 @@ public class RpcMsgTransUtil {
         rpcRequest.setNeedResponse(false);
         RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
         sendMsg(channel, rpcRequest);
+
     }
 
     @SneakyThrows
@@ -407,6 +411,29 @@ public class RpcMsgTransUtil {
             ByteBufPoolManager.destory(rpcSession.getSessionId());
             rpcSessionFuture.release();
         });
+    }
+
+    /**
+     * 询问会话是否存活
+     *
+     * @param channel    通道
+     * @param rpcSession 会话
+     * @return boolean
+     */
+    public static boolean sendSessionInquiryRequest(Channel channel, RpcSession rpcSession) {
+        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        if (sessionFuture == null) {
+            return false;
+        }
+        if (sessionFuture.isSessionFinish()) {
+            return false;
+        }
+        RpcRequest rpcRequest = new RpcRequest();
+        rpcRequest.setRequestType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
+        rpcRequest.setBody(rpcSession.getSessionId());
+        RpcFuture rpcFuture = sendSynMsg(channel, rpcRequest);
+        RpcResponse rpcResponse = rpcFuture.get();
+        return rpcResponse.isSuccess();
     }
 }
 

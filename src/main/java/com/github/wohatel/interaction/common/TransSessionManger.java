@@ -170,6 +170,7 @@ public class TransSessionManger {
         if (isFile != null && isFile) {
             closeQueue(FILE_ITEM_MAP.remove(id));
         }
+        SESSION_MANAGER.release(id);
         SESSION_DATA.remove(id);
     }
 

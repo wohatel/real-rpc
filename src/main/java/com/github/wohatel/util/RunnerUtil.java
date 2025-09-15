@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -37,6 +38,15 @@ public final class RunnerUtil {
         } catch (Exception e) {
             log.error("execSilentExceptionTo异常", e);
             return result;
+        }
+    }
+
+    public static <T> T execSilentException(Supplier<T> supplier, Function<Exception, T> result) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            log.error("execSilentExceptionTo异常", e);
+            return result.apply(e);
         }
     }
 

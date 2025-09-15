@@ -55,11 +55,10 @@ public class TestSendSessionMsg2 {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public boolean sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + context.getTopic());
-                // 服务端可以直接结束会话
-                // RpcMsgTransUtil.sendSessionFinishRequest(ctx.channel(), rpcSession);
+                return false;
             }
 
             @Override

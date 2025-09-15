@@ -66,7 +66,7 @@ public class TestExecShell {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public void sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public boolean sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession(str -> {
@@ -77,8 +77,11 @@ public class TestExecShell {
                         RpcMsgTransUtil.write(ctx.channel(), response);
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
-                }
+                } else {
+                    // 服务端判断不满足条件,直接关闭
 
+                }
+                return true;
             }
 
             @Override

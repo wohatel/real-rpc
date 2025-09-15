@@ -113,6 +113,16 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     /**
+     * 询问会话是否存在
+     *
+     * @param rpcSession rpcSession
+     * @return RpcSessionFuture
+     */
+    public boolean inquiryServerSession(RpcSession rpcSession) {
+        return RpcMsgTransUtil.sendSessionInquiryRequest(channel, rpcSession);
+    }
+
+    /**
      * 建立会话
      *
      * @param rpcSession session

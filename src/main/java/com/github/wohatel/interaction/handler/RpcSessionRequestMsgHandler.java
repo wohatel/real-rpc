@@ -17,8 +17,8 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param rpcSession
      */
-    default void sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
-
+    default boolean sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
+        return true;
     }
 
     /**
