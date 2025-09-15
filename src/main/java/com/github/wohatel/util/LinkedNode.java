@@ -16,15 +16,15 @@ import java.util.NoSuchElementException;
 @Getter
 @Setter
 public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
-    private K mark;
+    private K key;
     private T value;
 
     private LinkedNode<K, T> next;
     private LinkedNode<K, T> pre;
 
 
-    private LinkedNode(K mark, T value) {
-        this.mark = mark;
+    private LinkedNode(K key, T value) {
+        this.key = key;
         this.value = value;
     }
 
@@ -38,6 +38,29 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
     }
 
 
+    public LinkedNode<K, T> findFirst(String key) {
+        LinkedNode<K, T> first = findFirst();
+        if (key == null) {
+            return first;
+        }
+        Iterator<LinkedNode<K, T>> iterator = first.iterator();
+        while (iterator.hasNext()) {
+            LinkedNode<K, T> next1 = iterator.next();
+            if (key.equals(next1.getKey())) {
+                return next1;
+            }
+        }
+        return null;
+    }
+
+    public LinkedNode<K, T> findFirst() {
+        LinkedNode<K, T> current = this;
+        while (current.pre != null) {
+            current = current.pre;
+        }
+        return current;
+    }
+
     /**
      * 当前节点添加下个节点
      *
@@ -50,6 +73,7 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
 
         return next;
     }
+
 
     /**
      * 判断是否包含node
@@ -137,18 +161,19 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
     /**
      * 在 target 节点之前插入 node
      */
-    public LinkedNode<K, T> addBefore(LinkedNode<K, T> target, LinkedNode<K, T> node) {
+    public LinkedNode<K, T> addBefore(LinkedNode<K, T> node) {
         verifyNode(node);
-        LinkedNode<K, T> prev = target.getPre();
+        LinkedNode<K, T> prev = this.getPre();
         if (prev != null) {
             prev.setNext(node);
         }
         node.setPre(prev);
-        node.setNext(target);
-        target.setPre(node);
+        node.setNext(this);
+        this.setPre(node);
 
         return node;
     }
+
 
     /**
      * 删除节点,不存在不会报错
