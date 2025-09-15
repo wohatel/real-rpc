@@ -1,5 +1,6 @@
 package com.github.wohatel;
 
+import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcResponse;
@@ -8,10 +9,10 @@ import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,23 +22,11 @@ import java.util.List;
  *
  * @author yaochuang 2025/09/11 16:55
  */
-public class TestSendMsg {
+public class TestAddHandler {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
     private static MultiThreadIoEventLoopGroup group;
-
-    @BeforeAll
-    static void beforeAll() throws InterruptedException {
-        // 线程组暂时用一个
-        group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
-        server = new RpcServer(8765, group, group);
-        // 等待服务端开启成功
-        server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765, group);
-        // 等待客户端连接成功
-        client.connect().sync();
-    }
 
     /**
      * 客户端发送消息
@@ -45,6 +34,41 @@ public class TestSendMsg {
      */
     @Test
     void clientSendMsg() throws InterruptedException {
+
+        ChannelInboundHandlerAdapter adapter = new ChannelInboundHandlerAdapter() {
+            public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                System.out.println("channel active");
+                ctx.fireChannelActive();
+            }
+            public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                System.out.println("channel channelInactive");
+                ctx.fireChannelInactive();
+            }
+        };
+
+
+        // 线程组暂时用一个
+        group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+        server = new RpcServer(8765, group, group);
+        // 等待服务端开启成功
+        server.start().sync();
+        client = new RpcDefaultClient("127.0.0.1", 8765, group);
+        // 等待客户端连接成功
+
+
+
+
+        ChannelFuture future = client.connect().sync();
+
+
+        ChannelPipeline pipeline = future.channel().pipeline();
+
+        List<String> names = pipeline.names();
+        System.out.println(names);
+
+
+        pipeline.addAfter("encoder", "simple", adapter);
+
         // 绑定服务端接收消息处理
         server.onMsgReceive((ctx, req) -> {
             // 打印消息体
