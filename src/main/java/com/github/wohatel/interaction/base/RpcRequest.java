@@ -1,18 +1,18 @@
 package com.github.wohatel.interaction.base;
 
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.github.wohatel.tcp.RpcDataReceiver;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RpcRequest extends AbstractCompressAble {
-    private String requestId = UUID.randomUUID().toString();
+    private String origin = RpcDataReceiver.NODEID;
+    private String requestId = NanoIdUtils.randomNanoId();
     private String requestType; // 请求类型
     private String command; // 请求命令
-    private String origin; // 请求来源
     private String website; //  请求站点                   rpc的服务端如果匹配到该站点,则处理此次请求
     private String header;  //  请求头部信息              rpc服务端可解析该请求的header
     private String version; //  请求版本信息              rpc服务端可解析该请求的version

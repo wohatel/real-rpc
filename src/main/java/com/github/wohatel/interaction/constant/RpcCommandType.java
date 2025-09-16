@@ -7,9 +7,10 @@ import java.util.Arrays;
 
 @AllArgsConstructor
 public enum RpcCommandType {
-    request(1), session(2), response(4),
+    base(0), request(1), session(2), response(4),
 
-    file(3);
+    file(3),
+    ;
 
     @Getter
     int code;

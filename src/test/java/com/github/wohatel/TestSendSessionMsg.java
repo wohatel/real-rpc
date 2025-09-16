@@ -22,11 +22,11 @@ import java.util.Random;
  * 服务端和客户端只是相对概念,此次测试只是client-->向server发起一次会话
  * 同样的,server-->请求客户端发起会话也是可以的
  * <p>
- * 此处以问答的方式处理会话,使用场景需要以实际情况为准
+ * 此处以相互问候的方式处理,使用场景需要以实际情况为准
  *
  * @author yaochuang 2025/09/11 16:55
  */
-public class TestSendSessionMsg2 {
+public class TestSendSessionMsg {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
@@ -58,18 +58,18 @@ public class TestSendSessionMsg2 {
             public boolean sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + context.getTopic());
-                return false;
+                // 同一开启会话
+                return true;
             }
 
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request, RpcSessionContext context) {
                 // 服务端收到客户端消息后,直接打印
                 System.out.println(request.getBody());
-
                 // 打印归打印,什么时候发消息看我心情看我心情
                 if (new Random().nextInt() % 3 == 0) {
                     RpcResponse response = rpcSession.toResponse();
-                    response.setBody("不想还");
+                    response.setBody("不想理你!!!");
                     RpcMsgTransUtil.write(ctx.channel(), response);
                 }
 
@@ -83,19 +83,19 @@ public class TestSendSessionMsg2 {
 
         server.onSessionMsgReceive(serverSessionHandler);
         // 客户端设置会话
-
-
         // 这次会话最多-一旦30s内没有人说话,就算是被中断了
         RpcSession session = new RpcSession(30_000);
         // 请求开启会谈
         RpcSessionContext rpcSessionContext = new RpcSessionContext();
         rpcSessionContext.setTopic("还钱的事");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
-
-        // 此处以response的方式监听回话
-        rpcSessionFuture.addListener(response -> {
-            String body = response.getBody();
-            System.out.println("服务端回话了:" + body);
+        /**
+         * 监听服务端小消息
+         */
+        rpcSessionFuture.addListener((future) -> {
+            if (future.isSuccess()) {
+                System.out.println(future.getBody());
+            }
         });
 
         client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
@@ -104,8 +104,8 @@ public class TestSendSessionMsg2 {
         client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
         client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
 
-        Thread.sleep(1000);
         // 客户端觉得再追问也没结果,沉默1s后,挂断电话
+        Thread.sleep(1000);
         client.finishSession(session);
 
         boolean sessionFinish = rpcSessionFuture.isSessionFinish();

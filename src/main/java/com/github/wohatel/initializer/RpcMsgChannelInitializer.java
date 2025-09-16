@@ -71,6 +71,7 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         this.initChannelHandlers.addLast(LinkedNode.build("compress", new RpcMsgCompressEncoder()));
         this.initChannelHandlers.addLast(LinkedNode.build("decoder", new RpcMsgDecoder()));
         this.initChannelHandlers.addLast(LinkedNode.build("encoder", new RpcMsgEncoder()));
+        this.initChannelHandlers.addLast(LinkedNode.build("baseHandler", new RpcMessageBaseInquiryHandler()));
         this.initChannelHandlers.addLast(LinkedNode.build("msgHandler", rpcMessageInteractionHandler));
     }
 }

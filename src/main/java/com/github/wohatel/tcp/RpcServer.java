@@ -36,6 +36,7 @@ public class RpcServer extends RpcDataReceiver {
     private final Class<? extends ServerChannel> serverChannelClass;
 
     public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup) {
+        super(false);
         this.port = port;
         this.group = group;
         this.childGroup = childGroup;

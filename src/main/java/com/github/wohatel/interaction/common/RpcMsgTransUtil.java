@@ -2,6 +2,7 @@ package com.github.wohatel.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.github.wohatel.tcp.RpcDataReceiver;
 import com.google.common.util.concurrent.RateLimiter;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
@@ -88,7 +89,7 @@ public class RpcMsgTransUtil {
     }
 
 
-    public static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
+    private static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (rpcRequest == null) {
             return;
         }
@@ -110,95 +111,6 @@ public class RpcMsgTransUtil {
         RpcFuture rpcFuture = RpcInteractionContainer.addRequest(rpcRequest, timeOutMillis);
         sendMsg(channel, rpcRequest);
         return rpcFuture;
-    }
-
-    /**
-     * 不需要针对某个请求做反应
-     * 持续性接受消息,双向协议
-     * 应用在: 建立会话基础上
-     * a发送一条(或多条消息),b也可以发送一条或多条消息; 他们之间以会话关联
-     *
-     * @param channel           通道
-     * @param rpcSessionRequest rpc请求
-     */
-    public static void sendSessionRequest(Channel channel, RpcSessionRequest rpcSessionRequest) {
-        RpcSession rpcSession = rpcSessionRequest.getRpcSession();
-        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-        if (sessionFuture == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
-        }
-        if (sessionFuture.isSessionFinish()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已结束,请尝试开启新的会话");
-        }
-        rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
-        RpcInteractionContainer.verifySessionRequest(rpcSessionRequest);
-        sendMsg(channel, rpcSessionRequest);
-    }
-
-    /**
-     * 不需要针对某个请求做反应
-     * 持续性接受消息,双向协议
-     * 应用在: 建立会话基础上
-     * a发送一条(或多条消息),b也可以发送一条或多条消息; 他们之间以会话关联
-     *
-     * @param channel    通道
-     * @param rpcSession rpc请求
-     */
-    public static RpcSessionFuture sendSessionStartRequest(Channel channel, RpcSession rpcSession) {
-        return sendSessionStartRequest(channel, rpcSession, null);
-    }
-
-    /**
-     * 不需要针对某个请求做反应
-     * 持续性接受消息,双向协议
-     * 应用在: 建立会话基础上
-     * a发送一条(或多条消息),b也可以发送一条或多条消息; 他们之间以会话关联
-     *
-     * @param channel    通道
-     * @param rpcSession rpc请求
-     */
-    public static RpcSessionFuture sendSessionStartRequest(Channel channel, RpcSession rpcSession, RpcSessionContext context) {
-        if (rpcSession == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
-        }
-        if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请直接发送会话消息");
-        }
-        if (TransSessionManger.isRunning(rpcSession.getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请创建新会话");
-        }
-        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.START);
-        if (context != null) {
-            rpcRequest.setBody(JSONObject.toJSONString(context));
-        }
-        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
-        sendMsg(channel, rpcRequest);
-        return rpcFuture;
-    }
-
-    /**
-     * 不需要针对某个请求做反应
-     * 持续性接受消息,双向协议
-     * 应用在: 建立会话基础上
-     * a发送一条(或多条消息),b也可以发送一条或多条消息; 他们之间以会话关联
-     *
-     * @param channel    通道
-     * @param rpcSession rpc请求
-     */
-    public static void sendSessionFinishRequest(Channel channel, RpcSession rpcSession) {
-        // 本地优先关闭
-        TransSessionManger.release(rpcSession.getSessionId());
-        // 告知远端关闭
-        if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
-            return;
-        }
-        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
-        rpcRequest.setNeedResponse(false);
-        RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
-        sendMsg(channel, rpcRequest);
-
     }
 
     @SneakyThrows
@@ -314,7 +226,7 @@ public class RpcMsgTransUtil {
         }
     }
 
-    public static void runSendFileBody(Channel channel, File file, RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, final RpcFileTransConfig finalConfig, RpcFileSenderListenerProxy listener) {
+    private static void runSendFileBody(Channel channel, File file, RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, final RpcFileTransConfig finalConfig, RpcFileSenderListenerProxy listener) {
         // 添加进度事件处理
         RpcResponseMsgListener rpcResponseMsgListener = new RpcResponseMsgListener() {
             @Override
@@ -330,7 +242,7 @@ public class RpcMsgTransUtil {
                     }
                 } else {
                     log.error("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
-                    rpcFuture.setSessionFinish(true); // 标记结束
+                    rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
                 }
@@ -400,7 +312,7 @@ public class RpcMsgTransUtil {
                 rpcFileTransProcess.setSendSize(position - writeIndex);
             }
         } catch (Exception e) {
-            rpcFuture.setSessionFinish(true);
+            rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH);
             log.error("文件块-发送-打印异常信息:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
         }
@@ -413,27 +325,16 @@ public class RpcMsgTransUtil {
         });
     }
 
-    /**
-     * 询问会话是否存活
-     *
-     * @param channel    通道
-     * @param rpcSession 会话
-     * @return boolean
-     */
-    public static boolean sendSessionInquiryRequest(Channel channel, RpcSession rpcSession) {
-        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
-        if (sessionFuture == null) {
-            return false;
-        }
-        if (sessionFuture.isSessionFinish()) {
-            return false;
-        }
+    public static String sendInquiryRemoteNodeIdRequest(Channel channel) {
+        // 同源的看谁发起的,不通源的看
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setRequestType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
-        rpcRequest.setBody(rpcSession.getSessionId());
         RpcFuture rpcFuture = sendSynMsg(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
-        return rpcResponse.isSuccess();
+        if (rpcResponse.isSuccess()) {
+            return rpcResponse.getBody();
+        }
+        return null;
     }
 }
 

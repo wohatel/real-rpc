@@ -35,20 +35,9 @@ public class TransSessionManger {
     private static final Map<String, Object> SESSION_DATA = new ConcurrentHashMap<>();
     private static final Map<String, RpcSession> SESSION = new ConcurrentHashMap<>();
 
-    /**
-     * 是否正常运行
-     */
-    public static RpcSessionContext getSessionContext(String sessionId) {
-        return (RpcSessionContext) SESSION_DATA.get(sessionId);
-    }
 
-    /**
-     * 初始化
-     *
-     * @param sessionId 会话id
-     * @param context   上下文信息
-     */
-    public static void initSession(String sessionId, RpcSessionContext context, RpcSession rpcSession) {
+    public static void initSession(RpcSessionContext context, RpcSession rpcSession) {
+        String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.CONNECT, "session已存在");
         }
@@ -57,6 +46,13 @@ public class TransSessionManger {
             SESSION_DATA.put(sessionId, context);
         }
         SESSION.put(sessionId, rpcSession);
+    }
+
+    /**
+     * 获取sessionContext
+     */
+    public static RpcSessionContext getSessionContext(String sessionId) {
+        return (RpcSessionContext) SESSION_DATA.get(sessionId);
     }
 
     /**

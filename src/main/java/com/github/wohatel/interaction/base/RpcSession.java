@@ -1,9 +1,8 @@
 package com.github.wohatel.interaction.base;
 
+import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import lombok.Getter;
-
-import java.util.UUID;
 
 /**
  * description
@@ -16,7 +15,7 @@ public class RpcSession {
     private final long timeOutMillis;
 
     public RpcSession(long timeOutMillis) {
-        this(UUID.randomUUID().toString(), timeOutMillis);
+        this(System.currentTimeMillis() + NanoIdUtils.randomNanoId(), timeOutMillis);
     }
 
     public RpcSession(String sessionId, long timeOutMillis) {

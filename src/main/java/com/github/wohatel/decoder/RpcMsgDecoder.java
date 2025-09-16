@@ -32,7 +32,7 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
         byte[] jsonBytes = new byte[msgLength];
         in.readBytes(jsonBytes); // **读取消息体**
         msg.setRpcCommandType(RpcCommandType.fromCode(type));
-        if (msg.getRpcCommandType() == RpcCommandType.request) {
+        if (msg.getRpcCommandType() == RpcCommandType.request || msg.getRpcCommandType() == RpcCommandType.base) {
             msg.setPayload(JSON.parseObject(jsonBytes, RpcRequest.class));
         } else if (msg.getRpcCommandType() == RpcCommandType.session) {
             msg.setPayload(JSON.parseObject(jsonBytes, RpcSessionRequest.class));

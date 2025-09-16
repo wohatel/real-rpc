@@ -26,7 +26,7 @@ public class RpcInteractionContainer {
      *
      * @param rpcSessionRequest session请求
      */
-    static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
+    public static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSessionRequest 不能为null");
         }
@@ -123,7 +123,7 @@ public class RpcInteractionContainer {
             RPC_FUTURE_SESSION_MANAGER.initSession(rpcRequest.getRequestId(), rpcFuture, System.currentTimeMillis() + timeOut);
             return rpcFuture;
         } else {
-            throw new RpcException(RpcErrorEnum.SEND_MSG,"超时时间配置不合法");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "超时时间配置不合法");
         }
     }
 
@@ -198,7 +198,7 @@ public class RpcInteractionContainer {
             return null;
         }
         if (!future.isSessionFinish()) {
-            future.setSessionFinish(true);
+            future.setRpcSessionProcess(RpcSessionProcess.FiNISH);
             RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
         }
         handleInterrupt(future);

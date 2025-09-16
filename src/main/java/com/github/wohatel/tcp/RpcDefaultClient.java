@@ -1,18 +1,23 @@
 package com.github.wohatel.tcp;
 
 
+import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
+import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
+import com.github.wohatel.interaction.common.RpcBaseAction;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.common.RpcInteractionContainer;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -46,6 +51,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
 
 
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
+        super(true);
         this.host = host;
         this.port = port;
         this.eventLoopGroup = eventLoopGroup;
@@ -96,10 +102,17 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public void sendSessionMsg(RpcSessionRequest rpcSessionRequest) {
-        if (!RpcInteractionContainer.contains(rpcSessionRequest.getRpcSession().getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请先构建会话");
+        RpcSession rpcSession = rpcSessionRequest.getRpcSession();
+        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        if (sessionFuture == null) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
         }
-        RpcMsgTransUtil.sendSessionRequest(channel, rpcSessionRequest);
+        if (sessionFuture.isSessionFinish()) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已结束,请尝试开启新的会话");
+        }
+        rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
+        RpcInteractionContainer.verifySessionRequest(rpcSessionRequest);
+        RpcMsgTransUtil.sendMsg(channel, rpcSessionRequest);
     }
 
     /**
@@ -109,7 +122,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public RpcSessionFuture startSession(RpcSession rpcSession) {
-        return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession);
+        return startSession(rpcSession, null);
     }
 
     /**
@@ -119,7 +132,24 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public boolean inquiryServerSession(RpcSession rpcSession) {
-        return RpcMsgTransUtil.sendSessionInquiryRequest(channel, rpcSession);
+        if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+            return false;
+        }
+        RpcRequest rpcRequest = new RpcRequest();
+        rpcRequest.setRequestType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
+        rpcRequest.setBody(rpcSession.getSessionId());
+        RpcFuture rpcFuture = RpcMsgTransUtil.sendSynMsg(channel, rpcRequest);
+        RpcResponse rpcResponse = rpcFuture.get();
+        return rpcResponse.isSuccess();
+    }
+
+    /**
+     * 询问会话是否存在
+     *
+     * @return RpcSessionFuture
+     */
+    public String inquiryServerNodeId() {
+        return RpcMsgTransUtil.sendInquiryRemoteNodeIdRequest(channel);
     }
 
     /**
@@ -129,14 +159,39 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public RpcSessionFuture startSession(RpcSession rpcSession, RpcSessionContext context) {
-        return RpcMsgTransUtil.sendSessionStartRequest(channel, rpcSession, context);
+        if (rpcSession == null) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
+        }
+        if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请直接发送会话消息");
+        }
+        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
+        rpcRequest.setSessionProcess(RpcSessionProcess.START);
+        rpcRequest.setOrigin(channel.id().asShortText());
+        if (context != null) {
+            rpcRequest.setBody(JSONObject.toJSONString(context));
+        }
+        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
+        RpcMsgTransUtil.sendMsg(channel, rpcRequest);
+        RpcResponse rpcResponse = rpcFuture.get();
+        if (rpcResponse.isSuccess()) {
+            rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
+        }
+        return rpcFuture;
     }
 
     /**
      * 关闭会话
      */
     public void finishSession(RpcSession rpcSession) {
-        RpcMsgTransUtil.sendSessionFinishRequest(channel, rpcSession);
+        if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+            return;
+        }
+        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
+        rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
+        rpcRequest.setNeedResponse(false);
+        RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
+        RpcMsgTransUtil.sendMsg(channel, rpcRequest);
     }
 
     /**

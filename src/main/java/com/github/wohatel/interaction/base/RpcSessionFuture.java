@@ -11,7 +11,19 @@ import lombok.experimental.Accessors;
 @Data
 public class RpcSessionFuture extends RpcFuture {
 
-    private volatile boolean isSessionFinish;
+    private volatile RpcSessionProcess rpcSessionProcess;
+
+    public boolean isSessionFinish() {
+        return rpcSessionProcess == RpcSessionProcess.FiNISH;
+    }
+
+    public boolean isSessionRunning() {
+        return rpcSessionProcess == RpcSessionProcess.ING;
+    }
+
+    public boolean isSessionFailed() {
+        return rpcSessionProcess == null;
+    }
 
     public RpcSessionFuture() {
     }

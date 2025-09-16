@@ -98,6 +98,7 @@ public class FileTransChannelDataManager {
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         rpcResponse.setBody(JSONArray.toJSONString(body));
         rpcResponse.setMsg(fileWrapper.getMsg());
+        // 告知开启session成功
         RpcMsgTransUtil.write(ctx.channel(), rpcResponse);
         if (fileWrapper.isInterruptByInit()) {
             RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), rpcFileRequest.getRpcSession(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, 0L);

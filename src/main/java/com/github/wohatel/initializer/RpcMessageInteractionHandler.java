@@ -4,6 +4,7 @@ import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
+import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.FileTransChannelDataManager;
 import com.github.wohatel.interaction.common.RpcBaseAction;
@@ -14,6 +15,7 @@ import com.github.wohatel.interaction.common.TransSessionManger;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
+import com.github.wohatel.tcp.RpcDataReceiver;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.LinkedNode;
 import com.github.wohatel.util.RunnerUtil;
@@ -46,27 +48,12 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
         RpcMsg rpcMsg = (RpcMsg) msg;
         switch (rpcMsg.getRpcCommandType()) {
             case response -> RpcInteractionContainer.addResponse(rpcMsg.getPayload(RpcResponse.class));
-
             case request -> {
-                RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
-                RpcBaseAction rpcBaseAction = RpcBaseAction.fromString(request.getRequestType());
-                switch (rpcBaseAction) {
-                    case BASE_INQUIRY_SESSION -> {
-                        String sessionId = request.getBody();
-                        boolean running = TransSessionManger.isRunning(sessionId);
-                        RpcResponse response = request.toResponse();
-                        response.setSuccess(running);
-                        RpcMsgTransUtil.write(ctx.channel(), response);
-                    }
-                    case null, default -> {
-                        if (rpcSimpleRequestMsgHandler != null) {
-                            rpcSimpleRequestMsgHandler.channelRead(ctx, request);
-                        }
-                    }
+                if (rpcSimpleRequestMsgHandler != null) {
+                    RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
+                    rpcSimpleRequestMsgHandler.channelRead(ctx, request);
                 }
-
             }
-
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
@@ -78,7 +65,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         linkedNode = LinkedNode.build(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                        TransSessionManger.initSession(session.getSessionId(), context, session);
+                        TransSessionManger.initSession(context, session);
                         linkedNode = RunnerUtil.execSilentException(() -> LinkedNode.build(null, rpcSessionRequestMsgHandler.sessionStart(ctx, session, context)), e -> LinkedNode.build(e.getMessage(), false));
                     }
                     response.setSuccess(linkedNode.getValue());
@@ -100,8 +87,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     }
                 } else if (request.isSessionFinish()) {
                     try {
-                        boolean running = TransSessionManger.isRunning(request.getRpcSession().getSessionId());
-                        if (running) {
+                        if (TransSessionManger.isRunning(request.getRpcSession().getSessionId())) {
                             RpcSessionContext context = TransSessionManger.getSessionContext(session.getSessionId());
                             rpcSessionRequestMsgHandler.sessionStop(ctx, session, context);
                         }
