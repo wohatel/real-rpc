@@ -52,13 +52,17 @@ public class FileTransChannelDataManager {
             }
             String body = rpcFileRequest.getBody();
             RpcSessionContext sessionContext = JsonUtil.fromJson(body, RpcSessionContext.class);
-            RpcFileLocal rpcFileWrapper = rpcFileReceiverHandler.getTargetFile(rpcFileRequest.getRpcSession(), sessionContext, rpcFileRequest.getFileInfo());
-            if (rpcFileWrapper == null) {
-                sendStartError(rpcResponse, ctx.channel(), "远端接受文件路径错误:发送终止");
-                return;
+            try {
+                RpcFileLocal rpcFileWrapper = rpcFileReceiverHandler.getTargetFile(rpcFileRequest.getRpcSession(), sessionContext, rpcFileRequest.getFileInfo());
+                if (rpcFileWrapper == null) {
+                    sendStartError(rpcResponse, ctx.channel(), "远端接受文件路径错误:发送终止");
+                    return;
+                }
+                // 继续处理逻辑
+                readInitFile(ctx, rpcFileRequest, sessionContext, rpcFileWrapper, rpcFileReceiverHandler);
+            } catch (Exception e) {
+                sendStartError(rpcResponse, ctx.channel(), e.getMessage());
             }
-            // 继续处理逻辑
-            readInitFile(ctx, rpcFileRequest, sessionContext, rpcFileWrapper, rpcFileReceiverHandler);
         } else if (rpcFileRequest.isSessionFinish()) {
             RpcSession rpcSession = rpcFileRequest.getRpcSession();
             boolean running = TransSessionManger.isRunning(rpcSession.getSessionId());
@@ -170,13 +174,8 @@ public class FileTransChannelDataManager {
     }
 
     private static void sendStartError(RpcResponse rpcResponse, Channel channel, String message) {
-        List<String> rbody = new ArrayList<>();
-        rbody.add(String.valueOf(false));
-        rbody.add(null);
-        rbody.add(String.valueOf(0));
-        rbody.add(null);
-        rpcResponse.setBody(JSONArray.toJSONString(rbody));
         rpcResponse.setMsg(message);
+        rpcResponse.setSuccess(false);
         RpcMsgTransUtil.write(channel, rpcResponse);
     }
 }

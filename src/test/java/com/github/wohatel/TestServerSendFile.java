@@ -1,5 +1,6 @@
 package com.github.wohatel;
 
+import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;

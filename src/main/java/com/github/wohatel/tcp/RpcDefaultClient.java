@@ -12,6 +12,7 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcBaseAction;
+import com.github.wohatel.interaction.common.TransSessionManger;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.common.RpcInteractionContainer;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
@@ -166,7 +167,10 @@ public class RpcDefaultClient extends RpcDataReceiver {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
         }
         if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,请直接发送会话消息");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,不可重复开启");
+        }
+        if (TransSessionManger.isRunning(rpcSession.getSessionId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,已由远端开启");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.START);

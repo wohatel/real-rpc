@@ -201,6 +201,10 @@ public class RpcMsgTransUtil {
         rpcFileTransProcess.setRemoteHandleSize(0L);
         RpcSessionFuture rpcFuture = writeStartFile(channel, file, finalConfig, rpcSession, context);
         RpcResponse startResponse = rpcFuture.get();
+        if (!startResponse.isSuccess()) {
+            throw new RpcException(RpcErrorEnum.RUNTIME, "远程执行传输文件失败:" + startResponse.getMsg());
+        }
+        rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
         String responseBody = startResponse.getBody();
         JSONArray array = JSONArray.parseArray(responseBody);
         Boolean needTrans = array.getBoolean(0);
