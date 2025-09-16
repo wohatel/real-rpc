@@ -23,7 +23,6 @@ public class RpcSession {
         this.timeOutMillis = timeOutMillis;
     }
 
-
     public RpcResponse toResponse() {
         RpcResponse response = new RpcResponse();
         response.setRequestId(this.sessionId);

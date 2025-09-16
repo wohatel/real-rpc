@@ -17,7 +17,6 @@ import com.github.wohatel.interaction.common.RpcInteractionContainer;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.constant.NumberConstant;
-import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -107,9 +106,13 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
         }
+        if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 与会话不匹配");
+        }
         if (sessionFuture.isSessionFinish()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已结束,请尝试开启新的会话");
         }
+
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
         RpcInteractionContainer.verifySessionRequest(rpcSessionRequest);
         RpcMsgTransUtil.sendMsg(channel, rpcSessionRequest);
@@ -172,6 +175,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
         RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
+        rpcFuture.setChannelId(channel.id().asShortText());
         RpcMsgTransUtil.sendMsg(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {
@@ -184,8 +188,12 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * 关闭会话
      */
     public void finishSession(RpcSession rpcSession) {
-        if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        if (sessionFuture == null || sessionFuture.isSessionFinish()) {
             return;
+        }
+        if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 与会话不匹配");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
