@@ -6,6 +6,7 @@ import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -14,8 +15,11 @@ import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.kqueue.KQueueDatagramChannel;
 import io.netty.channel.kqueue.KQueueIoHandler;
 import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+
+import lombok.Data;
 import lombok.SneakyThrows;
 
 import java.net.InetSocketAddress;
@@ -23,16 +27,34 @@ import java.net.InetSocketAddress;
 /**
  * @author yaochuang
  */
-public class RpcUdpSpider {
-    private final MultiThreadIoEventLoopGroup eventLoopGroup;
-    private final SimpleChannelInboundHandler<DatagramPacket> clientChannelHandler;
-    private Channel channel;
-    private final Class<? extends Channel> channelClass;
+@Data
+public abstract class RpcUdpSpider {
+    protected final MultiThreadIoEventLoopGroup eventLoopGroup;
+    protected final ChannelInitializer<DatagramChannel> channelInitializer;
+    protected Channel channel;
+    protected final Class<? extends Channel> channelClass;
 
-    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, SimpleChannelInboundHandler<DatagramPacket> clientChannelHandler) {
+    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer) {
         this.eventLoopGroup = eventLoopGroup;
-        this.clientChannelHandler = clientChannelHandler;
+        this.channelInitializer = channelInitializer;
         this.channelClass = getChannelClass();
+    }
+
+    /**
+     * 构建一个简单的udp
+     */
+    public static RpcUdpSpider buildSimpleSpider(SimpleChannelInboundHandler<DatagramPacket> simpleChannelInboundHandler) {
+        return new RpcUdpSpider(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()), new ChannelInitializer<DatagramChannel>() {
+            @Override
+            protected void initChannel(DatagramChannel datagramChannel) throws Exception {
+                datagramChannel.pipeline().addLast(simpleChannelInboundHandler);
+            }
+        }) {
+            @Override
+            public void sendMsg(String msg, InetSocketAddress to) {
+                RpcMsgTransUtil.sendUdpMsg(this.channel, msg, to);
+            }
+        };
     }
 
     @SneakyThrows
@@ -43,7 +65,7 @@ public class RpcUdpSpider {
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
         b.channel(channelClass).option(ChannelOption.SO_BROADCAST, true);
-        b.handler(this.clientChannelHandler);
+        b.handler(channelInitializer);
         ChannelFuture bind = b.bind(port);
         this.channel = bind.channel();
         return bind;
@@ -58,9 +80,7 @@ public class RpcUdpSpider {
     /**
      * 发送消息
      */
-    public void sendMsg(String msg, InetSocketAddress to) {
-        RpcMsgTransUtil.sendUdpMsg(this.channel, msg, to);
-    }
+    public abstract void sendMsg(String msg, InetSocketAddress to);
 
 
     /**

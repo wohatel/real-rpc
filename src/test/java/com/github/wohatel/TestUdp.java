@@ -4,7 +4,6 @@ import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 import org.junit.jupiter.api.Test;
@@ -24,8 +23,7 @@ public class TestUdp {
      */
     @Test
     void testUdp() throws InterruptedException {
-        NioEventLoopGroup group = new NioEventLoopGroup();
-        RpcUdpSpider server = new RpcUdpSpider(group, new SimpleChannelInboundHandler<DatagramPacket>() {
+        RpcUdpSpider server = RpcUdpSpider.buildSimpleSpider(new SimpleChannelInboundHandler<>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
                 InetSocketAddress sender = datagramPacket.sender();
@@ -38,7 +36,7 @@ public class TestUdp {
         server.bind(8765).sync();
 
 
-        RpcUdpSpider client = new RpcUdpSpider(group, new SimpleChannelInboundHandler<DatagramPacket>() {
+        RpcUdpSpider client = RpcUdpSpider.buildSimpleSpider(new SimpleChannelInboundHandler<>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
                 System.out.println("客户端接收0");
@@ -50,7 +48,6 @@ public class TestUdp {
 
         client.bindAsClient().sync();
         client.sendMsg("发送", new InetSocketAddress("127.0.0.1", 8765));
-
         Thread.currentThread().join();
     }
 
