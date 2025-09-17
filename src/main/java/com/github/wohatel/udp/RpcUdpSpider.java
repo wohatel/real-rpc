@@ -4,8 +4,10 @@ import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.util.ByteBufDecoder;
+import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -28,6 +30,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * @author yaochuang
@@ -38,11 +41,17 @@ public class RpcUdpSpider<T> {
     protected final ChannelInitializer<DatagramChannel> channelInitializer;
     protected Channel channel;
     protected final Class<? extends Channel> channelClass;
+    protected final List<ChannelOptionAndValue<Object>> channelOptions;
 
     public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer) {
+        this(eventLoopGroup, channelInitializer, null);
+    }
+
+    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer, List<ChannelOptionAndValue<Object>> channelOptions) {
         this.eventLoopGroup = eventLoopGroup;
         this.channelInitializer = channelInitializer;
         this.channelClass = getChannelClass();
+        this.channelOptions = channelOptions;
     }
 
     /**
@@ -84,13 +93,22 @@ public class RpcUdpSpider<T> {
     }
 
     @SneakyThrows
+    @SuppressWarnings("all")
     public ChannelFuture bind(int port) {
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "重复绑定");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
-        b.channel(channelClass).option(ChannelOption.SO_BROADCAST, true);
+        b.channel(channelClass);
+        if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
+            for (ChannelOptionAndValue channelOption : channelOptions) {
+                b.option(channelOption.getChannelOption(), channelOption.getValue());
+            }
+        } else {
+            // 默认开启广播
+            b.option(ChannelOption.SO_BROADCAST, true);
+        }
         b.handler(channelInitializer);
         ChannelFuture bind = b.bind(port);
         this.channel = bind.channel();

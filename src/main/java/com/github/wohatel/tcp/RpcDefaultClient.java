@@ -12,16 +12,17 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.constant.RpcBaseAction;
+import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollSocketChannel;
@@ -35,6 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.util.List;
 
 
 /**
@@ -48,24 +50,37 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected final Integer port;
     protected final MultiThreadIoEventLoopGroup eventLoopGroup;
     protected final Class<? extends Channel> channelClass;
+    protected final List<ChannelOptionAndValue<Object>> channelOptions;
 
 
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
+        this(host, port, eventLoopGroup, null);
+    }
+
+    public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(true);
         this.host = host;
         this.port = port;
         this.eventLoopGroup = eventLoopGroup;
         this.channelClass = getChannelClass();
+        this.channelOptions = channelOptions;
     }
 
+
+    @SuppressWarnings("all")
     public ChannelFuture connect() {
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "连接存活中:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
-        b.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
+        b.channel(channelClass);
         b.handler(rpcMsgChannelInitializer);
+        if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
+            for (ChannelOptionAndValue channelOption : channelOptions) {
+                b.option(channelOption.getChannelOption(), channelOption.getValue());
+            }
+        }
         ChannelFuture f = b.connect(host, port);
         this.channel = f.channel();
         f.addListener(future -> {

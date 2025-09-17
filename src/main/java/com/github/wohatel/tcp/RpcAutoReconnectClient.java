@@ -2,6 +2,8 @@ package com.github.wohatel.tcp;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -13,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -35,6 +38,10 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         super(host, port, eventLoopGroup);
     }
 
+    public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, eventLoopGroup, channelOptions);
+    }
+
     /**
      * 尝试链接
      */
@@ -45,8 +52,13 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup);
-            bootstrap.channel(channelClass).option(ChannelOption.TCP_NODELAY, true);
+            bootstrap.channel(channelClass);
             bootstrap.handler(this.rpcMsgChannelInitializer);
+            if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
+                for (ChannelOptionAndValue<Object> channelOption : channelOptions) {
+                    bootstrap.option(channelOption.getChannelOption(), channelOption.getValue());
+                }
+            }
         }
         return bootstrap.connect(host, port);
     }

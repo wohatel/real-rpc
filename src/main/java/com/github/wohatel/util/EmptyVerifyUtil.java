@@ -1,0 +1,26 @@
+package com.github.wohatel.util;
+
+import io.netty.channel.ChannelFuture;
+
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * description
+ *
+ * @author yaochuang 2025/09/17 18:00
+ */
+public class EmptyVerifyUtil {
+
+    public static boolean isEmpty(Collection<?> collection) {
+        return collection == null || collection.isEmpty();
+    }
+
+    public static boolean isEmpty(Map<?, ?> map) {
+        return map == null || map.isEmpty();
+    }
+
+    public static <T> boolean isEmpty(T[] array) {
+        return array == null || array.length == 0;
+    }
+}
