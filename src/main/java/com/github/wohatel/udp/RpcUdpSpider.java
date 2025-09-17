@@ -1,11 +1,16 @@
 package com.github.wohatel.udp;
 
+import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.util.ByteBufDecoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
@@ -28,7 +33,7 @@ import java.net.InetSocketAddress;
  * @author yaochuang
  */
 @Data
-public abstract class RpcUdpSpider {
+public class RpcUdpSpider<T> {
     protected final MultiThreadIoEventLoopGroup eventLoopGroup;
     protected final ChannelInitializer<DatagramChannel> channelInitializer;
     protected Channel channel;
@@ -43,18 +48,39 @@ public abstract class RpcUdpSpider {
     /**
      * 构建一个简单的udp
      */
-    public static RpcUdpSpider buildSimpleSpider(SimpleChannelInboundHandler<DatagramPacket> simpleChannelInboundHandler) {
-        return new RpcUdpSpider(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()), new ChannelInitializer<DatagramChannel>() {
+    public static RpcUdpSpider<String> buildStringSpider(SimpleChannelInboundHandler<RpcUdpPacket<String>> simpleChannelInboundHandler) {
+        return buildSpider(new TypeReference<String>() {
+        }, simpleChannelInboundHandler);
+    }
+
+    /**
+     * 构建一个简单的udp
+     */
+    public static RpcUdpSpider<RpcRequest> buildRpcRequestSpider(SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> simpleChannelInboundHandler) {
+        return buildSpider(new TypeReference<RpcRequest>() {
+        }, simpleChannelInboundHandler);
+    }
+
+    /**
+     * 构建一个简单的udp
+     */
+    public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
+        return new RpcUdpSpider<>(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()), new ChannelInitializer<>() {
             @Override
             protected void initChannel(DatagramChannel datagramChannel) throws Exception {
-                datagramChannel.pipeline().addLast(simpleChannelInboundHandler);
+                SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<DatagramPacket>() {
+                    @Override
+                    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
+                        T decode = ByteBufDecoder.decode(datagramPacket.content(), clazz);
+                        RpcUdpPacket<T> rpcUdpPacket = new RpcUdpPacket<>();
+                        rpcUdpPacket.setMsg(decode);
+                        rpcUdpPacket.setSender(datagramPacket.sender());
+                        channelHandlerContext.fireChannelRead(rpcUdpPacket);
+                    }
+                };
+                datagramChannel.pipeline().addLast(decoder).addLast(simpleChannelInboundHandler);
             }
-        }) {
-            @Override
-            public void sendMsg(String msg, InetSocketAddress to) {
-                RpcMsgTransUtil.sendUdpMsg(this.channel, msg, to);
-            }
-        };
+        });
     }
 
     @SneakyThrows
@@ -80,8 +106,20 @@ public abstract class RpcUdpSpider {
     /**
      * 发送消息
      */
-    public abstract void sendMsg(String msg, InetSocketAddress to);
+    public void sendMsg(T msg, InetSocketAddress to) {
+        sendGeneralMsg(this.channel, msg, to);
+    }
 
+    /**
+     *
+     * @param channel 通道
+     * @param msg     消息提
+     * @param to      目标
+     * @param <T>     泛型
+     */
+    public static <T> void sendGeneralMsg(Channel channel, T msg, InetSocketAddress to) {
+        RpcMsgTransUtil.sendUdpMsg(channel, msg, to);
+    }
 
     /**
      * 返回类型

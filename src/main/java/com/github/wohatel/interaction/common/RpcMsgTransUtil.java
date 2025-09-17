@@ -1,5 +1,6 @@
 package com.github.wohatel.interaction.common;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcBaseAction;
@@ -72,22 +73,27 @@ public class RpcMsgTransUtil {
      * 发送udp消息
      *
      */
-    public static void sendUdpMsg(Channel channel, String msg, InetSocketAddress to) {
-        byte[] bytes = msg.getBytes(CharsetUtil.UTF_8);
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(bytes);
-        DatagramPacket datagramPacket = new DatagramPacket(byteBuf, to);
-        channel.writeAndFlush(datagramPacket);
+    public static <T> void sendUdpMsg(Channel channel, T msg, InetSocketAddress to) {
+        if (msg == null) {
+            return;
+        }
+        if (channel == null || !channel.isActive()) {
+            throw new IllegalStateException("Channel 不可用，发送失败");
+        }
+        ByteBuf buf;
+        if (msg instanceof byte[] bytes) {
+            // 原样发送 byte[]
+            buf = Unpooled.wrappedBuffer(bytes);
+        } else if (msg instanceof String s) {
+            // 原样发送字符串，不加双引号
+            buf = Unpooled.copiedBuffer(s, CharsetUtil.UTF_8);
+        } else {
+            // 对象 / 泛型 → JSON 序列化
+            buf = Unpooled.wrappedBuffer(JSON.toJSONBytes(msg));
+        }
+        DatagramPacket packet = new DatagramPacket(buf, to);
+        channel.writeAndFlush(packet);
     }
-
-    /**
-     * 读取udp发送的消息
-     *
-     */
-    public static String readUdpMsg(DatagramPacket packet) {
-        ByteBuf content = packet.content();
-        return content.toString(CharsetUtil.UTF_8);
-    }
-
 
     private static void sendFileMsg(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (rpcRequest == null) {

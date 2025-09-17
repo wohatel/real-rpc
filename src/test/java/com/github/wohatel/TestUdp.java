@@ -1,14 +1,15 @@
 package com.github.wohatel;
 
+import com.alibaba.fastjson2.TypeReference;
+import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.udp.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.CharsetUtil;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 
 /**
@@ -23,31 +24,33 @@ public class TestUdp {
      */
     @Test
     void testUdp() throws InterruptedException {
-        RpcUdpSpider server = RpcUdpSpider.buildSimpleSpider(new SimpleChannelInboundHandler<>() {
+        RpcUdpSpider<List<RpcRequest>> server = RpcUdpSpider.buildSpider(new TypeReference<List<RpcRequest>>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<List<RpcRequest>>>() {
             @Override
-            protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
-                InetSocketAddress sender = datagramPacket.sender();
-                String msg = datagramPacket.content().toString(CharsetUtil.UTF_8);
-                System.out.println(msg);
-                DatagramPacket response = new DatagramPacket(Unpooled.copiedBuffer("返回数据".getBytes()), sender);
-                channelHandlerContext.writeAndFlush(response);
+            protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<List<RpcRequest>> datagramPacket) throws Exception {
+                List<RpcRequest> msg = datagramPacket.getMsg();
+                System.out.println("几个:" + msg.size());
+                System.out.println("返回的时候,给加一个null");
+                msg.add(null);
+                // 回复
+                RpcUdpSpider.sendGeneralMsg(channelHandlerContext.channel(), msg, datagramPacket.getSender());
             }
         });
         server.bind(8765).sync();
 
 
-        RpcUdpSpider client = RpcUdpSpider.buildSimpleSpider(new SimpleChannelInboundHandler<>() {
+        RpcUdpSpider<List<RpcRequest>> client = RpcUdpSpider.buildSpider(new TypeReference<List<RpcRequest>>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<List<RpcRequest>>>() {
             @Override
-            protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
-                System.out.println("客户端接收0");
-                String msg = datagramPacket.content().toString(CharsetUtil.UTF_8);
-                System.out.println("接收到:" + msg);
-                System.out.println("客户端接收1");
+            protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<List<RpcRequest>> datagramPacket) throws Exception {
+                List<RpcRequest> msg = datagramPacket.getMsg();
+
+                System.out.println("服务端返回:" + msg.size());
             }
         });
 
         client.bindAsClient().sync();
-        client.sendMsg("发送", new InetSocketAddress("127.0.0.1", 8765));
+        client.sendMsg(List.of(RpcRequest.withBody("你好")), new InetSocketAddress("127.0.0.1", 8765));
         Thread.currentThread().join();
     }
 
