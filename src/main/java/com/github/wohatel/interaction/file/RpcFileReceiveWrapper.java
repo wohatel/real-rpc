@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.file;
 
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcSessionContext;
-import com.github.wohatel.interaction.common.TransSessionManger;
+import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +48,6 @@ public class RpcFileReceiveWrapper {
      * RpcFileSenderListener.onFailure()
      */
     public void interruptReceive() {
-        TransSessionManger.release(rpcSession.getSessionId());
+        RpcSessionTransManger.release(rpcSession.getSessionId());
     }
 }

@@ -12,7 +12,7 @@ public class RpcFileInfo {
     /**
      * 文件hash值
      */
-    private String fileHash;
+    private String fileMd5;
     /**
      * 源文件名称
      */

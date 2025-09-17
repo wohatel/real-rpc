@@ -5,8 +5,10 @@ import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
+import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,33 +20,36 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
 /**
  * description
  *
  * @author yaochuang 2025/04/10 09:25
  */
 @Slf4j
-public class TransSessionManger {
+public class RpcSessionTransManger {
 
     /**
      * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
      */
-    private static final SessionManager<Boolean> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, TransSessionManger::release);
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, RpcSessionTransManger::release);
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
-    private static final Map<String, Object> SESSION_DATA = new ConcurrentHashMap<>();
     private static final Map<String, RpcSession> SESSION = new ConcurrentHashMap<>();
 
+    @Data
+    @AllArgsConstructor
+    private static class SessionDataWrapper {
+        private boolean isFile;
+        private RpcSessionContext context;
+        private RpcFileReceiveWrapper rpcFileReceiveWrapper;
+    }
 
     public static void initSession(RpcSessionContext context, RpcSession rpcSession) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.CONNECT, "session已存在");
         }
-        SESSION_MANAGER.initSession(sessionId, false, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
-        if (context != null) {
-            SESSION_DATA.put(sessionId, context);
-        }
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, context, null);
+        SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         SESSION.put(sessionId, rpcSession);
     }
 
@@ -52,7 +57,7 @@ public class TransSessionManger {
      * 获取sessionContext
      */
     public static RpcSessionContext getSessionContext(String sessionId) {
-        return (RpcSessionContext) SESSION_DATA.get(sessionId);
+        return SESSION_MANAGER.getSession(sessionId).context;
     }
 
     /**
@@ -77,21 +82,21 @@ public class TransSessionManger {
     }
 
     public static boolean addOrReleaseFile(String sessionId, FileChunkItem fileChunkItem) {
-        Boolean isFile = SESSION_MANAGER.getSession(sessionId);
-        boolean isNormal = isFile != null && isFile;
         try {
-            if (isNormal) {
+            SessionDataWrapper session = SESSION_MANAGER.getSession(sessionId);
+            if (session.isFile) {
                 FILE_ITEM_MAP.get(sessionId).add(fileChunkItem);
                 SESSION_MANAGER.flushTime(sessionId);
+                return true;
             } else {
                 releaseFileChunk(fileChunkItem);
+                return false;
             }
         } catch (Exception e) {
             log.error("文件块-接收-打印异常信息:", e);
             releaseFileChunk(fileChunkItem);
             return false;
         }
-        return isNormal;
     }
 
     /**
@@ -106,12 +111,10 @@ public class TransSessionManger {
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件session已存在");
         }
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, null, data);
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));
-        SESSION_MANAGER.initSession(sessionId, true, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
+        SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         FILE_ITEM_MAP.put(sessionId, queue);
-        if (data != null) {
-            SESSION_DATA.put(sessionId, data);
-        }
         SESSION.put(sessionId, rpcSession);
     }
 
@@ -125,7 +128,7 @@ public class TransSessionManger {
     }
 
     public static RpcFileReceiveWrapper getFileData(String sessionId) {
-        return (RpcFileReceiveWrapper) SESSION_DATA.get(sessionId);
+        return SESSION_MANAGER.getSession(sessionId).rpcFileReceiveWrapper;
     }
 
     /**
@@ -162,20 +165,22 @@ public class TransSessionManger {
     /**
      * 释放session
      */
-    public static void release(String id, Boolean isFile) {
-        if (isFile != null && isFile) {
+    private static void release(String id, SessionDataWrapper sessionDataWrapper) {
+        if (sessionDataWrapper == null) {
+            return;
+        }
+        if (sessionDataWrapper.isFile) {
             closeQueue(FILE_ITEM_MAP.remove(id));
         }
         SESSION_MANAGER.release(id);
-        SESSION_DATA.remove(id);
     }
 
     /**
      * 释放session
      */
     public static void release(String id) {
-        Boolean isFile = SESSION_MANAGER.getSession(id);
-        release(id, isFile);
+        SessionDataWrapper session = SESSION_MANAGER.getSession(id);
+        release(id, session);
     }
 
     /**

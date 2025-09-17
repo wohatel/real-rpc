@@ -11,15 +11,17 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.util.SessionManager;
+import com.github.wohatel.util.VirtualThreadPool;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RpcInteractionContainer {
+public class RpcFutureTransManager {
 
     @Getter
-    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcInteractionContainer::handleTimeOut);
+    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut);
 
     /**
      * 校验并刷新session请求时长
@@ -104,10 +106,6 @@ public class RpcInteractionContainer {
                 VirtualThreadPool.execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
             }
         }
-    }
-
-    public static RpcFuture addRequest(RpcRequest rpcRequest) {
-        return addRequest(rpcRequest, NumberConstant.OVER_TIME);
     }
 
     public static RpcFuture addRequest(RpcRequest rpcRequest, long timeOut) {

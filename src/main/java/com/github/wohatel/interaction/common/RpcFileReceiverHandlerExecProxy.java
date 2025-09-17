@@ -4,6 +4,7 @@ import com.github.wohatel.constant.RpcSysEnum;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.util.OneTimeLock;
+import com.github.wohatel.util.VirtualThreadPool;
 
 /**
  * 文件接收端处理事件接口

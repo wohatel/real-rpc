@@ -11,10 +11,10 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.common.RpcBaseAction;
-import com.github.wohatel.interaction.common.TransSessionManger;
+import com.github.wohatel.constant.RpcBaseAction;
+import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
-import com.github.wohatel.interaction.common.RpcInteractionContainer;
+import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.constant.NumberConstant;
@@ -103,7 +103,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
 
     public void sendSessionMsg(RpcSessionRequest rpcSessionRequest) {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
-        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
         }
@@ -115,7 +115,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
 
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
-        RpcInteractionContainer.verifySessionRequest(rpcSessionRequest);
+        RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
         RpcMsgTransUtil.sendMsg(channel, rpcSessionRequest);
     }
 
@@ -136,7 +136,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public boolean inquiryServerSession(RpcSession rpcSession) {
-        if (!RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+        if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
             return false;
         }
         RpcRequest rpcRequest = new RpcRequest();
@@ -166,10 +166,10 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (rpcSession == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
         }
-        if (RpcInteractionContainer.contains(rpcSession.getSessionId())) {
+        if (RpcFutureTransManager.contains(rpcSession.getSessionId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,不可重复开启");
         }
-        if (TransSessionManger.isRunning(rpcSession.getSessionId())) {
+        if (RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,已由远端开启");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
@@ -178,7 +178,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (context != null) {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
-        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcRequest);
+        RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
         rpcFuture.setChannelId(channel.id().asShortText());
         RpcMsgTransUtil.sendMsg(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
@@ -192,7 +192,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * 关闭会话
      */
     public void finishSession(RpcSession rpcSession) {
-        RpcSessionFuture sessionFuture = RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null || sessionFuture.isSessionFinish()) {
             return;
         }
@@ -202,7 +202,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
         rpcRequest.setNeedResponse(false);
-        RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
+        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         RpcMsgTransUtil.sendMsg(channel, rpcRequest);
     }
 
@@ -213,7 +213,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public RpcSessionFuture getSessionFuture(RpcSession rpcSession) {
-        return RpcInteractionContainer.getSessionFuture(rpcSession.getSessionId());
+        return RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
     }
 
     /**

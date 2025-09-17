@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class RpcResponse extends AbstractCompressAble {
+public class RpcResponse extends RpcAbstractCompressAble {
     private String requestId;
     private boolean success = true;
     private String msg; // 异常消息

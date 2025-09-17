@@ -8,6 +8,6 @@ import lombok.Data;
  * @author yaochuang 2025/06/09 10:07
  */
 @Data
-public abstract class AbstractCompressAble {
+public abstract class RpcAbstractCompressAble {
     protected boolean needCompress;
 }

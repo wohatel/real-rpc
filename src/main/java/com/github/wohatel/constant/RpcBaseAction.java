@@ -1,4 +1,4 @@
-package com.github.wohatel.interaction.common;
+package com.github.wohatel.constant;
 
 /**
  * description

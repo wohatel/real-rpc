@@ -15,6 +15,7 @@ import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.ReflectUtil;
 import com.github.wohatel.util.RunnerUtil;
+import com.github.wohatel.util.VirtualThreadPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author yaochuang
  */
 @Slf4j
-public class FileTransChannelDataManager {
+public class RpcFileChannelDataTransManager {
 
     @SneakyThrows
     public static void channelRead(ChannelHandlerContext ctx, RpcMsg rpcMsg, RpcFileReceiverHandler rpcFileReceiverHandler) {
@@ -45,7 +46,7 @@ public class FileTransChannelDataManager {
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
-            boolean running = TransSessionManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
+            boolean running = RpcSessionTransManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
             if (running) {
                 sendStartError(rpcResponse, ctx.channel(), "请勿开启重复session,请检查");
                 return;
@@ -65,11 +66,11 @@ public class FileTransChannelDataManager {
             }
         } else if (rpcFileRequest.isSessionFinish()) {
             RpcSession rpcSession = rpcFileRequest.getRpcSession();
-            boolean running = TransSessionManger.isRunning(rpcSession.getSessionId());
+            boolean running = RpcSessionTransManger.isRunning(rpcSession.getSessionId());
             if (!running) {// 如果已经不再运行,则无需执行
                 return;
             }
-            TransSessionManger.release(rpcSession.getSessionId());
+            RpcSessionTransManger.release(rpcSession.getSessionId());
         } else {
             readBodyFile(ctx, rpcFileRequest, rpcMsg.getByteBuffer());
         }
@@ -77,12 +78,12 @@ public class FileTransChannelDataManager {
 
     @SneakyThrows
     private static void readBodyFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, ByteBuf byteBuf) {
-        TransSessionManger.FileChunkItem item = new TransSessionManger.FileChunkItem();
+        RpcSessionTransManger.FileChunkItem item = new RpcSessionTransManger.FileChunkItem();
         item.setByteBuf(byteBuf);
         item.setBuffer(rpcFileRequest.getBuffer());
         item.setSerial(rpcFileRequest.getSerial());
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
-        boolean addStatus = TransSessionManger.addOrReleaseFile(rpcSession.getSessionId(), item);
+        boolean addStatus = RpcSessionTransManger.addOrReleaseFile(rpcSession.getSessionId(), item);
         if (!addStatus) {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
@@ -122,17 +123,17 @@ public class FileTransChannelDataManager {
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
         RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), rpcSession, fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, length);
-        TransSessionManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl);
+        RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl);
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
             // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
-                    TransSessionManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> TransSessionManger.isRunning(rpcSession.getSessionId()), 3, () -> TransSessionManger.poll(rpcSession.getSessionId(), rpcSession.getTimeOutMillis() / 3));
+                    RpcSessionTransManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> RpcSessionTransManger.isRunning(rpcSession.getSessionId()), 3, () -> RpcSessionTransManger.poll(rpcSession.getSessionId(), rpcSession.getTimeOutMillis() / 3));
                     // 拉取之后也要判断是否正常
                     if (poll == null) {
-                        if (!TransSessionManger.isRunning(rpcSession.getSessionId())) {
+                        if (!RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
                             break;
                         }
                         throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件块接收超时");
@@ -169,7 +170,7 @@ public class FileTransChannelDataManager {
             RpcMsgTransUtil.write(ctx.channel(), response);
             RpcFileReceiverHandlerExecProxy.onFailure(rpcFileReceiverHandler, impl, e);
         } finally {
-            TransSessionManger.release(rpcSession.getSessionId());
+            RpcSessionTransManger.release(rpcSession.getSessionId());
         }
     }
 

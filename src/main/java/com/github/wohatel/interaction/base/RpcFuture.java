@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.base;
 
 
 import com.github.wohatel.interaction.constant.NumberConstant;
-import com.github.wohatel.interaction.common.RpcInteractionContainer;
+import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcResponseMsgListener;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,12 +54,12 @@ public class RpcFuture {
     }
 
     public void flushRequestTime() {
-        RpcInteractionContainer.flushTime(requestId, timeOut);
+        RpcFutureTransManager.flushTime(requestId, timeOut);
     }
 
     public void setResponseTime(long responseTime) {
         this.responseTime = responseTime;
-        RpcInteractionContainer.flushTime(requestId, timeOut);
+        RpcFutureTransManager.flushTime(requestId, timeOut);
     }
 
     @SneakyThrows
@@ -90,7 +90,7 @@ public class RpcFuture {
     }
 
     public void release() {
-        RpcInteractionContainer.remove(this.getRequestId());
+        RpcFutureTransManager.remove(this.getRequestId());
         completableFuture.cancel(true);
     }
 }

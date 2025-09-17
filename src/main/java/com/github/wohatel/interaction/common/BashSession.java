@@ -1,6 +1,7 @@
 package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.util.RunnerUtil;
+import com.github.wohatel.util.VirtualThreadPool;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

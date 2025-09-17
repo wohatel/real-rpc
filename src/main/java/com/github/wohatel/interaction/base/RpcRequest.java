@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class RpcRequest extends AbstractCompressAble {
+public class RpcRequest extends RpcAbstractCompressAble {
     private String origin = RpcDataReceiver.NODEID;
     private String requestId = NanoIdUtils.randomNanoId();
     private String requestType; // 请求类型

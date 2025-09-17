@@ -22,10 +22,10 @@ public class FileUtil {
     /**
      * 文件追加或插入
      *
-     * @param file
-     * @param bytes
-     * @param startPosition
-     * @throws IOException
+     * @param file          文件
+     * @param bytes         数组
+     * @param startPosition 开始位置
+     * @throws IOException 异常
      */
     public static void appendFile(String file, byte[] bytes, long startPosition) throws IOException {
         try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {
@@ -38,9 +38,6 @@ public class FileUtil {
     /**
      * 文件追加到末尾
      *
-     * @param file
-     * @param bytes
-     * @throws IOException
      */
     public static void appendFile(String file, byte[] bytes) throws IOException {
         try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {
@@ -52,9 +49,6 @@ public class FileUtil {
     /**
      * md5文件hash
      *
-     * @param file
-     * @return
-     * @throws IOException
      */
     @SneakyThrows
     public static String fileMd5Hash(File file) {
@@ -68,7 +62,6 @@ public class FileUtil {
      * @param headSize 读取文件的前 headSize 字节
      * @param rate     压缩率阈值 (0-100)
      * @return 是否值得压缩（压缩率低于给定值）
-     * @throws IOException 读取或压缩异常
      */
     @SneakyThrows
     public static boolean tryCompress(File file, int headSize, int rate) {

@@ -1,7 +1,8 @@
-package com.github.wohatel.interaction.common;
+package com.github.wohatel.util;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.common.RpcSessionFlushStrategy;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,6 @@ public class SessionManager<T> {
     private volatile boolean stop;
     private final Map<String, T> container = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
-    private final Map<String, Object> dataMap = new ConcurrentHashMap<>();
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
     private final Thread cleanerThread;
     private final BiConsumer<String, T> sessionClose;
@@ -68,7 +68,7 @@ public class SessionManager<T> {
      * @param resource  资源
      */
     public void initSession(String sessionId, T resource) {
-        this.initSession(sessionId, resource, null, null);
+        this.initSession(sessionId, resource, null);
     }
 
     /**
@@ -78,39 +78,21 @@ public class SessionManager<T> {
      * @param resource  资源
      */
     public void initSession(String sessionId, T resource, Long expiredAt) {
-        this.initSession(sessionId, resource, expiredAt, null);
-    }
-
-    /**
-     * 初始化资源
-     *
-     * @param sessionId sessionId
-     * @param resource  资源
-     */
-    public void initSession(String sessionId, T resource, Long expiredAt, Object data) {
         if (!stop) {
             T old = container.putIfAbsent(sessionId, resource);
             if (old == null) {
                 long finalExpiredAt = expiredAt == null ? System.currentTimeMillis() + sessionTime : expiredAt;
                 timeFlushMap.put(sessionId, new AtomicLong(finalExpiredAt));
                 delayQueue.add(new DelayItem(sessionId, finalExpiredAt));
-                if (data != null) {
-                    dataMap.put(sessionId, data);
-                }
             } else {
                 throw new RpcException(RpcErrorEnum.RUNTIME, "session资源已存在");
             }
         }
     }
 
-    public Object getData(String sessionId) {
-        return dataMap.get(sessionId);
-    }
-
     @SneakyThrows
     public T release(String sessionId) {
         timeFlushMap.remove(sessionId);
-        dataMap.remove(sessionId);
         return container.remove(sessionId);
     }
 
@@ -255,7 +237,7 @@ public class SessionManager<T> {
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                log.error("cleanerLoop异常", ex);
             }
         }
     }

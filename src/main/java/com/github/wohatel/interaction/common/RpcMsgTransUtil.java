@@ -2,6 +2,8 @@ package com.github.wohatel.interaction.common;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.github.wohatel.constant.RpcBaseAction;
+import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
@@ -52,7 +54,7 @@ public class RpcMsgTransUtil {
         if (rpcResponse == null) {
             return;
         }
-        TransSessionManger.flush(rpcResponse.getRequestId());
+        RpcSessionTransManger.flush(rpcResponse.getRequestId());
         channel.writeAndFlush(RpcMsg.fromResponse(rpcResponse));
     }
 
@@ -94,7 +96,7 @@ public class RpcMsgTransUtil {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "连接不可用");
         }
-        RpcInteractionContainer.verifySessionRequest(rpcRequest);
+        RpcFutureTransManager.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
         channel.writeAndFlush(build);
@@ -106,7 +108,7 @@ public class RpcMsgTransUtil {
 
     public static RpcFuture sendSynMsg(Channel channel, RpcRequest rpcRequest, long timeOutMillis) {
         rpcRequest.setNeedResponse(true);
-        RpcFuture rpcFuture = RpcInteractionContainer.addRequest(rpcRequest, timeOutMillis);
+        RpcFuture rpcFuture = RpcFutureTransManager.addRequest(rpcRequest, timeOutMillis);
         sendMsg(channel, rpcRequest);
         return rpcFuture;
     }
@@ -127,8 +129,8 @@ public class RpcMsgTransUtil {
         RpcFileInfo rpcFileInfo = new RpcFileInfo();
         rpcFileInfo.setFileName(file.getName());
         rpcFileInfo.setLength(file.length());
-        if (fileTransConfig.isSendFileHash()) {
-            rpcFileInfo.setFileHash(FileUtil.md5(file));
+        if (fileTransConfig.isSendFileMd5()) {
+            rpcFileInfo.setFileMd5(FileUtil.md5(file));
         }
         rpcFileRequest.setFileInfo(rpcFileInfo);
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
@@ -139,7 +141,7 @@ public class RpcMsgTransUtil {
         }
         // 设置需要返回结果
         rpcFileRequest.setNeedResponse(true);
-        RpcSessionFuture rpcFuture = RpcInteractionContainer.verifySessionRequest(rpcFileRequest);
+        RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
         // 发送消息体
         sendMsg(channel, rpcFileRequest);
         return rpcFuture;
@@ -147,7 +149,7 @@ public class RpcMsgTransUtil {
 
     @SneakyThrows
     public static void writeStopFile(Channel channel, RpcSession rpcSession) {
-        RpcSessionFuture rpcSessionFuture = RpcInteractionContainer.stopSessionGracefully(rpcSession.getSessionId());
+        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISH);
@@ -185,11 +187,11 @@ public class RpcMsgTransUtil {
         if (rpcSession == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 不能为null,请检查");
         }
-        boolean contains = RpcInteractionContainer.contains(rpcSession.getSessionId());
+        boolean contains = RpcFutureTransManager.contains(rpcSession.getSessionId());
         if (contains) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请检查rpcSession是否重复使用");
         }
-        boolean running = TransSessionManger.isRunning(rpcSession.getSessionId());
+        boolean running = RpcSessionTransManger.isRunning(rpcSession.getSessionId());
         if (running) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请更换新的会话");
         }

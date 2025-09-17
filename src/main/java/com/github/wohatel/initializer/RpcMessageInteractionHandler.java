@@ -5,11 +5,11 @@ import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.common.FileTransChannelDataManager;
-import com.github.wohatel.interaction.common.RpcInteractionContainer;
+import com.github.wohatel.interaction.common.RpcFileChannelDataTransManager;
+import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
-import com.github.wohatel.interaction.common.TransSessionManger;
+import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
@@ -44,7 +44,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcMsg rpcMsg = (RpcMsg) msg;
         switch (rpcMsg.getRpcCommandType()) {
-            case response -> RpcInteractionContainer.addResponse(rpcMsg.getPayload(RpcResponse.class));
+            case response -> RpcFutureTransManager.addResponse(rpcMsg.getPayload(RpcResponse.class));
             case request -> {
                 if (rpcSimpleRequestMsgHandler != null) {
                     RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
@@ -57,24 +57,24 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 LinkedNode<String, Boolean> linkedNode = null;
                 if (request.isSessionStart()) {
                     RpcResponse response = request.toResponse();
-                    if (TransSessionManger.isRunning(session.getSessionId())) {
+                    if (RpcSessionTransManger.isRunning(session.getSessionId())) {
                         String errorMsg = "{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复";
                         linkedNode = LinkedNode.build(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                        TransSessionManger.initSession(context, session);
+                        RpcSessionTransManger.initSession(context, session);
                         linkedNode = RunnerUtil.execSilentException(() -> LinkedNode.build(null, rpcSessionRequestMsgHandler.sessionStart(ctx, session, context)), e -> LinkedNode.build(e.getMessage(), false));
                     }
                     response.setSuccess(linkedNode.getValue());
                     response.setMsg(linkedNode.getKey());
                     RpcMsgTransUtil.write(ctx.channel(), response);
                     if (!linkedNode.getValue()) {
-                        TransSessionManger.release(session.getSessionId());
+                        RpcSessionTransManger.release(session.getSessionId());
                     }
                 } else if (request.isSessionRequest()) {
-                    if (TransSessionManger.isRunning(session.getSessionId())) {
-                        TransSessionManger.flush(session.getSessionId());
-                        RpcSessionContext context = TransSessionManger.getSessionContext(session.getSessionId());
+                    if (RpcSessionTransManger.isRunning(session.getSessionId())) {
+                        RpcSessionTransManger.flush(session.getSessionId());
+                        RpcSessionContext context = RpcSessionTransManger.getSessionContext(session.getSessionId());
                         rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
                     } else {
                         RpcResponse response = request.toResponse();
@@ -84,17 +84,17 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     }
                 } else if (request.isSessionFinish()) {
                     try {
-                        if (TransSessionManger.isRunning(request.getRpcSession().getSessionId())) {
-                            RpcSessionContext context = TransSessionManger.getSessionContext(session.getSessionId());
+                        if (RpcSessionTransManger.isRunning(request.getRpcSession().getSessionId())) {
+                            RpcSessionContext context = RpcSessionTransManger.getSessionContext(session.getSessionId());
                             rpcSessionRequestMsgHandler.sessionStop(ctx, session, context);
                         }
                     } finally {
-                        TransSessionManger.release(session.getSessionId());
+                        RpcSessionTransManger.release(session.getSessionId());
                     }
                 }
             }
 
-            case file -> FileTransChannelDataManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
+            case file -> RpcFileChannelDataTransManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
 
             default -> {
             }
