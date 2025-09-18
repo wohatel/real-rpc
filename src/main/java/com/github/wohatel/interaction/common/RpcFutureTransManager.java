@@ -73,10 +73,10 @@ public class RpcFutureTransManager {
         if (rpcResponse == null) {
             return;
         }
-        if (rpcResponse.getRequestId() == null) {
+        if (rpcResponse.getResponseId() == null) {
             return;
         }
-        RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getRequestId());
+        RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getResponseId());
         if (rpcFuture == null) { // 可能超时已被移除
             return;
         }
@@ -85,15 +85,15 @@ public class RpcFutureTransManager {
         rpcFuture.setResponseTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             if (rpcSessionFuture.isSessionFinish()) {
-                remove(rpcResponse.getRequestId());
+                remove(rpcResponse.getResponseId());
             } else {
                 // 自动叠加请求时间
-                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getRequestId(), rpcSessionFuture.getTimeOut());
+                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getResponseId(), rpcSessionFuture.getTimeOut());
                 executeOnResponse(rpcFuture, rpcResponse);
             }
         } else {
             // 清掉
-            remove(rpcResponse.getRequestId());
+            remove(rpcResponse.getResponseId());
             executeOnResponse(rpcFuture, rpcResponse);
         }
     }

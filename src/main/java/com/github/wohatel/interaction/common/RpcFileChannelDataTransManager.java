@@ -123,7 +123,7 @@ public class RpcFileChannelDataTransManager {
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
         RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), rpcSession, fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, length);
-        RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl);
+        RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl, ctx.channel().id().asShortText());
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();

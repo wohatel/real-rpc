@@ -41,14 +41,15 @@ public class RpcSessionTransManger {
         private boolean isFile;
         private RpcSessionContext context;
         private RpcFileReceiveWrapper rpcFileReceiveWrapper;
+        private String channelId;
     }
 
-    public static void initSession(RpcSessionContext context, RpcSession rpcSession) {
+    public static void initSession(RpcSessionContext context, RpcSession rpcSession, String channelId) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.CONNECT, "session已存在");
         }
-        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, context, null);
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, context, null, channelId);
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         SESSION.put(sessionId, rpcSession);
     }
@@ -106,12 +107,12 @@ public class RpcSessionTransManger {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data) {
+    public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data, String channelId) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件session已存在");
         }
-        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, null, data);
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, null, data, channelId);
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         FILE_ITEM_MAP.put(sessionId, queue);

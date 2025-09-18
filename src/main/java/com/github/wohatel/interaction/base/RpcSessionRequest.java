@@ -22,7 +22,8 @@ public class RpcSessionRequest extends RpcRequest {
     @Override
     public RpcResponse toResponse() {
         RpcResponse response = new RpcResponse();
-        response.setRequestId(this.rpcSession.getSessionId());
+        response.setResponseId(this.rpcSession.getSessionId());
+        response.setOrigRequestId(this.getRequestId());
         return response;
     }
 

@@ -44,7 +44,8 @@ public class RpcRequest extends RpcAbstractCompressAble {
      */
     public RpcResponse toResponse(boolean needCompress) {
         RpcResponse response = new RpcResponse();
-        response.setRequestId(this.requestId);
+        response.setResponseId(this.requestId);
+        response.setOrigRequestId(this.requestId);
         response.setNeedCompress(needCompress);
         return response;
     }

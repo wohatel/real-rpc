@@ -62,7 +62,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         linkedNode = LinkedNode.build(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                        RpcSessionTransManger.initSession(context, session);
+                        RpcSessionTransManger.initSession(context, session, ctx.channel().id().asShortText());
                         linkedNode = RunnerUtil.execSilentException(() -> LinkedNode.build(null, rpcSessionRequestMsgHandler.sessionStart(ctx, session, context)), e -> LinkedNode.build(e.getMessage(), false));
                     }
                     response.setSuccess(linkedNode.getValue());
@@ -78,7 +78,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         rpcSessionRequestMsgHandler.channelRead(ctx, session, request, context);
                     } else {
                         RpcResponse response = request.toResponse();
-                        response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常:会话id重复");
+                        response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常,会话不存在");
                         response.setSuccess(false);
                         RpcMsgTransUtil.write(ctx.channel(), response);
                     }
