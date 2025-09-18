@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -93,6 +94,7 @@ public class RpcFileChannelDataTransManager {
     }
 
     private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileLocal fileLocalWrapper, RpcFileReceiverHandler rpcFileReceiverHandler) {
+        RpcSession rpcSession = rpcFileRequest.getRpcSession();
         RpcFileWrapperUtil fileWrapper = RpcFileWrapperUtil.fromLocalWrapper(fileLocalWrapper);
         fileWrapper.init(rpcFileRequest.getFileInfo().getLength());
         List<String> body = new ArrayList<>();
@@ -100,30 +102,40 @@ public class RpcFileChannelDataTransManager {
         body.add(fileWrapper.getTransModel().name());
         body.add(String.valueOf(fileWrapper.getWriteIndex()));
         body.add(fileWrapper.getFile().getAbsolutePath());
+
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         rpcResponse.setBody(JSONArray.toJSONString(body));
         rpcResponse.setMsg(fileWrapper.getMsg());
+        rpcResponse.setSuccess(StringUtils.isBlank(fileWrapper.getMsg()));
         // 告知开启session成功
         RpcMsgTransUtil.write(ctx.channel(), rpcResponse);
-        if (fileWrapper.isInterruptByInit()) {
-            RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), rpcFileRequest.getRpcSession(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, 0L);
-            RpcFileReceiverHandlerExecProxy.onSuccess(rpcFileReceiverHandler, impl);
-            log.info("接收方文件接收结束: 无需传输");
+        // 没有异常情况
+        if (StringUtils.isBlank(fileWrapper.getMsg())) {
+            if (!fileWrapper.isNeedTrans()) { // 直接结束
+                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), 0L);
+                RpcFileReceiverHandlerExecProxy.onSuccess(rpcFileReceiverHandler, impl);
+                log.info("接收方文件接收结束: 无需传输");
+            } else {
+                long length = rpcFileRequest.getFileInfo().getLength() - fileWrapper.getWriteIndex();
+                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), length);
+                RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl, ctx.channel().id().asShortText());
+                VirtualThreadPool.execute(() -> handleAsynRecieveFile(ctx, rpcFileRequest, rpcFileReceiverHandler));
+            }
         } else {
-            VirtualThreadPool.execute(fileWrapper.isNeedTrans(), () -> handleAsynRecieveFile(ctx, rpcFileRequest, context, fileLocalWrapper, fileWrapper.getWriteIndex(), rpcFileReceiverHandler));
+            log.error("接收方文件接收结束: " + fileWrapper.getMsg());
         }
     }
 
+
     @SneakyThrows
-    private static void handleAsynRecieveFile(ChannelHandlerContext ctx, final RpcFileRequest rpcFileRequest, final RpcSessionContext context, final RpcFileLocal fileWrapper, long index, final RpcFileReceiverHandler rpcFileReceiverHandler) {
-        File targetFile = fileWrapper.getFile();
+    private static void handleAsynRecieveFile(ChannelHandlerContext ctx, final RpcFileRequest rpcFileRequest, final RpcFileReceiverHandler rpcFileReceiverHandler) {
+        RpcFileReceiveWrapper impl = (RpcFileReceiveWrapper) RpcSessionTransManger.getContextWrapper(rpcFileRequest.getRpcSession().getSessionId());
+        File targetFile = impl.getFile();
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
-        long length = rpcFileRequest.getFileInfo().getLength() - index;
+        long length = impl.getNeedTransLength();
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcResponse response = rpcFileRequest.toResponse();
-        RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(fileWrapper.getFile(), rpcSession, fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), context, length);
-        RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl, ctx.channel().id().asShortText());
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();

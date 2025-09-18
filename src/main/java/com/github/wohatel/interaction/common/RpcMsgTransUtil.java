@@ -55,7 +55,6 @@ public class RpcMsgTransUtil {
         if (rpcResponse == null) {
             return;
         }
-        RpcSessionTransManger.flush(rpcResponse.getResponseId());
         channel.writeAndFlush(RpcMsg.fromResponse(rpcResponse));
     }
 

@@ -105,7 +105,7 @@ public class RpcFileWrapperUtil {
             }
         } catch (Exception e) {
             this.needTrans = false;
-            this.msg = e.getMessage();
+            this.msg = "未知异常:" + e.getMessage();
             this.writeIndex = 0L;
         }
 

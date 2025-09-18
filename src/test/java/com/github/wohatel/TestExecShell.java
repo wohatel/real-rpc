@@ -7,6 +7,7 @@ import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.BashSession;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionContext;
+import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -57,7 +58,9 @@ public class TestExecShell {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean sessionStart(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public boolean sessionStart(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
+                RpcSessionContext context = contextWrapper.getRpcSessionContext();
+                RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession(str -> {
@@ -76,18 +79,18 @@ public class TestExecShell {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionRequest request, RpcSessionContext context) {
+            public void channelRead(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper, RpcSessionRequest request) {
                 // 假如客户端把命令写到body字段
                 String command = request.getBody();
-                BashSession session = sessionManager.getSession(rpcSession.getSessionId());
+                BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
                 session.sendCommand(command);
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSession rpcSession, RpcSessionContext context) {
+            public void sessionStop(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
                 System.out.println("关闭session");
                 // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
-                sessionManager.release(rpcSession.getSessionId());
+                sessionManager.release(contextWrapper.getRpcSession().getSessionId());
             }
         };
 

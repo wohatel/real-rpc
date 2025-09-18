@@ -3,6 +3,7 @@ package com.github.wohatel.interaction.handler;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcSessionContext;
+import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -17,7 +18,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param rpcSession
      */
-    default boolean sessionStart(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
+    default boolean sessionStart(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
         return true;
     }
 
@@ -27,14 +28,13 @@ public interface RpcSessionRequestMsgHandler {
      * @param ctx
      * @param request
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionRequest request, final RpcSessionContext context);
+    void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
 
     /**
      * 接收到对方发来的结束会话请求
      *
-     * @param rpcSession 会话
      */
-    default void sessionStop(ChannelHandlerContext ctx, final RpcSession rpcSession, final RpcSessionContext context) {
+    default void sessionStop(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
 
     }
 
