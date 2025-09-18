@@ -1,8 +1,7 @@
 package com.github.wohatel.util;
 
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import java.util.function.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MultiKeyLock {
 

@@ -1,9 +1,9 @@
 package com.github.wohatel.initializer;
 
+import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcResponse;
-import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcCommandType;

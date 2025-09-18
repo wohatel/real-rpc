@@ -1,7 +1,5 @@
 package com.github.wohatel.util;
 
-import io.netty.channel.ChannelFuture;
-
 import java.util.Collection;
 import java.util.Map;
 

@@ -1,9 +1,9 @@
 package com.github.wohatel.interaction.base;
 
 
-import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcResponseMsgListener;
+import com.github.wohatel.interaction.constant.NumberConstant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
