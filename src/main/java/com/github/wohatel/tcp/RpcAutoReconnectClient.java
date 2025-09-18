@@ -46,7 +46,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      */
     private ChannelFuture tryConnect() {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "连接存活中:RpcAutoReconnectClient");
+            throw new RpcException(RpcErrorEnum.CONNECT, "the connection is alive: RpcAutoReconnectClient");
         }
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
@@ -65,7 +65,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     @Override
     public ChannelFuture connect() {
-        throw new RpcException(RpcErrorEnum.CONNECT, "RpcAutoReconnectClient不支持connect链接,请改用autoReconnect()");
+        throw new RpcException(RpcErrorEnum.CONNECT, "rpcAutoReconnectClient connect link is not supported, please use it instead autoReconnect()");
     }
 
     /**
@@ -81,15 +81,15 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             Channel newChannel = connectFuture.channel();
             this.channel = newChannel;
             if (connectFuture.isSuccess()) {
-                log.info("连接成功: " + host + ":" + port);
+                log.info("the connection was successful: " + host + ":" + port);
                 // 监听关闭，关闭后自动重连（异步调度，避免递归）
                 newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                    log.error("连接断开，将尝试重连...");
+                    log.error("the connection is broken and will try to reconnect...");
                     closeFuture.channel().eventLoop().execute(this::autoReconnect);
                 });
             } else {
                 Throwable cause = connectFuture.cause();
-                log.error("连接失败: " + host + ":" + port, cause);
+                log.error("connection failed: " + host + ":" + port, cause);
 
                 // 清理失败 channel
                 if (newChannel != null && newChannel.isOpen()) {
@@ -98,7 +98,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                 // 使用 Bootstrap 绑定的 EventLoopGroup 安排重连任务（安全）
                 EventLoop eventLoop = bootstrap.config().group().next();
                 eventLoop.schedule(() -> {
-                    log.info("等待 " + autoReconnectInterval + "ms 后重连...");
+                    log.info("await " + autoReconnectInterval + "ms reconnect...");
                     autoReconnect();
                 }, autoReconnectInterval, TimeUnit.MILLISECONDS);
             }

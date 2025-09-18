@@ -23,13 +23,13 @@ public class RpcInputStreamWrapper implements Closeable {
 
     public void verify() {
         if (inputStream == null) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "inputStream 为null");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "inputStream is null or empty");
         }
         if (StringUtil.isNullOrEmpty(name)) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "name不能为空");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "name can't be null or empty");
         }
         if (StringUtil.isNullOrEmpty(id)) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "id不能为空");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "id is null or empty");
         }
     }
 

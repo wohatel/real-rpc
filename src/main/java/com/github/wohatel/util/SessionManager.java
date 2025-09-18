@@ -50,7 +50,7 @@ public class SessionManager<T> {
         this.flushSeed = flushSeed;
         this.sessionTime = sessionTime;
         if (sessionTime <= 0) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "会话时间错误");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "session time error: session time <= 0");
         }
         this.sessionClose = sessionClose;
         cleanerThread = Thread.startVirtualThread(this::cleanerLoop);
@@ -85,7 +85,7 @@ public class SessionManager<T> {
                 timeFlushMap.put(sessionId, new AtomicLong(finalExpiredAt));
                 delayQueue.add(new DelayItem(sessionId, finalExpiredAt));
             } else {
-                throw new RpcException(RpcErrorEnum.RUNTIME, "session资源已存在");
+                throw new RpcException(RpcErrorEnum.RUNTIME, "session already exists:" + sessionId);
             }
         }
     }
@@ -153,7 +153,7 @@ public class SessionManager<T> {
             try {
                 this.releaseAndSessionClose(sessionId);
             } catch (Exception e) {
-                log.error("销毁管理器异常", e);
+                log.error("destroy Manager exception:", e);
             }
         }
     }
@@ -226,7 +226,7 @@ public class SessionManager<T> {
                             try {
                                 sessionClose.accept(item.sessionId, resource);
                             } catch (Exception e) {
-                                log.error("cleanerLoop异常", e);
+                                log.error("cleanerLoop exception:", e);
                             }
                         });
                     }
@@ -237,7 +237,7 @@ public class SessionManager<T> {
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception ex) {
-                log.error("cleanerLoop异常", ex);
+                log.error("cleanerLoop exception:", ex);
             }
         }
     }
@@ -252,7 +252,7 @@ public class SessionManager<T> {
         try {
             return autoFlushPredicate.test(sessionId, resource);
         } catch (Exception e) {
-            log.error("autoTest校验失败", e);
+            log.error("autoTest autoTest failed:", e);
         }
         return false;
     }

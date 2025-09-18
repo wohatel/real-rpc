@@ -70,7 +70,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     @SuppressWarnings("all")
     public ChannelFuture connect() {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "连接存活中:RpcDefaultClient");
+            throw new RpcException(RpcErrorEnum.CONNECT, "the connection is alive:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
@@ -85,9 +85,9 @@ public class RpcDefaultClient extends RpcDataReceiver {
         this.channel = f.channel();
         f.addListener(future -> {
             if (future.isSuccess()) {
-                log.info("链接to-" + host + ":" + port + "成功");
+                log.info("connect to-" + host + ":" + port + " success");
             } else {
-                log.error("链接to-" + host + ":" + port + "失败");
+                log.error("connect to-" + host + ":" + port + "failure");
             }
         });
         return f;
@@ -120,13 +120,13 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在,请尝试开启新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist, try opening a new one");
         }
         if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 与会话不匹配");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         if (sessionFuture.isSessionFinish()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已结束,请尝试开启新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
 
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
@@ -179,13 +179,13 @@ public class RpcDefaultClient extends RpcDataReceiver {
      */
     public RpcSessionFuture startSession(RpcSession rpcSession, RpcSessionContext context) {
         if (rpcSession == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession标识不能为空");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession the logo cannot be empty");
         }
         if (RpcFutureTransManager.contains(rpcSession.getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,不可重复开启");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session already exists and cannot be opened repeatedly");
         }
         if (RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "会话已存在,已由远端开启");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session already exists and is opened by the remote end");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.START);
@@ -212,7 +212,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
             return;
         }
         if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 与会话不匹配");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
@@ -247,7 +247,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (this.eventLoopGroup.isIoType(LocalIoHandler.class)) {
             return LocalChannel.class;
         }
-        throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup 类型暂时不支持");
+        throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup types are not supported at the moment");
     }
 
 }

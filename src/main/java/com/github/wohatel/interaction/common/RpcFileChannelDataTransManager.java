@@ -43,13 +43,13 @@ public class RpcFileChannelDataTransManager {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         if (rpcFileReceiverHandler == null) {
-            sendStartError(rpcResponse, ctx.channel(), "远端接收文件事件暂无接收文件配置:发送终止");
+            sendStartError(rpcResponse, ctx.channel(), "There is no receive file configuration for remote receive file events: Transmission terminated");
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
             boolean running = RpcSessionTransManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
             if (running) {
-                sendStartError(rpcResponse, ctx.channel(), "请勿开启重复session,请检查");
+                sendStartError(rpcResponse, ctx.channel(), "Do not enable repeat sessions, please check");
                 return;
             }
             String body = rpcFileRequest.getBody();
@@ -57,7 +57,7 @@ public class RpcFileChannelDataTransManager {
             try {
                 RpcFileLocal rpcFileWrapper = rpcFileReceiverHandler.getTargetFile(rpcFileRequest.getRpcSession(), sessionContext, rpcFileRequest.getFileInfo());
                 if (rpcFileWrapper == null) {
-                    sendStartError(rpcResponse, ctx.channel(), "远端接受文件路径错误:发送终止");
+                    sendStartError(rpcResponse, ctx.channel(), "Remote accept file path error: send terminated");
                     return;
                 }
                 // 继续处理逻辑
@@ -88,7 +88,7 @@ public class RpcFileChannelDataTransManager {
         if (!addStatus) {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
-            response.setMsg("停止接收文件块");
+            response.setMsg("Stop receiving file blocks");
             RpcMsgTransUtil.write(ctx.channel(), response);
         }
     }
@@ -114,7 +114,7 @@ public class RpcFileChannelDataTransManager {
             if (!fileWrapper.isNeedTrans()) { // 直接结束
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), 0L);
                 RpcFileReceiverHandlerExecProxy.onSuccess(rpcFileReceiverHandler, impl);
-                log.info("接收方文件接收结束: 无需传输");
+                log.info("receiver file reception ends: No transfer required");
             } else {
                 long length = rpcFileRequest.getFileInfo().getLength() - fileWrapper.getWriteIndex();
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), length);
@@ -122,7 +122,7 @@ public class RpcFileChannelDataTransManager {
                 VirtualThreadPool.execute(() -> handleAsynRecieveFile(ctx, rpcFileRequest, rpcFileReceiverHandler));
             }
         } else {
-            log.error("接收方文件接收结束: " + fileWrapper.getMsg());
+            log.error("recipient file receipt ends: " + fileWrapper.getMsg());
         }
     }
 
@@ -148,10 +148,10 @@ public class RpcFileChannelDataTransManager {
                         if (!RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
                             break;
                         }
-                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件块接收超时");
+                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "file block receive timeout");
                     }
                     if (i != poll.getSerial()) {
-                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件块丢失:" + i);
+                        throw new RpcException(RpcErrorEnum.HANDLE_MSG, "file blocks are missing:" + i);
                     }
                     ByteBuf byteBuf = poll.getByteBuf();
                     try {
@@ -176,7 +176,7 @@ public class RpcFileChannelDataTransManager {
                 }
             }
         } catch (Exception e) {
-            log.error("文件块-合并-打印异常信息", e);
+            log.error("file Block - Merge - Print Exception Information", e);
             response.setMsg(e.getMessage());
             response.setSuccess(false);
             RpcMsgTransUtil.write(ctx.channel(), response);

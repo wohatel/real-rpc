@@ -77,7 +77,7 @@ public class ByteBufPoolManager {
         public ByteBuf borrow(long timeoutMillis) throws TimeoutException, InterruptedException {
             ByteBuf buf = pool.poll(timeoutMillis, TimeUnit.MILLISECONDS);
             if (buf == null) {
-                throw new TimeoutException("Timed out waiting for available ByteBuf from pool");
+                throw new TimeoutException("timed out waiting for available ByteBuf from pool");
             }
             return buf;
         }
@@ -100,7 +100,7 @@ public class ByteBufPoolManager {
                         byteBuf.release();
                     }
                 } catch (Exception e) {
-                    log.error("销毁异常", e);
+                    log.error("destroy anomalies:", e);
                 }
             }
             list.clear();

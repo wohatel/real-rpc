@@ -40,7 +40,7 @@ public class RpcDataReceiver {
 
     public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         if (client) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "client端暂不支持session请求处理");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "session request processing is not supported on the client side");
         }
         rpcMsgChannelInitializer.onSessionMsgReceive(rpcSessionRequestMsgHandler);
     }

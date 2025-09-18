@@ -63,7 +63,7 @@ public class RpcMsgTransUtil {
             return;
         }
         if (channel == null || !channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "连接不可用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
     }
@@ -77,7 +77,7 @@ public class RpcMsgTransUtil {
             return;
         }
         if (channel == null || !channel.isActive()) {
-            throw new IllegalStateException("Channel 不可用，发送失败");
+            throw new IllegalStateException("Channel unavailable, send failed");
         }
         ByteBuf buf;
         if (msg instanceof byte[] bytes) {
@@ -99,7 +99,7 @@ public class RpcMsgTransUtil {
             return;
         }
         if (channel == null || !channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "连接不可用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
         RpcFutureTransManager.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
@@ -184,21 +184,21 @@ public class RpcMsgTransUtil {
      */
     private static void writeFile(Channel channel, File file, final RpcSession rpcSession, RpcSessionContext context, RpcFileTransConfig rpcFileTransConfig, RpcFileSenderListenerProxy listener) {
         if (file == null || !file.exists()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "文件不存在");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the file does not exist");
         }
         if (file.isDirectory()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "传输的文件是个目录,请检查");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the transferred files are a directory, please check them");
         }
         if (rpcSession == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 不能为null,请检查");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession It can't be null, please check");
         }
         boolean contains = RpcFutureTransManager.contains(rpcSession.getSessionId());
         if (contains) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请检查rpcSession是否重复使用");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession The session already exists, check if the rpcSession is reused");
         }
         boolean running = RpcSessionTransManger.isRunning(rpcSession.getSessionId());
         if (running) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession 会话已存在,请更换新的会话");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession The session already exists, please replace it with a new one");
         }
         final RpcFileTransConfig finalConfig = rpcFileTransConfig == null ? RpcFileTransConfig.builder().build() : rpcFileTransConfig;
         // 封装进度
@@ -209,7 +209,7 @@ public class RpcMsgTransUtil {
         RpcSessionFuture rpcFuture = writeStartFile(channel, file, finalConfig, rpcSession, context);
         RpcResponse startResponse = rpcFuture.get();
         if (!startResponse.isSuccess()) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "远程执行传输文件失败:" + startResponse.getMsg());
+            throw new RpcException(RpcErrorEnum.RUNTIME, "remote execution of file transfer failed:" + startResponse.getMsg());
         }
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
         String responseBody = startResponse.getBody();
@@ -250,7 +250,7 @@ public class RpcMsgTransUtil {
                         releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
                     }
                 } else {
-                    log.error("发送端收到来自接收方的异常消息:" + response.getMsg() + JsonUtil.toJson(response));
+                    log.error("The sender receives an exception message from the receiver:" + response.getMsg() + JsonUtil.toJson(response));
                     rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
@@ -269,7 +269,7 @@ public class RpcMsgTransUtil {
         };
         VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcResponseMsgListener));
 
-        log.info("文件传输开始:" + file.getAbsolutePath());
+        log.info("the file transfer begins:" + file.getAbsolutePath());
         RpcSession rpcSession = rpcFileSenderWrapper.getRpcSession();
         // 判断文件是否尝试压缩,并且适合压缩
         boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
@@ -291,11 +291,11 @@ public class RpcMsgTransUtil {
                     break;
                 }
                 if (!channel.isActive()) {
-                    throw new RpcException(RpcErrorEnum.SEND_MSG, "链接不可用");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "the link is not available");
                 }
                 boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, rpcSession.getTimeOutMillis() / 100);
                 if (!isWritable) {
-                    throw new RpcException(RpcErrorEnum.SEND_MSG, "文件发送超时");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "file sending timeout");
                 }
                 // **检测处理块数**差距
                 RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
@@ -304,7 +304,7 @@ public class RpcMsgTransUtil {
                 // **限速控制**
                 boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
                 if (!isEnough) {
-                    throw new RpcException(RpcErrorEnum.SEND_MSG, "文件发送超时: 限速过低");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "file Send Timeout: The speed limit is too low");
                 }
                 // **读取文件数据到 ByteBuffer**
                 ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
@@ -322,7 +322,7 @@ public class RpcMsgTransUtil {
             }
         } catch (Exception e) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH);
-            log.error("文件块-发送-打印异常信息:", e);
+            log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
         }
     }

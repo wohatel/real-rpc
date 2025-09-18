@@ -108,10 +108,10 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
      */
     private void verifyNode(LinkedNode<K, T> node) {
         if (node == null) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "node 不能为空");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "node can't be null");
         }
         if (containsNode(node)) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "node 已存在于链表中");
+            throw new RpcException(RpcErrorEnum.RUNTIME, "node has already exists");
         }
     }
 

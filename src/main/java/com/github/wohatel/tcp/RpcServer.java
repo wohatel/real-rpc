@@ -69,7 +69,7 @@ public class RpcServer extends RpcDataReceiver {
     @SuppressWarnings("all")
     public ChannelFuture start(List<ChannelOptionAndValue> channelOptions, List<ChannelOptionAndValue> childOptions) {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "RpcServer: 不要重复启动");
+            throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }
         ServerBootstrap b = new ServerBootstrap();
         b.group(group, childGroup).channel(serverChannelClass);
@@ -87,7 +87,7 @@ public class RpcServer extends RpcDataReceiver {
         ChannelFuture future = b.bind().addListener(futureListener -> {
             if (!futureListener.isSuccess()) {
                 Throwable cause = futureListener.cause();
-                log.error("Netty 服务启动失败，原因：", cause);
+                log.error("netty service start failure, cause：", cause);
             }
         });
         this.channel = future.channel(); // 用于关闭server
@@ -110,6 +110,6 @@ public class RpcServer extends RpcDataReceiver {
         if (this.group.isIoType(LocalIoHandler.class)) {
             return LocalServerChannel.class;
         }
-        throw new RpcException(RpcErrorEnum.CONNECT, "group 类型暂时不支持");
+        throw new RpcException(RpcErrorEnum.CONNECT, "group types are not supported at the moment");
     }
 }

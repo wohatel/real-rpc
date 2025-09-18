@@ -45,7 +45,7 @@ public class RpcSessionTransManger {
     public static void initSession(RpcSessionContext context, RpcSession rpcSession, String channelId) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "session已存在");
+            throw new RpcException(RpcErrorEnum.CONNECT, "session exists");
         }
         SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, new RpcSessionContextWrapper(rpcSession, context), channelId);
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
@@ -84,7 +84,7 @@ public class RpcSessionTransManger {
                 return false;
             }
         } catch (Exception e) {
-            log.error("文件块-接收-打印异常信息:", e);
+            log.error("file block - receive - print exception information:", e);
             releaseFileChunk(fileChunkItem);
             return false;
         }
@@ -100,7 +100,7 @@ public class RpcSessionTransManger {
     public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data, String channelId) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
-            throw new RpcException(RpcErrorEnum.HANDLE_MSG, "文件session已存在");
+            throw new RpcException(RpcErrorEnum.HANDLE_MSG, "the file session already exists");
         }
         SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, data, channelId);
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));

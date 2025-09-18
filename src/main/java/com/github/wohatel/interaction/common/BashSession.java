@@ -108,7 +108,7 @@ public class BashSession {
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
         } catch (IOException | InterruptedException e) {
-            log.error("执行kill -2", e);
+            log.error("exec kill -2", e);
         }
     }
 
@@ -125,7 +125,7 @@ public class BashSession {
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
         } catch (IOException | InterruptedException e) {
-            log.error("执行kill -9 异常", e);
+            log.error("exec kill -9 exception", e);
         }
     }
 
@@ -153,7 +153,7 @@ public class BashSession {
                     // 注意消费线程
                     consumer.accept(String.join("\n", batch));
                 } catch (Exception e) {
-                    log.error("消费异常", e);
+                    log.error("abnormal consumption", e);
                 }
             }
         });

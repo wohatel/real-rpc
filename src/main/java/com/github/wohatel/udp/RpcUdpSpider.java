@@ -94,7 +94,7 @@ public class RpcUdpSpider<T> {
     @SuppressWarnings("all")
     public ChannelFuture bind(int port) {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "重复绑定");
+            throw new RpcException(RpcErrorEnum.CONNECT, "repeat bindings");
         }
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
@@ -149,6 +149,6 @@ public class RpcUdpSpider<T> {
         if (this.eventLoopGroup.isIoType(KQueueIoHandler.class)) {
             return KQueueDatagramChannel.class;
         }
-        throw new RpcException(RpcErrorEnum.RUNTIME, "udp的eventLoopGroup类型不支持");
+        throw new RpcException(RpcErrorEnum.RUNTIME, "udp eventLoopGroup types are not supported");
     }
 }

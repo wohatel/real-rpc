@@ -14,16 +14,16 @@ public class RpcFileTransConfig {
 
     public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
         if (speedLimit <= 0) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "限速不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the speed limit cannot be <=0");
         }
         if (speedLimit < chunkSize) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "限速不能小于每次发送块大小");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the rate limit cannot be less than the block size of each transmission");
         }
         if (chunkSize <= 0) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "文件每次发送大小不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the file size cannot be <=0 per send");
         }
         if (cacheBlock <= 0) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "允许发送端和接受端处理文件块数差距不能<=0");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the difference between the number of file blocks allowed to be processed by the sender and the receiver cannot be <=0");
         }
         this.speedLimit = speedLimit;
         this.chunkSize = chunkSize;

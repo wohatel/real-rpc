@@ -30,15 +30,15 @@ public class RpcFutureTransManager {
      */
     public static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSessionRequest 不能为null");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSessionRequest cannot be null");
         }
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         if (rpcSession == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session 标识不能为null");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "session the identity cannot be null");
         }
         if (contains(rpcSession.getSessionId())) {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.START) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "不可重复开启会话");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "sessions cannot be opened repeatedly");
             }
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
             if (!rpcFuture.isSessionFinish()) {
@@ -49,9 +49,9 @@ public class RpcFutureTransManager {
             return rpcFuture;
         } else {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在或已结束,不可以发送会话消息");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "session does not exist or has ended, and session messages cannot be sent");
             } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "会话不存在或已结束,无需结束会话");
+                throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist or has ended, and there is no need to end the session");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
                 rpcFuture.setRequestId(rpcSession.getSessionId());
@@ -121,7 +121,7 @@ public class RpcFutureTransManager {
             RPC_FUTURE_SESSION_MANAGER.initSession(rpcRequest.getRequestId(), rpcFuture, System.currentTimeMillis() + timeOut);
             return rpcFuture;
         } else {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "超时时间配置不合法");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the timeout time configuration is not legal");
         }
     }
 

@@ -14,7 +14,7 @@ public final class RunnerUtil {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.error("execSilent异常", e);
+            log.error("execSilent exception:", e);
             return null;
         }
     }
@@ -23,7 +23,7 @@ public final class RunnerUtil {
         try {
             runnable.run();
         } catch (Exception e) {
-            log.error("execSilent-runnable异常", e);
+            log.error("execSilent-runnable exception:", e);
         }
     }
 
@@ -36,7 +36,7 @@ public final class RunnerUtil {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.error("execSilentExceptionTo异常", e);
+            log.error("execSilentExceptionTo exception:", e);
             return result;
         }
     }
@@ -45,7 +45,7 @@ public final class RunnerUtil {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.error("execSilentExceptionTo异常", e);
+            log.error("execSilentExceptionTo exception:", e);
             return result.apply(e);
         }
     }
