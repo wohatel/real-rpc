@@ -39,7 +39,7 @@ public class TestUdp0 {
             }
         });
 
-        client.bindAsClient().sync();
+        client.bind().sync();
         client.sendMsg("你好", new InetSocketAddress("127.0.0.1", 8765));
         Thread.currentThread().join();
     }

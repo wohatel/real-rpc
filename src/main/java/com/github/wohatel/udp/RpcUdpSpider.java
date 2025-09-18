@@ -77,7 +77,7 @@ public class RpcUdpSpider<T> {
         return new RpcUdpSpider<>(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()), new ChannelInitializer<>() {
             @Override
             protected void initChannel(DatagramChannel datagramChannel) throws Exception {
-                SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<DatagramPacket>() {
+                SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<>() {
                     @Override
                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
                         T decode = ByteBufDecoder.decode(datagramPacket.content(), clazz);
@@ -101,13 +101,12 @@ public class RpcUdpSpider<T> {
         Bootstrap b = new Bootstrap();
         b.group(eventLoopGroup);
         b.channel(channelClass);
+        // 默认开启广播
+        b.option(ChannelOption.SO_BROADCAST, true);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
             for (ChannelOptionAndValue channelOption : channelOptions) {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());
             }
-        } else {
-            // 默认开启广播
-            b.option(ChannelOption.SO_BROADCAST, true);
         }
         b.handler(channelInitializer);
         ChannelFuture bind = b.bind(port);
@@ -116,8 +115,8 @@ public class RpcUdpSpider<T> {
     }
 
     @SneakyThrows
-    public ChannelFuture bindAsClient() {
-        // 表示随机绑定一个端口,一般是知道了服务端地址,然后客户端随机分配一个端口通信
+    public ChannelFuture bind() {
+        // 表示随机绑定一个端口
         return bind(0);
     }
 

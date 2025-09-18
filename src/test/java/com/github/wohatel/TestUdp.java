@@ -49,7 +49,7 @@ public class TestUdp {
             }
         });
 
-        client.bindAsClient().sync();
+        client.bind().sync();
         client.sendMsg(List.of(RpcRequest.withBody("你好")), new InetSocketAddress("127.0.0.1", 8765));
         Thread.currentThread().join();
     }
