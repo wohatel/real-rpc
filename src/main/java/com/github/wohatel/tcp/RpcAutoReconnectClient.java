@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +60,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                 }
             }
         }
-        return bootstrap.connect(host, port);
+        InetSocketAddress remote = InetSocketAddress.createUnresolved(host, port);
+        return localAddress == null ? bootstrap.connect(remote) : bootstrap.connect(remote, localAddress);
     }
 
 

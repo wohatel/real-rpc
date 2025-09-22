@@ -1,8 +1,6 @@
 package com.github.wohatel.tcp;
 
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
-import com.github.wohatel.constant.RpcErrorEnum;
-import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
@@ -18,17 +16,25 @@ import lombok.Data;
 @Data
 public class RpcDataReceiver {
 
+    protected final String host;
+
+    protected final Integer port;
+
     public static String NODEID = System.currentTimeMillis() + NanoIdUtils.randomNanoId();
 
     protected Channel channel;
 
     protected final RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
 
-    protected final boolean client;
-
-    protected RpcDataReceiver(boolean client) {
-        this.client = client;
+    protected RpcDataReceiver(String host, Integer port) {
+        this.host = host;
+        this.port = port;
     }
+
+    protected RpcDataReceiver(Integer port) {
+        this(null, port);
+    }
+
 
     public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
         rpcMsgChannelInitializer.onFileReceive(rpcFileReceiverHandler);
@@ -39,9 +45,6 @@ public class RpcDataReceiver {
     }
 
     public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
-        if (client) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "session request processing is not supported on the client side");
-        }
         rpcMsgChannelInitializer.onSessionMsgReceive(rpcSessionRequestMsgHandler);
     }
 

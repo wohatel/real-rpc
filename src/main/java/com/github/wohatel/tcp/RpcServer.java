@@ -19,6 +19,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -33,7 +34,6 @@ import java.util.List;
 @Getter
 @Slf4j
 public class RpcServer extends RpcDataReceiver {
-    private final int port;
     private final MultiThreadIoEventLoopGroup group;
     private final MultiThreadIoEventLoopGroup childGroup;
     private final Class<? extends ServerChannel> serverChannelClass;
@@ -41,12 +41,11 @@ public class RpcServer extends RpcDataReceiver {
     private final List<ChannelOptionAndValue<Object>> childChannelOptions;
 
     public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup) {
-        this(port, group, childGroup, null, null);
+        this(null, port, group, childGroup, null, null);
     }
 
-    public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
-        super(false);
-        this.port = port;
+    public RpcServer(String host, int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
+        super(host, port);
         this.group = group;
         this.childGroup = childGroup;
         serverChannelClass = getServerChannelClass();
@@ -71,9 +70,10 @@ public class RpcServer extends RpcDataReceiver {
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }
+        InetSocketAddress address = StringUtils.isBlank(host) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
         ServerBootstrap b = new ServerBootstrap();
         b.group(group, childGroup).channel(serverChannelClass);
-        b.localAddress(new InetSocketAddress(port)).childHandler(rpcMsgChannelInitializer);
+        b.localAddress(address).childHandler(rpcMsgChannelInitializer);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
             for (ChannelOptionAndValue channelOption : channelOptions) {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());

@@ -19,6 +19,7 @@ import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
+import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -32,10 +33,14 @@ import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalIoHandler;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 
 
@@ -44,13 +49,14 @@ import java.util.List;
  */
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
-    @Getter
-    protected final String host;
-    @Getter
-    protected final Integer port;
+
     protected final MultiThreadIoEventLoopGroup eventLoopGroup;
     protected final Class<? extends Channel> channelClass;
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
+    // 如需要绑定本地网卡去连接远程服务需要set
+    @Getter
+    @Setter
+    protected SocketAddress localAddress;
 
 
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
@@ -58,14 +64,16 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(true);
-        this.host = host;
-        this.port = port;
+        super(host, port);
         this.eventLoopGroup = eventLoopGroup;
         this.channelClass = getChannelClass();
         this.channelOptions = channelOptions;
     }
 
+    @Override
+    public final void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+        throw new RpcException(RpcErrorEnum.RUNTIME, "onSessionMsgReceive is unavailable in client");
+    }
 
     @SuppressWarnings("all")
     public ChannelFuture connect() {
@@ -81,7 +89,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());
             }
         }
-        ChannelFuture f = b.connect(host, port);
+        InetSocketAddress remote = InetSocketAddress.createUnresolved(host, port);
+        ChannelFuture f = localAddress == null ? b.connect(remote) : b.connect(remote, localAddress);
         this.channel = f.channel();
         f.addListener(future -> {
             if (future.isSuccess()) {

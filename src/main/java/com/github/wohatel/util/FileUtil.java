@@ -2,10 +2,12 @@ package com.github.wohatel.util;
 
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,9 +16,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
 
+@Slf4j
 public class FileUtil {
 
     /**
@@ -66,24 +67,23 @@ public class FileUtil {
     @SneakyThrows
     public static boolean tryCompress(File file, int headSize, int rate) {
         if (rate < 0 || rate > 100) {
-            throw new IllegalArgumentException("rate 应该在 0-100 之间");
+            throw new IllegalArgumentException("rate should in 0-100");
         }
         if (file.length() < headSize) {
             return false; // 文件太小，不处理
         }
-
         byte[] inputBytes = new byte[headSize];
         try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-            dis.readFully(inputBytes); // 确保读满
+            dis.readFully(inputBytes);
         }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION);
-        try (DeflaterOutputStream dos = new DeflaterOutputStream(baos, deflater)) {
-            dos.write(inputBytes);
-        }
-
-        double compressRate = baos.size() * 100.0 / headSize;
+        // LZ4 压缩
+        LZ4Factory factory = LZ4Factory.fastestInstance();
+        LZ4Compressor compressor = factory.fastCompressor();
+        int maxCompressedLength = compressor.maxCompressedLength(inputBytes.length);
+        byte[] compressed = new byte[maxCompressedLength];
+        int compressedSize = compressor.compress(inputBytes, 0, inputBytes.length, compressed, 0, maxCompressedLength);
+        double compressRate = compressedSize * 100.0 / headSize;
+        log.info("file:" + file.getName() + " compressRate is " + compressRate + "%");
         return compressRate < rate;
     }
 

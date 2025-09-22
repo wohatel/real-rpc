@@ -55,7 +55,7 @@ public class RpcFileTransConfig {
      * 尝试压缩
      */
     @Builder.Default
-    private boolean tryCompress = false;
+    private boolean tryCompress = true;
 
     /**
      * 当压缩率效率该值的时候才尝试压缩

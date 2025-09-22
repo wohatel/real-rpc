@@ -10,7 +10,7 @@ import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
-import com.github.wohatel.tcp.RpcDefaultClient;
+import com.github.wohatel.tcp.RpcAutoReconnectClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
@@ -28,7 +28,7 @@ import java.io.File;
 public class TestServerSendFile {
 
     private static RpcServer server;
-    private static RpcDefaultClient client;
+    private static RpcAutoReconnectClient client;
     private static MultiThreadIoEventLoopGroup group;
 
     @BeforeAll
@@ -38,9 +38,9 @@ public class TestServerSendFile {
         server = new RpcServer(8765, group, group);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765, group);
+        client = new RpcAutoReconnectClient("127.0.0.1", 8765, group);
         // 等待客户端连接成功
-        client.connect().sync();
+        client.autoReconnect();
     }
 
     /**
@@ -50,6 +50,7 @@ public class TestServerSendFile {
     @Test
     void clientSendFile() throws InterruptedException {
 
+        Thread.sleep(1000);
         client.onFileReceive(new RpcFileReceiverHandler() {
 
             /**
@@ -59,7 +60,7 @@ public class TestServerSendFile {
             public RpcFileLocal getTargetFile(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
                 // 我要求客户端断点续传的方式,如果该文件有了,就继续传
-                RpcFileLocal local = new RpcFileLocal(file, RpcFileTransModel.RESUME);
+                RpcFileLocal local = new RpcFileLocal(file, RpcFileTransModel.REBUILD);
                 return local;
             }
 
