@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@SuperBuilder
 public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     @Getter
