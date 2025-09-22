@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
+@SuperBuilder
 public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     @Getter
@@ -35,7 +36,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     private Bootstrap bootstrap;
 
     public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
-        super(host, port, eventLoopGroup);
+        this(host, port, eventLoopGroup, null);
     }
 
     public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
