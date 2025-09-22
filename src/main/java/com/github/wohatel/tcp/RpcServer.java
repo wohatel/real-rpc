@@ -57,16 +57,8 @@ public class RpcServer extends RpcDataReceiver {
      * 开启nettyServer
      */
     @SneakyThrows
-    public ChannelFuture start() {
-        return start(null, null);
-    }
-
-    /**
-     * 开启nettyServer
-     */
-    @SneakyThrows
     @SuppressWarnings("all")
-    public ChannelFuture start(List<ChannelOptionAndValue> channelOptions, List<ChannelOptionAndValue> childOptions) {
+    public ChannelFuture start() {
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }
@@ -79,8 +71,8 @@ public class RpcServer extends RpcDataReceiver {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());
             }
         }
-        if (!EmptyVerifyUtil.isEmpty(childOptions)) {
-            for (ChannelOptionAndValue childOption : childOptions) {
+        if (!EmptyVerifyUtil.isEmpty(childChannelOptions)) {
+            for (ChannelOptionAndValue childOption : childChannelOptions) {
                 b.childOption(childOption.getChannelOption(), childOption.getValue());
             }
         }

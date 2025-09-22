@@ -33,7 +33,6 @@ import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalIoHandler;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
