@@ -31,7 +31,7 @@ public class RpcSessionTransManger {
     /**
      * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
      */
-    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, RpcSessionTransManger::release);
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, (sessionId, wrapper) -> closeQueue(sessionId));
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
 
     @Data
@@ -122,9 +122,18 @@ public class RpcSessionTransManger {
     }
 
     /**
+     * 外部清理session
+     */
+    public static void release(String sessionId) {
+        SESSION_MANAGER.release(sessionId);
+        closeQueue(sessionId);
+    }
+
+    /**
      * 小窗口机制延迟结束
      */
-    public static void closeQueue(BlockingQueue<FileChunkItem> queue) {
+    public static void closeQueue(String sessionId) {
+        BlockingQueue<FileChunkItem> queue = FILE_ITEM_MAP.remove(sessionId);
         if (queue == null) {
             return;
         }
@@ -150,27 +159,6 @@ public class RpcSessionTransManger {
                 break;
             }
         }
-    }
-
-    /**
-     * 释放session
-     */
-    private static void release(String id, SessionDataWrapper sessionDataWrapper) {
-        if (sessionDataWrapper == null) {
-            return;
-        }
-        if (sessionDataWrapper.isFile) {
-            closeQueue(FILE_ITEM_MAP.remove(id));
-        }
-        SESSION_MANAGER.release(id);
-    }
-
-    /**
-     * 释放session
-     */
-    public static void release(String id) {
-        SessionDataWrapper session = SESSION_MANAGER.getSession(id);
-        release(id, session);
     }
 
     /**

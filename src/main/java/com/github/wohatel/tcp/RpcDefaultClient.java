@@ -134,7 +134,6 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture.isSessionFinish()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
-
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
         RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
         RpcMsgTransUtil.sendMsg(channel, rpcSessionRequest);
