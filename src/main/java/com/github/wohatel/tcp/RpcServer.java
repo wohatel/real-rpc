@@ -6,15 +6,17 @@ import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
+
+import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollIoHandler;
+
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.kqueue.KQueueIoHandler;
+
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
-import io.netty.channel.local.LocalIoHandler;
-import io.netty.channel.local.LocalServerChannel;
-import io.netty.channel.nio.NioIoHandler;
+
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -34,17 +36,17 @@ import java.util.List;
 @Getter
 @Slf4j
 public class RpcServer extends RpcDataReceiver {
-    private final MultiThreadIoEventLoopGroup group;
-    private final MultiThreadIoEventLoopGroup childGroup;
+    private final MultithreadEventLoopGroup group;
+    private final MultithreadEventLoopGroup childGroup;
     private final Class<? extends ServerChannel> serverChannelClass;
     private final List<ChannelOptionAndValue<Object>> channelOptions;
     private final List<ChannelOptionAndValue<Object>> childChannelOptions;
 
-    public RpcServer(int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup) {
+    public RpcServer(int port, MultithreadEventLoopGroup group, MultithreadEventLoopGroup childGroup) {
         this(null, port, group, childGroup, null, null);
     }
 
-    public RpcServer(String host, int port, MultiThreadIoEventLoopGroup group, MultiThreadIoEventLoopGroup childGroup, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
+    public RpcServer(String host, int port, MultithreadEventLoopGroup group, MultithreadEventLoopGroup childGroup, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
         super(host, port);
         this.group = group;
         this.childGroup = childGroup;
@@ -90,17 +92,14 @@ public class RpcServer extends RpcDataReceiver {
      * 返回类型
      */
     protected Class<? extends ServerChannel> getServerChannelClass() {
-        if (this.group.isIoType(NioIoHandler.class)) {
+        if (this.group instanceof NioEventLoopGroup) {
             return NioServerSocketChannel.class;
         }
-        if (this.group.isIoType(EpollIoHandler.class)) {
+        if (this.group instanceof EpollEventLoopGroup) {
             return EpollServerSocketChannel.class;
         }
-        if (this.group.isIoType(KQueueIoHandler.class)) {
+        if (this.group instanceof KQueueEventLoopGroup) {
             return KQueueServerSocketChannel.class;
-        }
-        if (this.group.isIoType(LocalIoHandler.class)) {
-            return LocalServerChannel.class;
         }
         throw new RpcException(RpcErrorEnum.CONNECT, "group types are not supported at the moment");
     }

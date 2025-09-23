@@ -9,7 +9,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoop;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.MultithreadEventLoopGroup;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +34,11 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     private Bootstrap bootstrap;
 
-    public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
+    public RpcAutoReconnectClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup) {
         this(host, port, eventLoopGroup, null);
     }
 
-    public RpcAutoReconnectClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcAutoReconnectClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port, eventLoopGroup, channelOptions);
     }
 

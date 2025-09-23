@@ -14,13 +14,13 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollIoHandler;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueueDatagramChannel;
-import io.netty.channel.kqueue.KQueueIoHandler;
-import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -35,17 +35,17 @@ import java.util.List;
  */
 @Data
 public class RpcUdpSpider<T> {
-    protected final MultiThreadIoEventLoopGroup eventLoopGroup;
+    protected final MultithreadEventLoopGroup eventLoopGroup;
     protected final ChannelInitializer<DatagramChannel> channelInitializer;
     protected Channel channel;
     protected final Class<? extends Channel> channelClass;
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
 
-    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer) {
+    public RpcUdpSpider(MultithreadEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer) {
         this(eventLoopGroup, channelInitializer, null);
     }
 
-    public RpcUdpSpider(MultiThreadIoEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcUdpSpider(MultithreadEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer, List<ChannelOptionAndValue<Object>> channelOptions) {
         this.eventLoopGroup = eventLoopGroup;
         this.channelInitializer = channelInitializer;
         this.channelClass = getChannelClass();
@@ -72,7 +72,7 @@ public class RpcUdpSpider<T> {
      * 构建一个简单的udp
      */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return new RpcUdpSpider<>(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()), new ChannelInitializer<>() {
+        return new RpcUdpSpider<>(new NioEventLoopGroup(), new ChannelInitializer<>() {
             @Override
             protected void initChannel(DatagramChannel datagramChannel) throws Exception {
                 SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<>() {
@@ -140,13 +140,13 @@ public class RpcUdpSpider<T> {
      * 返回类型
      */
     protected Class<? extends Channel> getChannelClass() {
-        if (this.eventLoopGroup.isIoType(NioIoHandler.class)) {
+        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
             return NioDatagramChannel.class;
         }
-        if (this.eventLoopGroup.isIoType(EpollIoHandler.class)) {
+        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
             return EpollDatagramChannel.class;
         }
-        if (this.eventLoopGroup.isIoType(KQueueIoHandler.class)) {
+        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
             return KQueueDatagramChannel.class;
         }
         throw new RpcException(RpcErrorEnum.RUNTIME, "udp eventLoopGroup types are not supported");

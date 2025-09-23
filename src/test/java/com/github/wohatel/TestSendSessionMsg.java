@@ -11,8 +11,8 @@ import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.nio.NioIoHandler;
+
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -28,12 +28,12 @@ public class TestSendSessionMsg {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static MultiThreadIoEventLoopGroup group;
+    private static NioEventLoopGroup group;
 
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+        group = new NioEventLoopGroup();
         server = new RpcServer(8765, group, group);
         // 等待服务端开启成功
         server.start().sync();

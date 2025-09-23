@@ -7,9 +7,10 @@ import com.github.wohatel.tcp.RpcServer;
 import com.github.wohatel.udp.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
+
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.nio.NioEventLoopGroup;
+
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -36,7 +37,7 @@ public class TestUdpTcpBindOnePort {
         server.bind(8765).sync();
 
         // tcp绑定8765
-        MultiThreadIoEventLoopGroup eventExecutors = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+        NioEventLoopGroup eventExecutors = new NioEventLoopGroup();
         RpcServer rpcServer = new RpcServer(8765, eventExecutors, eventExecutors);
         rpcServer.onMsgReceive(new RpcSimpleRequestMsgHandler() {
             @Override

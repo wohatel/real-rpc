@@ -7,8 +7,8 @@ import com.github.wohatel.util.LinkedNode;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.nio.NioIoHandler;
+
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,7 +20,7 @@ public class TestAddHandler {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static MultiThreadIoEventLoopGroup group;
+    private static NioEventLoopGroup group;
 
     private static ChannelInboundHandlerAdapter adapter = new ChannelInboundHandlerAdapter() {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -48,7 +48,7 @@ public class TestAddHandler {
     void clientSendMsg() throws InterruptedException {
 
         // 线程组暂时用一个
-        group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+        group = new NioEventLoopGroup();
         server = new RpcServer(8765, group, group);
 
 

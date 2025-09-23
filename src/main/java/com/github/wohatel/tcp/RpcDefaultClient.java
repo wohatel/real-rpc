@@ -24,14 +24,17 @@ import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.epoll.EpollIoHandler;
+
+import io.netty.channel.MultithreadEventLoopGroup;
+
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.kqueue.KQueueIoHandler;
+
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.channel.local.LocalChannel;
-import io.netty.channel.local.LocalIoHandler;
-import io.netty.channel.nio.NioIoHandler;
+
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +52,7 @@ import java.util.List;
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
 
-    protected final MultiThreadIoEventLoopGroup eventLoopGroup;
+    protected final MultithreadEventLoopGroup eventLoopGroup;
     protected final Class<? extends Channel> channelClass;
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
     // 如需要绑定本地网卡去连接远程服务需要set
@@ -58,11 +61,11 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected SocketAddress localAddress;
 
 
-    public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup) {
+    public RpcDefaultClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup) {
         this(host, port, eventLoopGroup, null);
     }
 
-    public RpcDefaultClient(String host, int port, MultiThreadIoEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcDefaultClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port);
         this.eventLoopGroup = eventLoopGroup;
         this.channelClass = getChannelClass();
@@ -243,17 +246,14 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * 返回类型
      */
     protected Class<? extends Channel> getChannelClass() {
-        if (this.eventLoopGroup.isIoType(NioIoHandler.class)) {
+        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
             return NioSocketChannel.class;
         }
-        if (this.eventLoopGroup.isIoType(EpollIoHandler.class)) {
+        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
             return EpollSocketChannel.class;
         }
-        if (this.eventLoopGroup.isIoType(KQueueIoHandler.class)) {
+        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
             return KQueueSocketChannel.class;
-        }
-        if (this.eventLoopGroup.isIoType(LocalIoHandler.class)) {
-            return LocalChannel.class;
         }
         throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup types are not supported at the moment");
     }
