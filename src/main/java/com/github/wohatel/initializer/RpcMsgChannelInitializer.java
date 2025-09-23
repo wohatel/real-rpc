@@ -42,10 +42,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
      */
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
-        this.init(socketChannel);
-    }
-
-    public void init(SocketChannel socketChannel) {
         socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
