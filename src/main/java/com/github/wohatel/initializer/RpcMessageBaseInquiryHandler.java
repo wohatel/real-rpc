@@ -22,7 +22,7 @@ public class RpcMessageBaseInquiryHandler extends ChannelInboundHandlerAdapter {
         RpcMsg rpcMsg = (RpcMsg) msg;
         if (rpcMsg.getRpcCommandType() == RpcCommandType.base) {
             RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
-            RpcBaseAction rpcBaseAction = RpcBaseAction.fromString(request.getRequestType());
+            RpcBaseAction rpcBaseAction = RpcBaseAction.fromString(request.getContentType());
             switch (rpcBaseAction) {
                 case BASE_INQUIRY_SESSION -> {
                     String sessionId = request.getBody();

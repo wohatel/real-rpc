@@ -5,11 +5,10 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class RpcResponse extends RpcAbstractCompressAble {
+public class RpcResponse extends RpcRelay {
     private String responseId;
     private String origRequestId; // 原始请求id
     private boolean success = true;
     private String msg; // 异常消息
     private int code; // code
-    private String body;
 }

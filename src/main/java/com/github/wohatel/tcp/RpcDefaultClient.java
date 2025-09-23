@@ -163,7 +163,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
             return false;
         }
         RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setRequestType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
+        rpcRequest.setContentType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
         rpcRequest.setBody(rpcSession.getSessionId());
         RpcFuture rpcFuture = RpcMsgTransUtil.sendSynMsg(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();

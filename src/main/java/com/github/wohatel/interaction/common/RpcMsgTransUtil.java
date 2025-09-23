@@ -24,11 +24,11 @@ import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
 import com.github.wohatel.util.FileUtil;
 import com.github.wohatel.util.JsonUtil;
+import com.github.wohatel.util.Pooled;
 import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
@@ -82,13 +82,14 @@ public class RpcMsgTransUtil {
         ByteBuf buf;
         if (msg instanceof byte[] bytes) {
             // 原样发送 byte[]
-            buf = Unpooled.wrappedBuffer(bytes);
+            buf = Pooled.wrappedBuffer(bytes);
         } else if (msg instanceof String s) {
             // 原样发送字符串，不加双引号
-            buf = Unpooled.copiedBuffer(s, CharsetUtil.UTF_8);
+            buf = Pooled.copiedBuffer(s, CharsetUtil.UTF_8);
+            buf = Pooled.copiedBuffer(s, CharsetUtil.UTF_8);
         } else {
             // 对象 / 泛型 → JSON 序列化
-            buf = Unpooled.wrappedBuffer(JSON.toJSONBytes(msg));
+            buf = Pooled.wrappedBuffer(JSON.toJSONBytes(msg));
         }
         DatagramPacket packet = new DatagramPacket(buf, to);
         channel.writeAndFlush(packet);
@@ -337,7 +338,7 @@ public class RpcMsgTransUtil {
     public static String sendInquiryRemoteNodeIdRequest(Channel channel) {
         // 同源的看谁发起的,不通源的看
         RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setRequestType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
+        rpcRequest.setContentType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
         RpcFuture rpcFuture = sendSynMsg(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {

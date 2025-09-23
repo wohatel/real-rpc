@@ -13,7 +13,7 @@ import java.util.Objects;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class RpcMsg extends RpcAbstractCompressAble {
+public class RpcMsg extends RpcRelay {
     private RpcCommandType rpcCommandType;
     private Object payload;
     private ByteBuf byteBuffer;
