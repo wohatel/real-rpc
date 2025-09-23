@@ -43,13 +43,13 @@ public class RpcFileChannelDataTransManager {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
         RpcResponse rpcResponse = rpcFileRequest.toResponse();
         if (rpcFileReceiverHandler == null) {
-            sendStartError(rpcResponse, ctx.channel(), "There is no receive file configuration for remote receive file events: Transmission terminated");
+            sendStartError(rpcResponse, ctx.channel(), "there is no receive file configuration for remote receive file events: Transmission terminated");
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
             boolean running = RpcSessionTransManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
             if (running) {
-                sendStartError(rpcResponse, ctx.channel(), "Do not enable repeat sessions, please check");
+                sendStartError(rpcResponse, ctx.channel(), "do not enable repeat sessions, please check");
                 return;
             }
             String body = rpcFileRequest.getBody();
@@ -57,7 +57,7 @@ public class RpcFileChannelDataTransManager {
             try {
                 RpcFileLocal rpcFileWrapper = rpcFileReceiverHandler.getTargetFile(rpcFileRequest.getRpcSession(), sessionContext, rpcFileRequest.getFileInfo());
                 if (rpcFileWrapper == null) {
-                    sendStartError(rpcResponse, ctx.channel(), "Remote accept file path error: send terminated");
+                    sendStartError(rpcResponse, ctx.channel(), "remote accept file path error: send terminated");
                     return;
                 }
                 // 继续处理逻辑
@@ -88,7 +88,7 @@ public class RpcFileChannelDataTransManager {
         if (!addStatus) {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
-            response.setMsg("Stop receiving file blocks");
+            response.setMsg("stop receiving file blocks");
             RpcMsgTransUtil.write(ctx.channel(), response);
         }
     }

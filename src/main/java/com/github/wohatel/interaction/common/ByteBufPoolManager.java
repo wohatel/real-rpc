@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.common;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class ByteBufPoolManager {
             this.pool = new ArrayBlockingQueue<>(poolSize);
             list = new ArrayList<>(poolSize);
             for (int i = 0; i < poolSize; i++) {
-                ByteBuf buf = ByteBufAllocator.DEFAULT.directBuffer(chunkSize);
+                ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize);
                 pool.add(buf);
                 list.add(buf);
             }
