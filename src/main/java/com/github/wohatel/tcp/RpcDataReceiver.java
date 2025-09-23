@@ -24,7 +24,7 @@ public class RpcDataReceiver {
 
     protected Channel channel;
 
-    protected final RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
+    protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
 
     protected RpcDataReceiver(String host, Integer port) {
         this.host = host;
@@ -53,5 +53,9 @@ public class RpcDataReceiver {
             return channel.close();
         }
         return null;
+    }
+
+    public boolean isAlive() {
+        return channel != null && channel.isActive();
     }
 }

@@ -12,6 +12,7 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.MultithreadEventLoopGroup;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -53,13 +54,13 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup);
             bootstrap.channel(channelClass);
-            bootstrap.handler(this.rpcMsgChannelInitializer);
             if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
                 for (ChannelOptionAndValue<Object> channelOption : channelOptions) {
                     bootstrap.option(channelOption.getChannelOption(), channelOption.getValue());
                 }
             }
         }
+        bootstrap.handler(this.rpcMsgChannelInitializer);
         InetSocketAddress remote = InetSocketAddress.createUnresolved(host, port);
         return localAddress == null ? bootstrap.connect(remote) : bootstrap.connect(remote, localAddress);
     }
@@ -73,6 +74,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     /**
      * 断线自动重连
      */
+    @SneakyThrows
     public void autoReconnect() {
         if (!allowAutoConnect) {
             // 如果被设置为不允许重连,则直接返回

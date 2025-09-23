@@ -257,5 +257,4 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup types are not supported at the moment");
     }
-
 }

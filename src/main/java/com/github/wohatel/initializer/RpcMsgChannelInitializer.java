@@ -28,16 +28,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
 
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
-    /**
-     * 初始化的
-     */
-    @Getter
-    private LinkedNode<String, ChannelHandler> initChannelHandlers;
-
-    public RpcMsgChannelInitializer() {
-        init();
-    }
-
     public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
         rpcMessageInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
     }
@@ -55,23 +45,19 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
      */
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
-        socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
-        ChannelPipeline pipeline = socketChannel.pipeline();
-        initChannelHandlers.forEach(pair -> {
-            if (pair.getKey() != null) {
-                pipeline.addLast(pair.getKey(), pair.getValue());
-            }
-        });
+        this.init(socketChannel);
     }
 
-    private void init() {
-        this.initChannelHandlers = LinkedNode.build("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-        this.initChannelHandlers.addLast(LinkedNode.build("frameEncoder", new LengthFieldPrepender(4)));
-        this.initChannelHandlers.addLast(LinkedNode.build("decompress", new RpcMsgCompressDecoder()));
-        this.initChannelHandlers.addLast(LinkedNode.build("compress", new RpcMsgCompressEncoder()));
-        this.initChannelHandlers.addLast(LinkedNode.build("decoder", new RpcMsgDecoder()));
-        this.initChannelHandlers.addLast(LinkedNode.build("encoder", new RpcMsgEncoder()));
-        this.initChannelHandlers.addLast(LinkedNode.build("baseHandler", new RpcMessageBaseInquiryHandler()));
-        this.initChannelHandlers.addLast(LinkedNode.build("msgHandler", rpcMessageInteractionHandler));
+    public void init(SocketChannel socketChannel) {
+        socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
+        ChannelPipeline pipeline = socketChannel.pipeline();
+        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+        pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+        pipeline.addLast("decompress", new RpcMsgCompressDecoder());
+        pipeline.addLast("compress", new RpcMsgCompressEncoder());
+        pipeline.addLast("decoder", new RpcMsgDecoder());
+        pipeline.addLast("encoder", new RpcMsgEncoder());
+        pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
+        pipeline.addLast("msgHandler", rpcMessageInteractionHandler);
     }
 }

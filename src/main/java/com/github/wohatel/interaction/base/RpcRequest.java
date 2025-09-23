@@ -4,8 +4,10 @@ package com.github.wohatel.interaction.base;
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class RpcRequest extends RpcRelay {
     private String requestId = NanoIdUtils.randomNanoId();

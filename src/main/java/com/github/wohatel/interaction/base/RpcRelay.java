@@ -14,6 +14,6 @@ public abstract class RpcRelay {
     protected boolean needCompress;
     protected String contentType; // 内容类型
     protected String header;  //  头部信息
-    private String body;    //  body体
+    protected String body;    //  body体
 
 }
