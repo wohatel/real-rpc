@@ -4,9 +4,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 

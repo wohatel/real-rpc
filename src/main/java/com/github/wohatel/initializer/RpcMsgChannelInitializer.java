@@ -7,16 +7,13 @@ import com.github.wohatel.decoder.RpcMsgEncoder;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
-import com.github.wohatel.util.LinkedNode;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 
 /**

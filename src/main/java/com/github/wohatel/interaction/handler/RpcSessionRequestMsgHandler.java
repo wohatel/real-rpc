@@ -1,8 +1,6 @@
 package com.github.wohatel.interaction.handler;
 
-import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import io.netty.channel.ChannelHandlerContext;
 

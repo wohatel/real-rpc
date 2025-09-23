@@ -6,16 +6,12 @@ import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
-
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.ServerChannel;
-
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
-
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.Getter;

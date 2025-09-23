@@ -24,16 +24,11 @@ import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-
 import io.netty.channel.MultithreadEventLoopGroup;
-
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
-
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueSocketChannel;
-import io.netty.channel.local.LocalChannel;
-
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;

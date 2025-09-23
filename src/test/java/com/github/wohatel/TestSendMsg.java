@@ -6,10 +6,8 @@ import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.common.RpcMsgTransUtil;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
