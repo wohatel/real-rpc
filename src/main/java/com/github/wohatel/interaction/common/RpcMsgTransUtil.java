@@ -248,24 +248,24 @@ public class RpcMsgTransUtil {
                     listener.onProcess(rpcFileSenderWrapper, rpcFileTransProcess.copy());
                     if (handleSize == rpcFileTransProcess.getFileLength() - rpcFileTransProcess.getStartIndex()) {
                         listener.onSuccess(rpcFileSenderWrapper);
-                        releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
+                        rpcFuture.release();
                     }
                 } else {
                     log.error("The sender receives an exception message from the receiver:" + response.getMsg() + JsonUtil.toJson(response));
                     rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
-                    releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
+                    rpcFuture.release();
                 }
             }
 
             @Override
             public void onTimeout() {
-                releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
+                rpcFuture.release();
             }
 
             @Override
             public void onSessionInterrupt() {
-                releaseFileTrans(rpcFileSenderWrapper.getRpcSession(), rpcFuture);
+                rpcFuture.release();
             }
         };
         VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcResponseMsgListener));
@@ -326,13 +326,6 @@ public class RpcMsgTransUtil {
             log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
         }
-    }
-
-    private static void releaseFileTrans(RpcSession rpcSession, RpcSessionFuture rpcSessionFuture) {
-        VirtualThreadPool.execute(() -> {
-            ByteBufPoolManager.destory(rpcSession.getSessionId());
-            rpcSessionFuture.release();
-        });
     }
 
     public static String sendInquiryRemoteNodeIdRequest(Channel channel) {

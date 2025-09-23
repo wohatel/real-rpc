@@ -51,7 +51,9 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
             } else {
                 buffer.writeInt(0);
             }
-            ByteBufPoolManager.release(rpcSession.getSessionId(), fileBuf);
+            if (fileBuf != null) {
+                ByteBufPoolManager.release(rpcSession.getSessionId(), fileBuf);
+            }
         }
         out.add(buffer);
     }
