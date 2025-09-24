@@ -35,10 +35,16 @@ public class ByteBufPoolManager {
         if (buf == null) return;
         if (!SESSION_MANAGER.contains(sessionId)) {
             log.error("release session is not exist");
+            // 优先释放buf
+            buf.release();
             throw new RpcException(RpcErrorEnum.RUNTIME, "session is not exist");
         }
         SESSION_MANAGER.flushTime(sessionId);
         SESSION_MANAGER.getSession(sessionId).release(buf);
+    }
+
+    public static void destory(String sessionId) {
+        SESSION_MANAGER.releaseAndSessionClose(sessionId);
     }
 
     public static ByteBuf borrow(String sessionId, Long timeOut) throws InterruptedException, TimeoutException {
@@ -82,7 +88,7 @@ public class ByteBufPoolManager {
                 pool.offer(buf); // 放回池中（不会阻塞）
             }
         }
-        
+
         public void destory() {
             for (ByteBuf byteBuf : list) {
                 try {

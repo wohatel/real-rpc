@@ -4,7 +4,7 @@ import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
@@ -67,7 +67,7 @@ public class TestSendSessionMsg {
                 if (new Random().nextInt() % 3 == 0) {
                     RpcResponse response = request.getRpcSession().toResponse();
                     response.setBody("不想理你!!!");
-                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
                 }
 
             }

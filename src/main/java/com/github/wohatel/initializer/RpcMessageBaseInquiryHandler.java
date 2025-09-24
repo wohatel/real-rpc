@@ -4,7 +4,7 @@ import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcResponse;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.tcp.RpcDataReceiver;
@@ -29,12 +29,12 @@ public class RpcMessageBaseInquiryHandler extends ChannelInboundHandlerAdapter {
                     boolean running = RpcSessionTransManger.isRunning(sessionId);
                     RpcResponse response = request.toResponse();
                     response.setSuccess(running);
-                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
                 }
                 case BASE_INQUIRY_NODE_ID -> {
                     RpcResponse response = request.toResponse();
                     response.setBody(RpcDataReceiver.NODEID);
-                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
                 }
             }
         } else {

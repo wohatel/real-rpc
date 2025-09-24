@@ -99,7 +99,7 @@ public class SessionManager<T> {
     @SneakyThrows
     public void releaseAndSessionClose(String sessionId) {
         T release = release(sessionId);
-        if (this.sessionClose != null) {
+        if (this.sessionClose != null && release != null) {
             sessionClose.accept(sessionId, release);
         }
     }

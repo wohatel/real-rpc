@@ -8,8 +8,10 @@ import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import lombok.SneakyThrows;
 
 import java.util.List;
 
@@ -23,25 +25,43 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
         byte isCompress = in.readByte();
         msg.setNeedCompress(isCompress == 1);
         byte type = in.readByte(); // **读取消息类型**
-        int msgLength = in.readInt(); // **读取消息体长度**
-        byte[] jsonBytes = new byte[msgLength];
-        in.readBytes(jsonBytes); // **读取消息体**
         msg.setRpcCommandType(RpcCommandType.fromCode(type));
-        if (msg.getRpcCommandType() == RpcCommandType.request || msg.getRpcCommandType() == RpcCommandType.base) {
-            msg.setPayload(JSON.parseObject(jsonBytes, RpcRequest.class));
-        } else if (msg.getRpcCommandType() == RpcCommandType.session) {
-            msg.setPayload(JSON.parseObject(jsonBytes, RpcSessionRequest.class));
-        } else if (msg.getRpcCommandType() == RpcCommandType.response) {
-            msg.setPayload(JSON.parseObject(jsonBytes, RpcResponse.class));
-        } else if (msg.getRpcCommandType() == RpcCommandType.file) {
-            RpcFileRequest rpcFileRequest = JSON.parseObject(jsonBytes, RpcFileRequest.class);
-            msg.setPayload(rpcFileRequest);
-            int fileLength = in.readInt(); // **读取文件长度**
-            if (fileLength > 0) {
-                ByteBuf fileBuf = in.readRetainedSlice(fileLength); // **使用 `readRetainedSlice` 避免数据复制**
-                msg.setByteBuffer(fileBuf);
+        switch (msg.getRpcCommandType()) {
+            case request, base -> msg.setPayload(readPayload(in, RpcRequest.class));
+            case session -> msg.setPayload(readPayload(in, RpcSessionRequest.class));
+            case response -> msg.setPayload(readPayload(in, RpcResponse.class));
+            case file -> {
+                RpcFileRequest fileRequest = readPayload(in, RpcFileRequest.class);
+                msg.setPayload(fileRequest);
+                // 读取文件 ByteBuf
+                int fileLength = in.readInt();
+                if (fileLength > 0) {
+                    ByteBuf fileBuf = in.readRetainedSlice(fileLength);
+                    msg.setByteBuffer(fileBuf); // 下游负责 release
+                }
+            }
+            default -> {
+                return; // 未知类型直接丢弃
             }
         }
-        out.add(msg); // **解析完成，加入解码结果**
+        out.add(msg);
+    }
+
+    /**
+     * 将payload读取出来
+     */
+    @SneakyThrows
+    public <T> T readPayload(ByteBuf buffer, Class<T> clazz) {
+        int length = buffer.readInt();
+        if (length <= 0) {
+            return null;
+        }
+
+        ByteBuf payloadSlice = buffer.readRetainedSlice(length);
+        try (ByteBufInputStream inputStream = new ByteBufInputStream(payloadSlice, false)) {
+            return JSON.parseObject(inputStream, clazz); // FastJSON2 自动识别 UTF-8
+        } finally {
+            payloadSlice.release();
+        }
     }
 }

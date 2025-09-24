@@ -7,7 +7,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcFileChannelDataTransManager;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
@@ -69,7 +69,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     }
                     response.setSuccess(linkedNode.getValue());
                     response.setMsg(linkedNode.getKey());
-                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
                     if (!linkedNode.getValue()) {
                         RpcSessionTransManger.release(session.getSessionId());
                     }
@@ -82,7 +82,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcResponse response = request.toResponse();
                         response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常,会话不存在");
                         response.setSuccess(false);
-                        RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                        RpcMsgTransManager.sendResponse(ctx.channel(), response);
                     }
                 } else if (request.isSessionFinish()) {
                     try {

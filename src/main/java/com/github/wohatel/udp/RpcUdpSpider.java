@@ -5,7 +5,7 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.util.ByteBufDecoder;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
@@ -133,7 +133,7 @@ public class RpcUdpSpider<T> {
      * @param <T>     泛型
      */
     public static <T> void sendGeneralMsg(Channel channel, T msg, InetSocketAddress to) {
-        RpcMsgTransUtil.sendUdpMsg(channel, msg, to);
+        RpcMsgTransManager.sendUdpMsg(channel, msg, to);
     }
 
     /**

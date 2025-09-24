@@ -190,10 +190,13 @@ public class RpcFutureTransManager {
         RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, sessionTime);
     }
 
-    public static RpcSessionFuture stopSessionGracefully(String sessionId) {
+    public static RpcSessionFuture stopSessionGracefully(String sessionId, String channelId) {
         RpcSessionFuture future = (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
         if (future == null) {
             return null;
+        }
+        if (!channelId.equals(future.getChannelId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the channelId is not equals to the future channelId");
         }
         if (!future.isSessionFinish()) {
             future.setRpcSessionProcess(RpcSessionProcess.FiNISH);

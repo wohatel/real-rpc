@@ -30,6 +30,7 @@ import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 import lombok.AccessLevel;
@@ -48,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class RpcMsgTransUtil {
+public class RpcMsgTransManager {
 
 
     public static void sendResponse(Channel channel, RpcResponse rpcResponse) {
@@ -97,17 +98,14 @@ public class RpcMsgTransUtil {
     /**
      * 发送文件块
      */
-    private static void sendFileOfSendTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
-        if (rpcRequest == null) {
-            return;
-        }
+    private static ChannelFuture sendFileOfSendTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
         RpcFutureTransManager.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
-        channel.writeAndFlush(build);
+        return channel.writeAndFlush(build);
     }
 
     /**
@@ -139,13 +137,14 @@ public class RpcMsgTransUtil {
      * 发送文件body体
      */
     @SneakyThrows
-    private static void sendFileOfSendBody(Channel channel, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress) {
+    private static void sendFileOfSendBody(Channel channel, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress, boolean finished) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
         rpcFileRequest.setSessionProcess(RpcSessionProcess.ING);
         rpcFileRequest.setBuffer(chunkSize);
         rpcFileRequest.setSerial(serial);
         rpcFileRequest.setEnableCompress(needCompress);
-        RpcMsgTransUtil.sendFileOfSendTrunk(channel, rpcFileRequest, buffer);
+        rpcFileRequest.setFinished(finished);
+        RpcMsgTransManager.sendFileOfSendTrunk(channel, rpcFileRequest, buffer);
     }
 
     /**
@@ -170,6 +169,7 @@ public class RpcMsgTransUtil {
         // 设置需要返回结果
         rpcFileRequest.setNeedResponse(true);
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
+        rpcFuture.setChannelId(channel.id().asShortText());
         // 发送消息体
         sendRequest(channel, rpcFileRequest);
         return rpcFuture;
@@ -177,7 +177,7 @@ public class RpcMsgTransUtil {
 
     @SneakyThrows
     public static void interruptSendFile(Channel channel, RpcSession rpcSession) {
-        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
+        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(), channel.id().asShortText());
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISH);
@@ -186,6 +186,13 @@ public class RpcMsgTransUtil {
             // 发送消息体
             sendRequest(channel, rpcFileRequest);
         }
+        // 清理内存池
+        ByteBufPoolManager.destory(rpcSession.getSessionId());
+    }
+
+    @SneakyThrows
+    public static void interruptReceiveFile(RpcSession rpcSession) {
+        RpcSessionTransManger.releaseFile(rpcSession.getSessionId());
     }
 
     /**
@@ -282,23 +289,27 @@ public class RpcMsgTransUtil {
                     if (handleSize == rpcFileTransProcess.getFileLength() - rpcFileTransProcess.getStartIndex()) {
                         listener.onSuccess(rpcFileSenderWrapper);
                         rpcFuture.release();
+                        ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
                     }
                 } else {
                     log.error("The sender receives an exception message from the receiver:" + response.getMsg() + JsonUtil.toJson(response));
                     rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     rpcFuture.release();
+                    ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
                 }
             }
 
             @Override
             public void onTimeout() {
                 rpcFuture.release();
+                ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
 
             @Override
             public void onSessionInterrupt() {
                 rpcFuture.release();
+                ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
         };
         VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcResponseMsgListener));
@@ -351,16 +362,18 @@ public class RpcMsgTransUtil {
                     break;
                 }
                 bufferRead.writerIndex(bytesRead); // 读入的数据量
-                sendFileOfSendBody(channel, serial, bufferRead, finalConfig.getChunkSize(), rpcSession, isCompressSuitable);
-                serial++;
                 position += bytesRead;
                 // 已发送的数据
                 rpcFileTransProcess.setSendSize(position - writeIndex);
+                sendFileOfSendBody(channel, serial, bufferRead, finalConfig.getChunkSize(), rpcSession, isCompressSuitable, position >= fileSize);
+                // 序号++
+                serial++;
             }
         } catch (Exception e) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH);
             log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
+            ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
         }
     }
 

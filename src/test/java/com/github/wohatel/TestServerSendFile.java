@@ -2,7 +2,7 @@ package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileLocal;
@@ -75,7 +75,7 @@ public class TestServerSendFile {
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
                 System.out.println("收到消息: 传输文件是个同步操作,占用同一个channel会造成线程卡死");
                 Thread.ofVirtual().start(() -> {
-                    RpcMsgTransUtil.sendFile(ctx.channel(), new File("/Users/yaochuang/tag-web/tag-webapp/pnpm-lock.yaml"), null);
+                    RpcMsgTransManager.sendFile(ctx.channel(), new File("/Users/yaochuang/tag-web/tag-webapp/pnpm-lock.yaml"), null);
                 });
             }
         });

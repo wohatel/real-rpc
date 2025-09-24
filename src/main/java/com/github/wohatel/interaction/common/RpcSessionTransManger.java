@@ -130,6 +130,16 @@ public class RpcSessionTransManger {
     }
 
     /**
+     * 外部清理session
+     */
+    public static void releaseFile(String sessionId) {
+        SessionDataWrapper sessionWrapper = SESSION_MANAGER.getSession(sessionId);
+        if (sessionWrapper != null && sessionWrapper.isFile) {
+            release(sessionId);
+        }
+    }
+
+    /**
      * 小窗口机制延迟结束
      */
     public static void closeQueue(String sessionId) {

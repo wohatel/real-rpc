@@ -5,7 +5,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.BashSession;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
@@ -67,7 +67,7 @@ public class TestExecShell {
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcResponse response = rpcSession.toResponse();
                         response.setBody(str);
-                        RpcMsgTransUtil.sendResponse(ctx.channel(), response);
+                        RpcMsgTransManager.sendResponse(ctx.channel(), response);
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {

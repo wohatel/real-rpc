@@ -3,7 +3,6 @@ package com.github.wohatel.interaction.file;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
-import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import lombok.Getter;
 
 import java.io.File;
@@ -45,12 +44,4 @@ public class RpcFileReceiveWrapper extends RpcSessionContextWrapper {
      */
     private final long needTransLength;
 
-
-    /**
-     * 中断的同时,可能触发文件接收异常事件
-     * RpcFileSenderListener.onFailure()
-     */
-    public void interruptReceive() {
-        RpcSessionTransManger.release(rpcSession.getSessionId());
-    }
 }

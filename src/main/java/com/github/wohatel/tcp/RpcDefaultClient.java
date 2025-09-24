@@ -14,7 +14,7 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
-import com.github.wohatel.interaction.common.RpcMsgTransUtil;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.NumberConstant;
@@ -100,18 +100,18 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public void sendFile(File file, RpcFileSenderInput input) {
-        RpcMsgTransUtil.sendFile(channel, file, input);
+        RpcMsgTransManager.sendFile(channel, file, input);
     }
 
     /**
      * 强制中断文件传输
      */
     public void interruptSendFile(RpcSession rpcSession) {
-        RpcMsgTransUtil.interruptSendFile(this.channel, rpcSession);
+        RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
     }
 
     public void sendRequest(RpcRequest rpcRequest) {
-        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
+        RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 
     public RpcFuture sendSynRequest(RpcRequest rpcRequest) {
@@ -119,7 +119,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
-        return RpcMsgTransUtil.sendSynRequest(channel, rpcRequest, timeOut);
+        return RpcMsgTransManager.sendSynRequest(channel, rpcRequest, timeOut);
     }
 
     public void sendSessionRequest(RpcSessionRequest rpcSessionRequest) {
@@ -136,7 +136,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
         RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
-        RpcMsgTransUtil.sendRequest(channel, rpcSessionRequest);
+        RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
 
     /**
@@ -162,7 +162,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setContentType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
         rpcRequest.setBody(rpcSession.getSessionId());
-        RpcFuture rpcFuture = RpcMsgTransUtil.sendSynRequest(channel, rpcRequest);
+        RpcFuture rpcFuture = RpcMsgTransManager.sendSynRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         return rpcResponse.isSuccess();
     }
@@ -173,7 +173,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @return RpcSessionFuture
      */
     public String inquiryServerNodeId() {
-        return RpcMsgTransUtil.sendInquiryRemoteNodeIdRequest(channel);
+        return RpcMsgTransManager.sendInquiryRemoteNodeIdRequest(channel);
     }
 
     /**
@@ -200,7 +200,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
         rpcFuture.setChannelId(channel.id().asShortText());
-        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
+        RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
@@ -222,8 +222,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
         rpcRequest.setNeedResponse(false);
-        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
-        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
+        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(),this.channel.id().asShortText());
+        RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 
     /**
