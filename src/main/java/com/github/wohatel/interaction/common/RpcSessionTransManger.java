@@ -31,7 +31,7 @@ public class RpcSessionTransManger {
     /**
      * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
      */
-    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN, (sessionId, wrapper) -> closeQueue(sessionId));
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.K_TEN, (sessionId, wrapper) -> closeQueue(sessionId));
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
 
     @Data
