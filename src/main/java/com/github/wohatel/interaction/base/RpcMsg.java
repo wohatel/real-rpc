@@ -4,7 +4,6 @@ import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
 
@@ -12,11 +11,11 @@ import java.util.Objects;
  * @author yaochuang
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class RpcMsg extends RpcRelay {
+public class RpcMsg {
     private RpcCommandType rpcCommandType;
     private Object payload;
     private ByteBuf byteBuffer;
+    private boolean needCompress;
 
     public RpcMsg() {
     }

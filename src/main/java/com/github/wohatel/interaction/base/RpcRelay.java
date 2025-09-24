@@ -15,5 +15,4 @@ public abstract class RpcRelay {
     protected String contentType; // 内容类型
     protected String header;  //  头部信息
     protected String body;    //  body体
-
 }
