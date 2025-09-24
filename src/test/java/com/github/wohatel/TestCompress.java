@@ -44,7 +44,7 @@ public class TestCompress {
         });
         // 客户度发送消息
         RpcRequest rpcRequest = RpcRequest.withBody("hello ketty");
-        rpcRequest.setNeedCompress(true);
+        rpcRequest.setEnableCompress(true);
         client.sendRequest(rpcRequest);
         // 防止线程退出
         Thread.currentThread().join();

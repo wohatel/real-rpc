@@ -144,7 +144,7 @@ public class RpcMsgTransUtil {
         rpcFileRequest.setSessionProcess(RpcSessionProcess.ING);
         rpcFileRequest.setBuffer(chunkSize);
         rpcFileRequest.setSerial(serial);
-        rpcFileRequest.setNeedCompress(needCompress);
+        rpcFileRequest.setEnableCompress(needCompress);
         RpcMsgTransUtil.sendFileOfSendTrunk(channel, rpcFileRequest, buffer);
     }
 

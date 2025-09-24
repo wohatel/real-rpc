@@ -26,23 +26,14 @@ public class RpcRequest extends RpcRelay {
     }
 
     /**
-     * 构建一个压缩的响应
-     */
-    public RpcResponse toResponse() {
-        return this.toResponse(false);
-    }
-
-    /**
      * 构建响应
      *
-     * @param needCompress 是否压缩
      * @return RpcResponse
      */
-    public RpcResponse toResponse(boolean needCompress) {
+    public RpcResponse toResponse() {
         RpcResponse response = new RpcResponse();
         response.setResponseId(this.requestId);
         response.setOrigRequestId(this.requestId);
-        response.setNeedCompress(needCompress);
         return response;
     }
 }

@@ -34,14 +34,14 @@ public class RpcMsg {
             return fromSessionRequest(rpcSessionRequest);
         }
         RpcMsg rpcMsg = new RpcMsg(RpcCommandType.request, request);
-        rpcMsg.setNeedCompress(request.isNeedCompress());
+        rpcMsg.setNeedCompress(request.isEnableCompress());
         return rpcMsg;
     }
 
     public static RpcMsg fromSessionRequest(RpcSessionRequest rpcSessionRequest) {
         Objects.requireNonNull(rpcSessionRequest);
         RpcMsg rpcMsg = new RpcMsg(RpcCommandType.session, rpcSessionRequest);
-        rpcMsg.setNeedCompress(rpcSessionRequest.isNeedCompress());
+        rpcMsg.setNeedCompress(rpcSessionRequest.isEnableCompress());
         return rpcMsg;
     }
 
@@ -53,7 +53,7 @@ public class RpcMsg {
     public static RpcMsg fromFileRequest(RpcFileRequest fileRequest) {
         Objects.requireNonNull(fileRequest);
         RpcMsg rpcMsg = new RpcMsg(RpcCommandType.file, fileRequest);
-        rpcMsg.setNeedCompress(fileRequest.isNeedCompress());
+        rpcMsg.setNeedCompress(fileRequest.isEnableCompress());
         return rpcMsg;
     }
 
