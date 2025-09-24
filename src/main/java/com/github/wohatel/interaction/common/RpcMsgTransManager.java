@@ -302,12 +302,14 @@ public class RpcMsgTransManager {
 
             @Override
             public void onTimeout() {
+                log.error("send file time out");
                 rpcFuture.release();
                 ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
 
             @Override
             public void onSessionInterrupt() {
+                log.info("send file was interrupt");
                 rpcFuture.release();
                 ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
