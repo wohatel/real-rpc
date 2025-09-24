@@ -21,8 +21,8 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcMsg msg, List<Object> out) {
         /**
-         * 前两个字节[][]相同,表是否压缩
-         * 第一个字节: 消息体的类型
+         * 第一个字节[],表是否压缩
+         * 第二个字节: 消息体的类型
          * 接着四个字节: 消息的长度
          * 接下来-消息体
          * 接着四个字节: 文件的长度
@@ -31,8 +31,6 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
         int flag = msg.isNeedCompress() ? 1 : 0;
         ByteBuf buffer = ctx.alloc().buffer();
         // 写入第一个压缩标记位
-        buffer.writeByte(flag);
-        // 写入第二个压缩标记位(不可少)
         buffer.writeByte(flag);
         buffer.writeByte(msg.getRpcCommandType().getCode());
         // 写入消息体长度 (4字节)

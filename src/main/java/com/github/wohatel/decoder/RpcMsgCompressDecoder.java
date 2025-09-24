@@ -20,17 +20,15 @@ public class RpcMsgCompressDecoder extends ByteToMessageDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        byte outerFlag = in.readByte(); // 第一个标志位
+        // 次数读取一个占位符[1] 还剩下一个[1] 留给下游的rpcMsgDecoder
+        byte outerFlag = in.readByte();
         if (outerFlag == 1) {
-            System.out.println("开始解压");
-            // 由于有两个标记位,读完第一个后,进行解压后out的结构是[1][body]
             decoderChannel.writeInbound(in.retain());
             ByteBuf o;
             while ((o = decoderChannel.readInbound()) != null) {
                 out.add(o);
             }
         } else {
-            // 由于有两个标记位,读完第一个后,不解压数据直接就是 [0][body]
             out.add(in.readRetainedSlice(in.readableBytes()));
         }
     }

@@ -18,12 +18,10 @@ public class RpcMsgCompressEncoder extends MessageToByteEncoder<ByteBuf> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
-        // 读取是否压缩标志
-        byte flag = in.readByte();
-        // 标记位复位
+        // 此处只获取,不改变readIndex,变成双占位符[1][1] 或者[0][0]
+        byte flag = in.getByte(0);
         out.writeByte(flag);
         if (flag == 1) {
-            System.out.println("开始压缩");
             // 压缩
             encoderChannel.writeOutbound(in.retain());
             ByteBuf buf;
