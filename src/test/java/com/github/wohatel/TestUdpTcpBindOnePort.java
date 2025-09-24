@@ -37,7 +37,7 @@ public class TestUdpTcpBindOnePort {
         // tcp绑定8765
         NioEventLoopGroup eventExecutors = new NioEventLoopGroup();
         RpcServer rpcServer = new RpcServer(8765, eventExecutors, eventExecutors);
-        rpcServer.onMsgReceive(new RpcSimpleRequestMsgHandler() {
+        rpcServer.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
                 System.out.println("tcp服务端收到:" + request.getBody());
@@ -60,7 +60,7 @@ public class TestUdpTcpBindOnePort {
 
 
         client.sendMsg("udp客户端发送第一次请求", new InetSocketAddress("127.0.0.1", 8765));
-        rpcDefaultClient.sendMsg(RpcRequest.withBody("tcp客户端发送第一次请求"));
+        rpcDefaultClient.sendRequest(RpcRequest.withBody("tcp客户端发送第一次请求"));
 
 
         Thread.currentThread().join();

@@ -70,19 +70,19 @@ public class TestServerSendFile {
         });
 
 
-        server.onMsgReceive(new RpcSimpleRequestMsgHandler() {
+        server.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
                 System.out.println("收到消息: 传输文件是个同步操作,占用同一个channel会造成线程卡死");
                 Thread.ofVirtual().start(() -> {
-                    RpcMsgTransUtil.writeFile(ctx.channel(), new File("/Users/yaochuang/node-file-nets.zip"), null);
+                    RpcMsgTransUtil.sendFile(ctx.channel(), new File("/Users/yaochuang/node-file-nets.zip"), null);
                 });
             }
         });
 
 
         // 此处可以限制速度,以及控制缓存大小,以及时间监听
-        client.sendMsg(new RpcRequest());
+        client.sendRequest(new RpcRequest());
 
 
         // 防止线程退出

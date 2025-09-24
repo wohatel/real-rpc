@@ -67,7 +67,7 @@ public class TestExecShell {
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcResponse response = rpcSession.toResponse();
                         response.setBody(str);
-                        RpcMsgTransUtil.write(ctx.channel(), response);
+                        RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
@@ -93,7 +93,7 @@ public class TestExecShell {
             }
         };
 
-        server.onSessionMsgReceive(serverSessionHandler);
+        server.onSessionRequestReceive(serverSessionHandler);
 
         // 这次会话最多-一旦30s内没有人说话,就算是被中断了
         RpcSession session = new RpcSession(30_000);
@@ -110,11 +110,11 @@ public class TestExecShell {
         });
 
         // 打印工作目录下的文件列表
-        client.sendSessionMsg(new RpcSessionRequest(session, "ls -al"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));
         // 切换了目录
-        client.sendSessionMsg(new RpcSessionRequest(session, "cd /tmp"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "cd /tmp"));
         // 打印/tmp下的文件目录
-        client.sendSessionMsg(new RpcSessionRequest(session, "ls -al"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));
 
         // 防止线程退出
         Thread.currentThread().join();

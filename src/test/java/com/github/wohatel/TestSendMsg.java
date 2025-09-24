@@ -41,13 +41,13 @@ public class TestSendMsg {
     @Test
     void clientSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onMsgReceive((ctx, req) -> {
+        server.onRequestReceive((ctx, req) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("获取到消息体" + body);
         });
         // 客户度发送消息
-        client.sendMsg(RpcRequest.withBody("hello ketty"));
+        client.sendRequest(RpcRequest.withBody("hello ketty"));
         // 防止线程退出
         Thread.currentThread().join();
     }
@@ -59,7 +59,7 @@ public class TestSendMsg {
     @Test
     void clientSendAndReceiveMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onMsgReceive((ctx, req) -> {
+        server.onRequestReceive((ctx, req) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("服务端收到消息体:" + body);
@@ -67,11 +67,11 @@ public class TestSendMsg {
             if (req.isNeedResponse()) {
                 RpcResponse response = req.toResponse();
                 response.setBody("thanks, got it");
-                RpcMsgTransUtil.write(ctx.channel(), response);
+                RpcMsgTransUtil.sendResponse(ctx.channel(), response);
             }
         });
         // 客户度发送消息
-        RpcFuture sendFuture = client.sendSynMsg(RpcRequest.withBody("hello ketty"));
+        RpcFuture sendFuture = client.sendSynRequest(RpcRequest.withBody("hello ketty"));
         RpcResponse rpcResponse = sendFuture.get();
         String body = rpcResponse.getBody();
 
@@ -87,7 +87,7 @@ public class TestSendMsg {
     @Test
     void serverSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onMsgReceive((ctx, req) -> {
+        server.onRequestReceive((ctx, req) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("服务端收到-客户端招呼:" + body);
@@ -96,7 +96,7 @@ public class TestSendMsg {
             System.out.println("服务端开始向客户端发送请求:--------");
             // 服务端向客户端发消息
             RpcRequest rpcRequest = RpcRequest.withBody("近来你还好吧?");
-            RpcMsgTransUtil.sendMsg(ctx.channel(), rpcRequest);
+            RpcMsgTransUtil.sendRequest(ctx.channel(), rpcRequest);
 
 
             // 此处只是做了简单问候,也可发送后等待客户端回应()
@@ -105,14 +105,14 @@ public class TestSendMsg {
         });
 
         // 客户端收到消息后如何处理
-        client.onMsgReceive((ctx, req) -> {
+        client.onRequestReceive((ctx, req) -> {
             // 客户端收到消息
             String body = req.getBody();
             System.out.println("客户端收到服务端消息:" + body);
         });
 
         // 客户端先问候
-        client.sendMsg(RpcRequest.withBody("hello ketty"));
+        client.sendRequest(RpcRequest.withBody("hello ketty"));
 
 
         // 防止线程退出

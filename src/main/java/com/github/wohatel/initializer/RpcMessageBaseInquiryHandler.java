@@ -29,12 +29,12 @@ public class RpcMessageBaseInquiryHandler extends ChannelInboundHandlerAdapter {
                     boolean running = RpcSessionTransManger.isRunning(sessionId);
                     RpcResponse response = request.toResponse();
                     response.setSuccess(running);
-                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                 }
                 case BASE_INQUIRY_NODE_ID -> {
                     RpcResponse response = request.toResponse();
                     response.setBody(RpcDataReceiver.NODEID);
-                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                 }
             }
         } else {

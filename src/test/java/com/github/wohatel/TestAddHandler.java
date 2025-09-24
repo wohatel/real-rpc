@@ -102,13 +102,13 @@ public class TestAddHandler {
 
 
         // 绑定服务端接收消息处理
-        server.onMsgReceive((ctx, req) -> {
+        server.onRequestReceive((ctx, req) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("获取到消息体" + body);
         });
         // 客户度发送消息
-        client.sendMsg(RpcRequest.withBody("hello ketty"));
+        client.sendRequest(RpcRequest.withBody("hello ketty"));
 
         /**
          * 也可在逻辑

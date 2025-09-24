@@ -67,7 +67,7 @@ public class TestSendSessionMsg {
                 if (new Random().nextInt() % 3 == 0) {
                     RpcResponse response = request.getRpcSession().toResponse();
                     response.setBody("不想理你!!!");
-                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                 }
 
             }
@@ -78,7 +78,7 @@ public class TestSendSessionMsg {
             }
         };
 
-        server.onSessionMsgReceive(serverSessionHandler);
+        server.onSessionRequestReceive(serverSessionHandler);
         // 客户端设置会话
         // 这次会话最多-一旦30s内没有人说话,就算是被中断了
         RpcSession session = new RpcSession(30_000);
@@ -95,15 +95,15 @@ public class TestSendSessionMsg {
             }
         });
 
-        client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
-        client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
-        client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
-        client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
-        client.sendSessionMsg(new RpcSessionRequest(session, "你什么时间还钱"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
+        client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
 
         // 客户端觉得再追问也没结果,沉默1s后,挂断电话
         Thread.sleep(1000);
-        client.finishSession(session);
+        client.stopSession(session);
 
         boolean sessionFinish = rpcSessionFuture.isSessionFinish();
         System.out.println("打印当前会话是否结束:" + sessionFinish);

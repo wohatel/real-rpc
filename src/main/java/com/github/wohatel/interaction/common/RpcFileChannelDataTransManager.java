@@ -89,7 +89,7 @@ public class RpcFileChannelDataTransManager {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
             response.setMsg("stop receiving file blocks");
-            RpcMsgTransUtil.write(ctx.channel(), response);
+            RpcMsgTransUtil.sendResponse(ctx.channel(), response);
         }
     }
 
@@ -108,7 +108,7 @@ public class RpcFileChannelDataTransManager {
         rpcResponse.setMsg(fileWrapper.getMsg());
         rpcResponse.setSuccess(StringUtils.isBlank(fileWrapper.getMsg()));
         // 告知开启session成功
-        RpcMsgTransUtil.write(ctx.channel(), rpcResponse);
+        RpcMsgTransUtil.sendResponse(ctx.channel(), rpcResponse);
         // 没有异常情况
         if (StringUtils.isBlank(fileWrapper.getMsg())) {
             if (!fileWrapper.isNeedTrans()) { // 直接结束
@@ -164,7 +164,7 @@ public class RpcFileChannelDataTransManager {
                     }
                     long recieveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
                     response.setBody(String.valueOf(recieveSize));
-                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                     if (isProcessOverride) {
                         // 同步执行
                         RpcFileReceiverHandlerExecProxy.onProcess(rpcFileReceiverHandler, impl, recieveSize);
@@ -179,7 +179,7 @@ public class RpcFileChannelDataTransManager {
             log.error("file Block - Merge - Print Exception Information", e);
             response.setMsg(e.getMessage());
             response.setSuccess(false);
-            RpcMsgTransUtil.write(ctx.channel(), response);
+            RpcMsgTransUtil.sendResponse(ctx.channel(), response);
             RpcFileReceiverHandlerExecProxy.onFailure(rpcFileReceiverHandler, impl, e);
         } finally {
             RpcSessionTransManger.release(rpcSession.getSessionId());
@@ -189,6 +189,6 @@ public class RpcFileChannelDataTransManager {
     private static void sendStartError(RpcResponse rpcResponse, Channel channel, String message) {
         rpcResponse.setMsg(message);
         rpcResponse.setSuccess(false);
-        RpcMsgTransUtil.write(channel, rpcResponse);
+        RpcMsgTransUtil.sendResponse(channel, rpcResponse);
     }
 }

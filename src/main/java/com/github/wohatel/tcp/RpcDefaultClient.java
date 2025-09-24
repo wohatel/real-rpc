@@ -68,7 +68,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     @Override
-    public final void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+    public final void onSessionRequestReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         throw new RpcException(RpcErrorEnum.RUNTIME, "onSessionMsgReceive is unavailable in client");
     }
 
@@ -100,29 +100,29 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public void sendFile(File file, RpcFileSenderInput input) {
-        RpcMsgTransUtil.writeFile(channel, file, input);
+        RpcMsgTransUtil.sendFile(channel, file, input);
     }
 
     /**
-     * 强制中断传输可能引发异常操作,谨慎使用
+     * 强制中断文件传输
      */
     public void interruptSendFile(RpcSession rpcSession) {
-        RpcMsgTransUtil.writeStopFile(this.channel, rpcSession);
+        RpcMsgTransUtil.interruptSendFile(this.channel, rpcSession);
     }
 
-    public void sendMsg(RpcRequest rpcRequest) {
-        RpcMsgTransUtil.sendMsg(channel, rpcRequest);
+    public void sendRequest(RpcRequest rpcRequest) {
+        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
     }
 
-    public RpcFuture sendSynMsg(RpcRequest rpcRequest) {
-        return this.sendSynMsg(rpcRequest, NumberConstant.OVER_TIME);
+    public RpcFuture sendSynRequest(RpcRequest rpcRequest) {
+        return this.sendSynRequest(rpcRequest, NumberConstant.OVER_TIME);
     }
 
-    public RpcFuture sendSynMsg(RpcRequest rpcRequest, long timeOut) {
-        return RpcMsgTransUtil.sendSynMsg(channel, rpcRequest, timeOut);
+    public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
+        return RpcMsgTransUtil.sendSynRequest(channel, rpcRequest, timeOut);
     }
 
-    public void sendSessionMsg(RpcSessionRequest rpcSessionRequest) {
+    public void sendSessionRequest(RpcSessionRequest rpcSessionRequest) {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null) {
@@ -136,7 +136,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
         RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
-        RpcMsgTransUtil.sendMsg(channel, rpcSessionRequest);
+        RpcMsgTransUtil.sendRequest(channel, rpcSessionRequest);
     }
 
     /**
@@ -155,14 +155,14 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * @param rpcSession rpcSession
      * @return RpcSessionFuture
      */
-    public boolean inquiryServerSession(RpcSession rpcSession) {
+    public boolean inquiryServerSessionStatus(RpcSession rpcSession) {
         if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
             return false;
         }
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setContentType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
         rpcRequest.setBody(rpcSession.getSessionId());
-        RpcFuture rpcFuture = RpcMsgTransUtil.sendSynMsg(channel, rpcRequest);
+        RpcFuture rpcFuture = RpcMsgTransUtil.sendSynRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         return rpcResponse.isSuccess();
     }
@@ -200,7 +200,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
         rpcFuture.setChannelId(channel.id().asShortText());
-        RpcMsgTransUtil.sendMsg(channel, rpcRequest);
+        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
@@ -211,7 +211,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     /**
      * 关闭会话
      */
-    public void finishSession(RpcSession rpcSession) {
+    public void stopSession(RpcSession rpcSession) {
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null || sessionFuture.isSessionFinish()) {
             return;
@@ -223,7 +223,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
         rpcRequest.setNeedResponse(false);
         RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
-        RpcMsgTransUtil.sendMsg(channel, rpcRequest);
+        RpcMsgTransUtil.sendRequest(channel, rpcRequest);
     }
 
     /**

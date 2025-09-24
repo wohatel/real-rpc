@@ -69,7 +69,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     }
                     response.setSuccess(linkedNode.getValue());
                     response.setMsg(linkedNode.getKey());
-                    RpcMsgTransUtil.write(ctx.channel(), response);
+                    RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                     if (!linkedNode.getValue()) {
                         RpcSessionTransManger.release(session.getSessionId());
                     }
@@ -82,7 +82,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcResponse response = request.toResponse();
                         response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常,会话不存在");
                         response.setSuccess(false);
-                        RpcMsgTransUtil.write(ctx.channel(), response);
+                        RpcMsgTransUtil.sendResponse(ctx.channel(), response);
                     }
                 } else if (request.isSessionFinish()) {
                     try {

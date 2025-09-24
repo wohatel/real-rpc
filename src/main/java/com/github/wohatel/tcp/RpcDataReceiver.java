@@ -40,12 +40,12 @@ public class RpcDataReceiver {
         rpcMsgChannelInitializer.onFileReceive(rpcFileReceiverHandler);
     }
 
-    public void onMsgReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
-        rpcMsgChannelInitializer.onMsgReceive(rpcSimpleRequestMsgHandler);
+    public void onRequestReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
+        rpcMsgChannelInitializer.onRequestReceive(rpcSimpleRequestMsgHandler);
     }
 
-    public void onSessionMsgReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
-        rpcMsgChannelInitializer.onSessionMsgReceive(rpcSessionRequestMsgHandler);
+    public void onSessionRequestReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+        rpcMsgChannelInitializer.onSessionRequestReceive(rpcSessionRequestMsgHandler);
     }
 
     public ChannelFuture close() {

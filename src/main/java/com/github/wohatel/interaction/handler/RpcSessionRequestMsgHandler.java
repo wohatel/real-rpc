@@ -13,8 +13,7 @@ public interface RpcSessionRequestMsgHandler {
     /**
      * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
      *
-     * @param ctx
-     * @param rpcSession
+     * @param ctx 通道
      */
     default boolean sessionStart(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
         return true;
@@ -23,8 +22,8 @@ public interface RpcSessionRequestMsgHandler {
     /**
      * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
      *
-     * @param ctx
-     * @param request
+     * @param ctx     通道
+     * @param request 请求
      */
     void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
 

@@ -37,7 +37,7 @@ public class TestCompress {
     @Test
     void clientSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onMsgReceive((ctx, req) -> {
+        server.onRequestReceive((ctx, req) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("获取到消息体" + body);
@@ -45,7 +45,7 @@ public class TestCompress {
         // 客户度发送消息
         RpcRequest rpcRequest = RpcRequest.withBody("hello ketty");
         rpcRequest.setNeedCompress(true);
-        client.sendMsg(rpcRequest);
+        client.sendRequest(rpcRequest);
         // 防止线程退出
         Thread.currentThread().join();
     }
