@@ -17,6 +17,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.codec.compression.Lz4FrameDecoder;
+import io.netty.handler.codec.compression.Lz4FrameEncoder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -75,8 +77,8 @@ public class TestAddHandler {
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                 pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                pipeline.addLast("decompress", new RpcMsgCompressDecoder());
-                pipeline.addLast("compress", new RpcMsgCompressEncoder());
+                pipeline.addLast("decompress", new RpcMsgCompressDecoder(new Lz4FrameDecoder()));
+                pipeline.addLast("compress", new RpcMsgCompressEncoder(new Lz4FrameEncoder()));
                 pipeline.addLast("decoder", new RpcMsgDecoder());
                 pipeline.addLast("encoder", new RpcMsgEncoder());
                 pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());

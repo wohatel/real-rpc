@@ -2,13 +2,19 @@ package com.github.wohatel.decoder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.compression.JdkZlibEncoder;
+import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.MessageToByteEncoder;
 
 /**
  * @author yaochuang
  */
-public class RpcMsgCompressEncoder extends JdkZlibEncoder {
+public class RpcMsgCompressEncoder extends MessageToByteEncoder<ByteBuf> {
 
+    private final EmbeddedChannel encoderChannel;
+
+    public RpcMsgCompressEncoder(MessageToByteEncoder<ByteBuf> encoder) {
+        encoderChannel = new EmbeddedChannel(encoder);
+    }
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
@@ -17,8 +23,14 @@ public class RpcMsgCompressEncoder extends JdkZlibEncoder {
         // 标记位复位
         out.writeByte(flag);
         if (flag == 1) {
-            // 剩余的进行压缩
-            super.encode(ctx, in, out);
+            System.out.println("开始压缩");
+            // 压缩
+            encoderChannel.writeOutbound(in.retain());
+            ByteBuf buf;
+            while ((buf = encoderChannel.readOutbound()) != null) {
+                out.writeBytes(buf);
+                buf.release(); // 必须 release，防止泄漏
+            }
         } else {
             // 不压缩，直接原样输出
             out.writeBytes(in);

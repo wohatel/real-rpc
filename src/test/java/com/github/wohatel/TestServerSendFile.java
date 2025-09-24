@@ -75,7 +75,7 @@ public class TestServerSendFile {
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
                 System.out.println("收到消息: 传输文件是个同步操作,占用同一个channel会造成线程卡死");
                 Thread.ofVirtual().start(() -> {
-                    RpcMsgTransUtil.sendFile(ctx.channel(), new File("/Users/yaochuang/node-file-nets.zip"), null);
+                    RpcMsgTransUtil.sendFile(ctx.channel(), new File("/Users/yaochuang/tag-web/tag-webapp/pnpm-lock.yaml"), null);
                 });
             }
         });
