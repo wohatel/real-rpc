@@ -57,6 +57,7 @@ public class RpcServer extends RpcDataReceiver {
     @SneakyThrows
     @SuppressWarnings("all")
     public ChannelFuture start() {
+        System.out.println(rpcMsgChannelInitializer);
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }

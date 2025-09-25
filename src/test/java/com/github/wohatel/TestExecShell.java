@@ -83,6 +83,9 @@ public class TestExecShell {
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
                 session.sendCommand(command);
+                RpcResponse response = request.toResponse();
+                response.setBody(command);
+                RpcMsgTransManager.sendResponse(ctx.channel(), response);
             }
 
             @Override
@@ -101,6 +104,8 @@ public class TestExecShell {
         RpcSessionContext rpcSessionContext = new RpcSessionContext();
         rpcSessionContext.setTopic("开启shell");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
+        RpcResponse rpcResponse = rpcSessionFuture.get();
+        System.out.println(rpcResponse.getBody());
         // 此处接收response的数据
         rpcSessionFuture.addListener(response -> {
             if (response.isSuccess()) {

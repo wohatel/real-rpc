@@ -1,7 +1,5 @@
 package com.github.wohatel.initializer;
 
-import com.github.wohatel.decoder.RpcMsgCompressDecoder;
-import com.github.wohatel.decoder.RpcMsgCompressEncoder;
 import com.github.wohatel.decoder.RpcMsgDecoder;
 import com.github.wohatel.decoder.RpcMsgEncoder;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
@@ -13,8 +11,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.codec.compression.Lz4FrameDecoder;
-import io.netty.handler.codec.compression.Lz4FrameEncoder;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -48,8 +44,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-        pipeline.addLast("decompress", new RpcMsgCompressDecoder(new Lz4FrameDecoder()));
-        pipeline.addLast("compress", new RpcMsgCompressEncoder(new Lz4FrameEncoder()));
         pipeline.addLast("decoder", new RpcMsgDecoder());
         pipeline.addLast("encoder", new RpcMsgEncoder());
         pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());

@@ -1,7 +1,5 @@
 package com.github.wohatel;
 
-import com.github.wohatel.decoder.RpcMsgCompressDecoder;
-import com.github.wohatel.decoder.RpcMsgCompressEncoder;
 import com.github.wohatel.decoder.RpcMsgDecoder;
 import com.github.wohatel.decoder.RpcMsgEncoder;
 import com.github.wohatel.initializer.RpcMessageBaseInquiryHandler;
@@ -17,8 +15,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.codec.compression.Lz4FrameDecoder;
-import io.netty.handler.codec.compression.Lz4FrameEncoder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -68,36 +64,29 @@ public class TestAddHandler {
 
 
         // 等待服务端开启成功
-
-
         RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer() {
 
-            public void init(SocketChannel socketChannel) {
+            @Override
+            public void initChannel(SocketChannel socketChannel) {
                 socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                 pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                pipeline.addLast("decompress", new RpcMsgCompressDecoder(new Lz4FrameDecoder()));
-                pipeline.addLast("compress", new RpcMsgCompressEncoder(new Lz4FrameEncoder()));
                 pipeline.addLast("decoder", new RpcMsgDecoder());
                 pipeline.addLast("encoder", new RpcMsgEncoder());
-                pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
-
-
                 pipeline.addLast("actived", adapter);
-
-
+                pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
                 pipeline.addLast("msgHandler", this.getRpcMessageInteractionHandler());
             }
 
         };
 
         server.setRpcMsgChannelInitializer(rpcMsgChannelInitializer);
+
+        System.out.println(rpcMsgChannelInitializer);
         server.start().sync();
 
-
         client = new RpcDefaultClient("127.0.0.1", 8765, group);
-
 
         // 等待客户端连接成功
         client.connect().sync();

@@ -337,7 +337,11 @@ public class RpcMsgTransManager {
             fileChannel.position(position);
             while (position < fileSize) {
                 // 校验是不是异常结束
+                log.info("the file transfer begins:" + position + " size:" + fileSize);
                 if (rpcFuture.isSessionFinish()) {
+                    break;
+                }
+                if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
                     break;
                 }
                 if (!channel.isActive()) {
@@ -345,6 +349,7 @@ public class RpcMsgTransManager {
                 }
                 boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, rpcSession.getTimeOutMillis() / 100);
                 if (!isWritable) {
+                    log.error("the link is not available");
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file sending timeout");
                 }
                 // **检测处理块数**差距
