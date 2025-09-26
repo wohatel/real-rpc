@@ -31,9 +31,6 @@ public class RpcRequest extends RpcRelay {
      * @return RpcResponse
      */
     public RpcResponse toResponse() {
-        RpcResponse response = new RpcResponse();
-        response.setResponseId(this.requestId);
-        response.setOrigRequestId(this.requestId);
-        return response;
+        return RpcResponse.fromRequest(this);
     }
 }

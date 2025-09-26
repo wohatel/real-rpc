@@ -20,15 +20,7 @@ public class RpcSessionRequest extends RpcRequest {
         this.rpcSession = rpcSession;
         this.setBody(body);
     }
-
-    @Override
-    public RpcResponse toResponse() {
-        RpcResponse response = new RpcResponse();
-        response.setResponseId(this.rpcSession.getSessionId());
-        response.setOrigRequestId(this.getRequestId());
-        return response;
-    }
-
+    
     public boolean isSessionRequest() {
         return this.sessionProcess != null && sessionProcess == RpcSessionProcess.ING;
     }

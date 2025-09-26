@@ -64,11 +64,11 @@ public class TestSendSessionMsg {
                 // 服务端收到客户端消息后,直接打印
                 System.out.println(request.getBody());
                 // 打印归打印,什么时候发消息看我心情看我心情
-                if (new Random().nextInt() % 3 == 0) {
-                    RpcResponse response = request.getRpcSession().toResponse();
-                    response.setBody("不想理你!!!");
-                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
-                }
+
+                RpcResponse response = request.getRpcSession().toResponse();
+                response.setBody("不想理你!!!");
+                RpcMsgTransManager.sendResponse(ctx.channel(), response);
+
 
             }
 
@@ -90,6 +90,7 @@ public class TestSendSessionMsg {
          * 监听服务端小消息
          */
         rpcSessionFuture.addListener((future) -> {
+            System.out.println("收到灰心");
             if (future.isSuccess()) {
                 System.out.println(future.getBody());
             }
@@ -102,11 +103,13 @@ public class TestSendSessionMsg {
         client.sendSessionRequest(new RpcSessionRequest(session, "你什么时间还钱"));
 
         // 客户端觉得再追问也没结果,沉默1s后,挂断电话
-        Thread.sleep(1000);
+        Thread.sleep(10000);
         client.stopSession(session);
 
         boolean sessionFinish = rpcSessionFuture.isSessionFinish();
         System.out.println("打印当前会话是否结束:" + sessionFinish);
+
+
 
         // 防止线程退出
         Thread.currentThread().join();

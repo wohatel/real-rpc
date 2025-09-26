@@ -24,9 +24,7 @@ public class RpcSession {
     }
 
     public RpcResponse toResponse() {
-        RpcResponse response = new RpcResponse();
-        response.setResponseId(this.sessionId);
-        return response;
+        return RpcResponse.fromSession(this);
     }
 
     public RpcSessionRequest toRpcSessionRequest() {
