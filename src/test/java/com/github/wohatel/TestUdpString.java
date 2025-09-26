@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
  *
  * @author yaochuang 2025/09/09 15:06
  */
-public class TestUdp0 {
+public class TestUdpString {
 
     /**
      * udp 一般作为信条使用,比如每隔3s发送一次消息给到服务端,服务端如果连续多次不应答,就认为断联

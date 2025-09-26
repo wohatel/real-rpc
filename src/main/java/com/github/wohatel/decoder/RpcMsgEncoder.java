@@ -1,6 +1,7 @@
 package com.github.wohatel.decoder;
 
 import com.alibaba.fastjson2.JSON;
+import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.ByteBufPoolManager;
@@ -80,20 +81,22 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
         return ReferenceByteBufUtil.finallyRelease(() -> {
             CompositeByteBuf composite = input.alloc().compositeBuffer();
             composite.addComponent(true, input.alloc().buffer(1).writeBoolean(isCompress));
+            ByteBuf byteBuf = input.readRetainedSlice(input.readableBytes());
             if (!isCompress) {
-                return composite.addComponent(true, input.retain());
+                // 此处不能释放
+                return composite.addComponent(true, byteBuf);
             }
-            ByteBuf retain = input.retain();
-            ReferenceByteBufUtil.exceptionRelease(() -> {
+            // EmbeddedChannel 会关闭传入的byteBuf,所以只需要负责异常时释放就行
+            return ReferenceByteBufUtil.exceptionRelease(() -> {
                 EmbeddedChannel ch = compressChannel.get();
-                ch.writeOutbound(retain);
+                ch.writeOutbound(byteBuf);
                 ch.flushOutbound();
                 ByteBuf buf;
                 while ((buf = ch.readOutbound()) != null) {
                     composite.addComponent(true, buf);
                 }
-            }, retain);
-            return composite;
+                return composite;
+            }, composite, byteBuf);
         }, input);
     }
 }

@@ -47,11 +47,10 @@ public class TestAddHandler {
 
 
     /**
-     * 客户端发送消息
-     *
+     * 初始化阶段添加handler
      */
     @Test
-    void clientSendMsg() throws InterruptedException {
+    void initChannel() throws InterruptedException {
 
         // 线程组暂时用一个
         group = new NioEventLoopGroup();
@@ -64,24 +63,19 @@ public class TestAddHandler {
 
 
         // 等待服务端开启成功
-        RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer() {
+        RpcMsgChannelInitializer rpcMsgChannelInitializer = server.getRpcMsgChannelInitializer();
 
-            @Override
-            public void initChannel(SocketChannel socketChannel) {
-                socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
-                ChannelPipeline pipeline = socketChannel.pipeline();
-                pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
-                pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-                pipeline.addLast("decoder", new RpcMsgDecoder());
-                pipeline.addLast("encoder", new RpcMsgEncoder());
-                pipeline.addLast("actived", adapter);
-                pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
-                pipeline.addLast("msgHandler", this.getRpcMessageInteractionHandler());
-            }
-
-        };
-
-        server.setRpcMsgChannelInitializer(rpcMsgChannelInitializer);
+        rpcMsgChannelInitializer.setInitChannelConsumer(socketChannel -> {
+            socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
+            ChannelPipeline pipeline = socketChannel.pipeline();
+            pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
+            pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
+            pipeline.addLast("decoder", new RpcMsgDecoder());
+            pipeline.addLast("encoder", new RpcMsgEncoder());
+            pipeline.addLast("actived", adapter);
+            pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
+            pipeline.addLast("msgHandler", rpcMsgChannelInitializer.getRpcMessageInteractionHandler());
+        });
 
         System.out.println(rpcMsgChannelInitializer);
         server.start().sync();
@@ -90,7 +84,6 @@ public class TestAddHandler {
 
         // 等待客户端连接成功
         client.connect().sync();
-
 
         // 绑定服务端接收消息处理
         server.onRequestReceive((ctx, req) -> {

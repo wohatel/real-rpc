@@ -1,7 +1,6 @@
 package com.github.wohatel.util;
 
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -31,6 +30,8 @@ public class ReferenceByteBufUtil {
     public static void finallyRelease(Runnable runnable, Object... inputs) {
         try {
             runnable.run();
+        } catch (Throwable throwable) {
+            throw throwable;
         } finally {
             safeRelease(inputs);
         }
@@ -43,6 +44,8 @@ public class ReferenceByteBufUtil {
     public static <T> T finallyRelease(CalledAble<T> calledAble, Object... inputs) {
         try {
             return calledAble.call();
+        } catch (Throwable throwable) {
+            throw throwable;
         } finally {
             safeRelease(inputs);
         }
