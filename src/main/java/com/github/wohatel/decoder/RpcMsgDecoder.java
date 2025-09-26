@@ -7,13 +7,13 @@ import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.util.ReferenceByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.compression.Lz4FrameDecoder;
-import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
 
@@ -25,14 +25,11 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        ByteBuf byteBuf = null;
-        try {
-            byteBuf = tryDecompress(in);
+        ByteBuf byteBuf = tryDecompress(in);
+        ReferenceByteBufUtil.finallyRelease(() -> {
             RpcMsg rpcMsg = decodeMsg(byteBuf);
             out.add(rpcMsg);
-        } finally {
-            ReferenceCountUtil.safeRelease(byteBuf);
-        }
+        }, byteBuf);
     }
 
     /**
@@ -76,18 +73,20 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
      */
     private ByteBuf tryDecompress(ByteBuf in) {
         boolean isCompress = in.readBoolean();
+        ByteBuf byteBuf = in.readRetainedSlice(in.readableBytes());
+        if (!isCompress) {
+            return byteBuf;
+        }
         CompositeByteBuf decompressed = in.alloc().compositeBuffer();
-        if (isCompress) {
+        return ReferenceByteBufUtil.exceptionRelease(() -> {
             EmbeddedChannel ch = decompressChannel.get();
-            ch.writeInbound(in.readRetainedSlice(in.readableBytes()));
+            ch.writeInbound(byteBuf);
             ch.flushInbound();
             ByteBuf buf;
             while ((buf = ch.readInbound()) != null) {
                 decompressed.addComponent(true, buf);
             }
-        } else {
-            decompressed.addComponent(true, in.readRetainedSlice(in.readableBytes()));
-        }
-        return decompressed;
+            return decompressed;
+        }, decompressed, byteBuf);
     }
 }

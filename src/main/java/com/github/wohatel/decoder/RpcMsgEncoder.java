@@ -6,13 +6,13 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.ByteBufPoolManager;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.util.ReferenceByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.compression.Lz4FrameEncoder;
-import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
      */
     private ByteBuf encodeMsg(ChannelHandlerContext ctx, RpcMsg msg) {
         ByteBuf buffer = ctx.alloc().buffer();
-        try {
+        return ReferenceByteBufUtil.exceptionRelease(() -> {
             buffer.writeBoolean(msg.isNeedCompress()); // 1: 是否压缩
             buffer.writeInt(msg.getRpcCommandType().getCode()); // 2: 消息体类型
             // 消息体
@@ -69,35 +69,31 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
                     ByteBufPoolManager.destory(rpcSession.getSessionId());
                 }
             }
-        } catch (Exception e) {
-            ReferenceCountUtil.safeRelease(buffer);
-            throw e;
-        }
-        return buffer;
+            return buffer;
+        }, buffer);
     }
 
     /**
      * 压缩整个 ByteBuf，零拷贝，多线程安全
      */
     private ByteBuf tryCompress(ByteBuf input, boolean isCompress) {
-        try {
+        return ReferenceByteBufUtil.finallyRelease(() -> {
             CompositeByteBuf composite = input.alloc().compositeBuffer();
-            // 压缩标记位
             composite.addComponent(true, input.alloc().buffer(1).writeBoolean(isCompress));
-            if (isCompress) {
+            if (!isCompress) {
+                return composite.addComponent(true, input.retain());
+            }
+            ByteBuf retain = input.retain();
+            ReferenceByteBufUtil.exceptionRelease(() -> {
                 EmbeddedChannel ch = compressChannel.get();
-                ch.writeOutbound(input.retain());
+                ch.writeOutbound(retain);
                 ch.flushOutbound();
                 ByteBuf buf;
                 while ((buf = ch.readOutbound()) != null) {
                     composite.addComponent(true, buf);
                 }
-            } else {
-                composite.addComponent(true, input.retain());
-            }
+            }, retain);
             return composite;
-        } finally {
-            ReferenceCountUtil.safeRelease(input);
-        }
+        }, input);
     }
 }
