@@ -341,6 +341,7 @@ public class RpcMsgTransManager {
                     break;
                 }
                 if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
+                    log.info("the file trans is removed from rpcFuture" + rpcSession.getSessionId());
                     break;
                 }
                 if (!channel.isActive()) {
@@ -386,7 +387,7 @@ public class RpcMsgTransManager {
     public static String sendInquiryRemoteNodeIdRequest(Channel channel) {
         // 同源的看谁发起的,不通源的看
         RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setContentType(RpcBaseAction.BASE_INQUIRY_SESSION.name());
+        rpcRequest.setContentType(RpcBaseAction.INQUIRY_SESSION.name());
         RpcFuture rpcFuture = sendSynRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {

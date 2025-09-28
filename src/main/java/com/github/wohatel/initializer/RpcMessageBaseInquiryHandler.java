@@ -24,14 +24,14 @@ public class RpcMessageBaseInquiryHandler extends ChannelInboundHandlerAdapter {
             RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
             RpcBaseAction rpcBaseAction = RpcBaseAction.fromString(request.getContentType());
             switch (rpcBaseAction) {
-                case BASE_INQUIRY_SESSION -> {
+                case INQUIRY_SESSION -> {
                     String sessionId = request.getBody();
                     boolean running = RpcSessionTransManger.isRunning(sessionId);
                     RpcResponse response = request.toResponse();
                     response.setSuccess(running);
                     RpcMsgTransManager.sendResponse(ctx.channel(), response);
                 }
-                case BASE_INQUIRY_NODE_ID -> {
+                case INQUIRY_NODE_ID -> {
                     RpcResponse response = request.toResponse();
                     response.setBody(RpcDataReceiver.NODEID);
                     RpcMsgTransManager.sendResponse(ctx.channel(), response);

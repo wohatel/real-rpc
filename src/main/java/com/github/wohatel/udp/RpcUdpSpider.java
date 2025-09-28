@@ -42,10 +42,10 @@ public class RpcUdpSpider<T> {
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
 
     public RpcUdpSpider(MultithreadEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer) {
-        this(eventLoopGroup, channelInitializer, null);
+        this(eventLoopGroup, null, channelInitializer);
     }
 
-    public RpcUdpSpider(MultithreadEventLoopGroup eventLoopGroup, ChannelInitializer<DatagramChannel> channelInitializer, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcUdpSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, ChannelInitializer<DatagramChannel> channelInitializer) {
         this.eventLoopGroup = eventLoopGroup;
         this.channelInitializer = channelInitializer;
         this.channelClass = getChannelClass();
@@ -72,7 +72,14 @@ public class RpcUdpSpider<T> {
      * 构建一个简单的udp
      */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return new RpcUdpSpider<>(new NioEventLoopGroup(), new ChannelInitializer<>() {
+        return buildSpider(clazz, new NioEventLoopGroup(), null, simpleChannelInboundHandler);
+    }
+
+    /**
+     * 构建一个简单的udp
+     */
+    public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
+        return new RpcUdpSpider<>(eventLoopGroup, channelOptions, new ChannelInitializer<>() {
             @Override
             protected void initChannel(DatagramChannel datagramChannel) throws Exception {
                 SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<>() {
@@ -116,6 +123,16 @@ public class RpcUdpSpider<T> {
     public ChannelFuture bind() {
         // 表示随机绑定一个端口
         return bind(0);
+    }
+
+    /**
+     * 关闭
+     */
+    public ChannelFuture close() {
+        if (this.channel != null) {
+            return channel.close();
+        }
+        return null;
     }
 
     /**
