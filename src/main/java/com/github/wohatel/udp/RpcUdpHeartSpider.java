@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 /**
  * description
@@ -71,7 +71,7 @@ public class RpcUdpHeartSpider {
      * @param thresholdTimeMillis 超时阈值判断
      * @param consumer            执行其它ping,pong之外的消息逻辑
      */
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis, Consumer<RpcUdpPacket<RpcRequest>> consumer) {
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> consumer) {
         this.thresholdTimeMillis = thresholdTimeMillis;
         this.pingInterval = pingInterval;
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
@@ -94,7 +94,7 @@ public class RpcUdpHeartSpider {
                     }
                 } else {
                     if (consumer != null) {
-                        consumer.accept(packet);
+                        consumer.accept(channelHandlerContext, packet);
                     }
                 }
             }
