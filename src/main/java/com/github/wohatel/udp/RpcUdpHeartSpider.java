@@ -14,6 +14,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -40,6 +41,9 @@ public class RpcUdpHeartSpider {
     private final RpcUdpSpider<RpcRequest> rpcUdpSpider;
     @Getter
     private final Map<InetSocketAddress, TimingHandler> timingHandlerMap = new ConcurrentHashMap<>();
+    @Getter
+    @Setter
+    private InetSocketAddress broadcastAddress;
 
     @Data
     public static class TimingHandler {
@@ -107,6 +111,22 @@ public class RpcUdpHeartSpider {
     }
 
     /**
+     * 开启广播
+     *
+     * @param broadcastAddress 广播地址
+     */
+    public void startBroadcast(InetSocketAddress broadcastAddress) {
+        this.broadcastAddress = broadcastAddress;
+    }
+
+    /**
+     * 关闭广播
+     */
+    public void stopBroadcast() {
+        this.broadcastAddress = null;
+    }
+
+    /**
      * bind端口
      */
     public ChannelFuture bind(int port) {
@@ -116,15 +136,23 @@ public class RpcUdpHeartSpider {
             if (connectFuture.isSuccess()) {
                 // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
                 ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
-                    Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
-                    for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
-                        RpcRequest rpcRequest = new RpcRequest();
-                        rpcRequest.setContentType(RpcBaseAction.PING.name());
+                    // 在启用广播的情况下,采用广播协议
+                    RpcRequest rpcRequest = new RpcRequest();
+                    rpcRequest.setContentType(RpcBaseAction.PING.name());
+                    if (broadcastAddress != null) {
+                        // 广播发送ping
                         RunnerUtil.execSilent(() -> {
-                            TimingHandler value = entry.getValue();
-                            value.lastPingTime = System.currentTimeMillis();
-                            this.rpcUdpSpider.sendMsg(rpcRequest, entry.getKey());
+                            this.rpcUdpSpider.sendMsg(rpcRequest, broadcastAddress);
                         });
+                    } else {
+                        Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
+                        for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
+                            RunnerUtil.execSilent(() -> {
+                                TimingHandler value = entry.getValue();
+                                value.lastPingTime = System.currentTimeMillis();
+                                this.rpcUdpSpider.sendMsg(rpcRequest, entry.getKey());
+                            });
+                        }
                     }
                 }, 0, pingInterval, TimeUnit.MILLISECONDS);
 

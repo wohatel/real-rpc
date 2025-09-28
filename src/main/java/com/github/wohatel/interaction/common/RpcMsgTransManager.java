@@ -24,6 +24,7 @@ import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
 import com.github.wohatel.util.FileUtil;
 import com.github.wohatel.util.JsonUtil;
+import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
@@ -79,19 +80,21 @@ public class RpcMsgTransManager {
         if (channel == null || !channel.isActive()) {
             throw new IllegalStateException("Channel unavailable, send failed");
         }
-        ByteBuf buf;
-        if (msg instanceof byte[] bytes) {
-            // 原样发送 byte[]
-            buf = Unpooled.wrappedBuffer(bytes);
-        } else if (msg instanceof String s) {
-            // 原样发送字符串，不加双引号
-            buf = Unpooled.copiedBuffer(s, CharsetUtil.UTF_8);
-        } else {
-            // 对象 / 泛型 → JSON 序列化
-            buf = Unpooled.wrappedBuffer(JSON.toJSONBytes(msg));
-        }
-        DatagramPacket packet = new DatagramPacket(buf, to);
-        channel.writeAndFlush(packet);
+        final ByteBuf buf = channel.alloc().buffer();
+        ReferenceByteBufUtil.exceptionRelease(() -> {
+            if (msg instanceof byte[] bytes) {
+                // 原样发送 byte[]
+                buf.writeBytes(bytes);
+            } else if (msg instanceof String s) {
+                // 原样发送字符串，不加双引号
+                buf.writeCharSequence(s, CharsetUtil.UTF_8);
+            } else {
+                // 对象 / 泛型 → JSON 序列化
+                buf.writeBytes(JSON.toJSONBytes(msg));
+            }
+            DatagramPacket packet = new DatagramPacket(buf, to);
+            channel.writeAndFlush(packet);
+        }, buf);
     }
 
     /**
