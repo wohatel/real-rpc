@@ -1,5 +1,6 @@
 package com.github.wohatel;
 
+import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.udp.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,7 +22,8 @@ public class TestUdpString {
      */
     @Test
     void testUdp() throws InterruptedException {
-        RpcUdpSpider<String> server = RpcUdpSpider.buildStringSpider(new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
+        RpcUdpSpider<String> server = RpcUdpSpider.buildSpider(new TypeReference<String>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<String> datagramPacket) throws Exception {
                 // 回复
@@ -31,7 +33,8 @@ public class TestUdpString {
         server.bind(8765).sync();
 
 
-        RpcUdpSpider<String> client = RpcUdpSpider.buildStringSpider(new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
+        RpcUdpSpider<String> client = RpcUdpSpider.buildSpider(new TypeReference<String>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<String> datagramPacket) throws Exception {
                 System.out.println("服务端的问候:" + datagramPacket.getMsg());

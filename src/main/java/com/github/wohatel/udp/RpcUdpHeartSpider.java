@@ -63,6 +63,10 @@ public class RpcUdpHeartSpider {
         this(eventLoopGroup, null, pingInterval, thresholdTimeMillis, null);
     }
 
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, Long pingInterval, Long thresholdTimeMillis, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> consumer) {
+        this(eventLoopGroup, null, pingInterval, thresholdTimeMillis, consumer);
+    }
+
     /**
      *
      * @param eventLoopGroup      eventGroup
@@ -74,8 +78,7 @@ public class RpcUdpHeartSpider {
     public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> consumer) {
         this.thresholdTimeMillis = thresholdTimeMillis;
         this.pingInterval = pingInterval;
-        this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
-        }, eventLoopGroup, channelOptions, new SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>>() {
+        SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> heartInbondHandler = new SimpleChannelInboundHandler<>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
                 RpcRequest request = packet.getMsg();
@@ -98,7 +101,9 @@ public class RpcUdpHeartSpider {
                     }
                 }
             }
-        });
+        };
+        this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
+        }, eventLoopGroup, channelOptions, heartInbondHandler);
     }
 
     /**
@@ -109,6 +114,7 @@ public class RpcUdpHeartSpider {
         future.addListener((ChannelFutureListener) connectFuture -> {
             Channel newChannel = connectFuture.channel();
             if (connectFuture.isSuccess()) {
+                // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
                 ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
                     Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
                     for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
@@ -121,6 +127,8 @@ public class RpcUdpHeartSpider {
                         });
                     }
                 }, 0, pingInterval, TimeUnit.MILLISECONDS);
+
+                // 如果检测到channel关闭了,就注销掉pingFuture的任务
                 newChannel.closeFuture().addListener(f -> {
                     pingFuture.cancel(false);
                 });

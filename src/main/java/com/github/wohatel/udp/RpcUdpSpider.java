@@ -3,7 +3,6 @@ package com.github.wohatel.udp;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
-import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.util.ByteBufDecoder;
@@ -50,22 +49,6 @@ public class RpcUdpSpider<T> {
         this.channelInitializer = channelInitializer;
         this.channelClass = getChannelClass();
         this.channelOptions = channelOptions;
-    }
-
-    /**
-     * 构建一个简单的udp
-     */
-    public static RpcUdpSpider<String> buildStringSpider(SimpleChannelInboundHandler<RpcUdpPacket<String>> simpleChannelInboundHandler) {
-        return buildSpider(new TypeReference<String>() {
-        }, simpleChannelInboundHandler);
-    }
-
-    /**
-     * 构建一个简单的udp
-     */
-    public static RpcUdpSpider<RpcRequest> buildRpcRequestSpider(SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> simpleChannelInboundHandler) {
-        return buildSpider(new TypeReference<RpcRequest>() {
-        }, simpleChannelInboundHandler);
     }
 
     /**

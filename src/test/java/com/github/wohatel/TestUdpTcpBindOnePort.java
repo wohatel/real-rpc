@@ -1,5 +1,6 @@
 package com.github.wohatel;
 
+import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
@@ -26,7 +27,8 @@ public class TestUdpTcpBindOnePort {
     @Test
     void testBroadCast() throws InterruptedException {
         // udp绑定8765
-        RpcUdpSpider<String> server = RpcUdpSpider.buildStringSpider(new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
+        RpcUdpSpider<String> server = RpcUdpSpider.buildSpider(new TypeReference<String>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<String> datagramPacket) throws Exception {
                 System.out.println("udp服务端收到:" + datagramPacket.getMsg());
@@ -46,7 +48,8 @@ public class TestUdpTcpBindOnePort {
         rpcServer.start().sync();
 
         // udpc-lient
-        RpcUdpSpider<String> client = RpcUdpSpider.buildStringSpider(new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
+        RpcUdpSpider<String> client = RpcUdpSpider.buildSpider(new TypeReference<String>() {
+        }, new SimpleChannelInboundHandler<RpcUdpPacket<String>>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<String> datagramPacket) throws Exception {
                 System.out.println("client收到消息:" + datagramPacket.getMsg());

@@ -15,8 +15,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
-
 /**
  * ----------注意--------------
  * 只能客户端发起会话及请求,服务端响应

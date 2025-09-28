@@ -1,5 +1,6 @@
 package com.github.wohatel;
 
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.udp.RpcUdpHeartSpider;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,9 @@ public class TestRpcUdpHeartSpider {
     @Test
     void sendHeart() throws InterruptedException {
         RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider(new NioEventLoopGroup(), 3000L, 10_000L);
-        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(new NioEventLoopGroup(), 3000L, 10_000L);
-
+        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(new NioEventLoopGroup(), 3000L, 10_000L, (ctx, pet) -> {
+            System.out.println("收到消息:" + pet.getMsg());
+        });
 
         spider1.bind(8765);
         spider2.bind(8766);
@@ -27,6 +29,8 @@ public class TestRpcUdpHeartSpider {
         // spider 添加一个远程的主机,并测试联通性
         spider1.addRemoteSocket(new InetSocketAddress("127.0.0.1", 8766));
 
+        // 同时可以发送其它消息
+        spider1.sendMsg(RpcRequest.withBody("hello"), new InetSocketAddress("127.0.0.1", 8766));
 
         // 开启一个线程监控 spider1 对于容器内的主机的连通性
         Thread.ofVirtual().start(() -> {
@@ -38,6 +42,11 @@ public class TestRpcUdpHeartSpider {
                 }
                 boolean alive = spider1.getRemoteSocket(new InetSocketAddress("127.0.0.1", 8766)).isAlive();
                 System.out.println(alive);
+
+                if (!alive) {
+                    System.out.println("无法发出的消息");
+                    spider1.sendMsg(RpcRequest.withBody("hello"), new InetSocketAddress("127.0.0.1", 8766));
+                }
             }
         });
 
