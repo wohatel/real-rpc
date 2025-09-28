@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * description
@@ -35,7 +36,6 @@ public class RpcUdpHeartSpider {
     private final Long thresholdTimeMillis;
     @Getter
     private final Long pingInterval;
-
     @Getter
     private final RpcUdpSpider<RpcRequest> rpcUdpSpider;
     @Getter
@@ -59,7 +59,19 @@ public class RpcUdpHeartSpider {
         }
     }
 
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis) {
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, Long pingInterval, Long thresholdTimeMillis) {
+        this(eventLoopGroup, null, pingInterval, thresholdTimeMillis, null);
+    }
+
+    /**
+     *
+     * @param eventLoopGroup      eventGroup
+     * @param channelOptions      连接参数
+     * @param pingInterval        ping的间隔
+     * @param thresholdTimeMillis 超时阈值判断
+     * @param consumer            执行其它ping,pong之外的消息逻辑
+     */
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis, Consumer<RpcUdpPacket<RpcRequest>> consumer) {
         this.thresholdTimeMillis = thresholdTimeMillis;
         this.pingInterval = pingInterval;
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
@@ -73,12 +85,16 @@ public class RpcUdpHeartSpider {
                     RpcRequest rpcRequest = new RpcRequest();
                     rpcRequest.setContentType(RpcBaseAction.PONG.name());
                     // 对方是ping,则直接pong回去
-                    rpcUdpSpider.sendMsg(rpcRequest, packet.getSender());
+                    RpcUdpSpider.sendGeneralMsg(channelHandlerContext.channel(), rpcRequest, packet.getSender());
                 } else if (action == RpcBaseAction.PONG) {
                     // 如果对方是pong,则记录pong时间
                     TimingHandler handler = timingHandlerMap.get(packet.getSender());
                     if (handler != null) {
                         handler.lastPongTime = System.currentTimeMillis();
+                    }
+                } else {
+                    if (consumer != null) {
+                        consumer.accept(packet);
                     }
                 }
             }
@@ -116,16 +132,29 @@ public class RpcUdpHeartSpider {
         return future;
     }
 
+    /**
+     * 关闭服务
+     */
     public ChannelFuture close() {
         return rpcUdpSpider.close();
+    }
+
+    /**
+     * 发送消息到对方
+     *
+     * @param rpcRequest 请求体
+     * @param to         发送目标
+     */
+    public void sendMsg(RpcRequest rpcRequest, InetSocketAddress to) {
+        rpcUdpSpider.sendMsg(rpcRequest, to);
     }
 
     /**
      * 添加远端的socket 检测
      *
      */
-    public void addRemoteSocket(InetSocketAddress socketAddress) {
-        timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(thresholdTimeMillis));
+    public TimingHandler addRemoteSocket(InetSocketAddress socketAddress) {
+        return timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(thresholdTimeMillis));
     }
 
     /**
@@ -137,13 +166,20 @@ public class RpcUdpHeartSpider {
     }
 
     /**
-     * 删除远端的socket 检测
+     * 获取远端的socket 检测
      *
      */
     public TimingHandler getRemoteSocket(InetSocketAddress socketAddress) {
-        return timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(thresholdTimeMillis));
+        return timingHandlerMap.get(socketAddress);
     }
 
+    /**
+     * 获取远端的socket 检测
+     *
+     */
+    public boolean containsRemoteSocket(InetSocketAddress socketAddress) {
+        return timingHandlerMap.containsKey(socketAddress);
+    }
 
     /**
      * 清理掉未联通的socket
