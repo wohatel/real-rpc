@@ -8,6 +8,7 @@ import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import lombok.Data;
+import lombok.Getter;
 
 
 /**
@@ -22,6 +23,7 @@ public class RpcDataReceiver {
 
     public static String NODEID = System.currentTimeMillis() + NanoIdUtils.randomNanoId();
 
+    @Getter
     protected Channel channel;
 
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
@@ -57,5 +59,9 @@ public class RpcDataReceiver {
 
     public boolean isAlive() {
         return channel != null && channel.isActive();
+    }
+
+    public boolean isWritable() {
+        return channel != null && channel.isWritable();
     }
 }

@@ -80,7 +80,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
         return ReferenceByteBufUtil.finallyRelease(() -> {
             CompositeByteBuf composite = input.alloc().compositeBuffer();
             composite.addComponent(true, input.alloc().buffer(1).writeBoolean(isCompress));
-            ByteBuf byteBuf = input.readRetainedSlice(input.readableBytes());
+            ByteBuf byteBuf = input.retain();
             if (!isCompress) {
                 // 此处不能释放
                 return composite.addComponent(true, byteBuf);

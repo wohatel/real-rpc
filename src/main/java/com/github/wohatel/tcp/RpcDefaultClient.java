@@ -222,7 +222,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
         rpcRequest.setNeedResponse(false);
-        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(),this.channel.id().asShortText());
+        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(), this.channel.id().asShortText());
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 

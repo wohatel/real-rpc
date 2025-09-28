@@ -73,7 +73,7 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
      */
     private ByteBuf tryDecompress(ByteBuf in) {
         boolean isCompress = in.readBoolean();
-        ByteBuf byteBuf = in.readRetainedSlice(in.readableBytes());
+        ByteBuf byteBuf = in.retain();
         if (!isCompress) {
             return byteBuf;
         }
