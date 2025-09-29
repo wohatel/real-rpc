@@ -14,7 +14,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.Data;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -42,8 +41,7 @@ public class RpcUdpHeartSpider {
     @Getter
     private final Map<InetSocketAddress, TimingHandler> timingHandlerMap = new ConcurrentHashMap<>();
     @Getter
-    @Setter
-    private InetSocketAddress broadcastAddress;
+    private final BroadCaster broadCaster = new BroadCaster();
 
     @Data
     public static class TimingHandler {
@@ -56,10 +54,20 @@ public class RpcUdpHeartSpider {
         }
 
         public boolean isAlive() {
-            if (lastPingTime == null || lastPongTime == null) {
+            if (lastPongTime == null) {
                 return false;
             }
             return System.currentTimeMillis() - lastPongTime < thresholdTimeMillis;
+        }
+    }
+
+    @Data
+    public static class BroadCaster {
+        private InetSocketAddress broadcastAddress;
+        private boolean enable;
+
+        public boolean isReady() {
+            return broadcastAddress != null && enable;
         }
     }
 
@@ -85,24 +93,26 @@ public class RpcUdpHeartSpider {
         SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> heartInbondHandler = new SimpleChannelInboundHandler<>() {
             @Override
             protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
-                RpcRequest request = packet.getMsg();
-                String contentType = request.getContentType();
-                RpcBaseAction action = RpcBaseAction.fromString(contentType);
-                if (action == RpcBaseAction.PING) {
-                    RpcRequest rpcRequest = new RpcRequest();
-                    rpcRequest.setContentType(RpcBaseAction.PONG.name());
-                    // 对方是ping,则直接pong回去
-                    RpcUdpSpider.sendGeneralMsg(channelHandlerContext.channel(), rpcRequest, packet.getSender());
-                } else if (action == RpcBaseAction.PONG) {
-                    // 如果对方是pong,则记录pong时间
-                    TimingHandler handler = timingHandlerMap.get(packet.getSender());
-                    if (handler != null) {
-                        handler.lastPongTime = System.currentTimeMillis();
+                RunnerUtil.execSilent(() -> {
+                    RpcRequest request = packet.getMsg();
+                    String contentType = request.getContentType();
+                    RpcBaseAction action = RpcBaseAction.fromString(contentType);
+                    if (action == RpcBaseAction.PING) {
+                        RpcRequest rpcRequest = new RpcRequest();
+                        rpcRequest.setContentType(RpcBaseAction.PONG.name());
+                        // 对方是ping,则直接pong回去
+                        RpcUdpSpider.sendGeneralMsg(channelHandlerContext.channel(), rpcRequest, packet.getSender());
+                    } else if (action == RpcBaseAction.PONG) {
+                        // 如果对方是pong,则记录pong时间
+                        TimingHandler handler = timingHandlerMap.get(packet.getSender());
+                        if (handler != null) {
+                            handler.lastPongTime = System.currentTimeMillis();
+                        }
                     }
-                } else {
-                    if (consumer != null) {
-                        consumer.accept(channelHandlerContext, packet);
-                    }
+                });
+                // 对所有消息进行消费(包括ping-pang)
+                if (consumer != null) {
+                    consumer.accept(channelHandlerContext, packet);
                 }
             }
         };
@@ -115,15 +125,22 @@ public class RpcUdpHeartSpider {
      *
      * @param broadcastAddress 广播地址
      */
-    public void startBroadcast(InetSocketAddress broadcastAddress) {
-        this.broadcastAddress = broadcastAddress;
+    public void setBroadcastAddress(InetSocketAddress broadcastAddress) {
+        this.broadCaster.setBroadcastAddress(broadcastAddress);
     }
 
     /**
      * 关闭广播
      */
     public void stopBroadcast() {
-        this.broadcastAddress = null;
+        this.broadCaster.setEnable(false);
+    }
+
+    /**
+     * 关闭广播
+     */
+    public void enableBroadcast() {
+        this.broadCaster.setEnable(true);
     }
 
     /**
@@ -139,11 +156,9 @@ public class RpcUdpHeartSpider {
                     // 在启用广播的情况下,采用广播协议
                     RpcRequest rpcRequest = new RpcRequest();
                     rpcRequest.setContentType(RpcBaseAction.PING.name());
-                    if (broadcastAddress != null) {
+                    if (this.broadCaster.isReady()) {
                         // 广播发送ping
-                        RunnerUtil.execSilent(() -> {
-                            this.rpcUdpSpider.sendMsg(rpcRequest, broadcastAddress);
-                        });
+                        RunnerUtil.execSilent(() -> this.rpcUdpSpider.sendMsg(rpcRequest, broadCaster.broadcastAddress));
                     } else {
                         Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
                         for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {

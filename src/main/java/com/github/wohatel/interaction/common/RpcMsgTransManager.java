@@ -29,7 +29,6 @@ import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
@@ -338,8 +337,8 @@ public class RpcMsgTransManager {
             long position = writeIndex;
             fileChannel.position(position);
             while (position < fileSize) {
+                log.info("the file transfer position:" + position + " size:" + fileSize);
                 // 校验是不是异常结束
-                log.info("the file transfer begins:" + position + " size:" + fileSize);
                 if (rpcFuture.isSessionFinish()) {
                     break;
                 }
@@ -362,7 +361,7 @@ public class RpcMsgTransManager {
                 // **限速控制**
                 boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
                 if (!isEnough) {
-                    throw new RpcException(RpcErrorEnum.SEND_MSG, "file Send Timeout: The speed limit is too low");
+                    throw new RpcException(RpcErrorEnum.SEND_MSG, "file Send Timeout: The rateLimiter limit too low");
                 }
                 // **读取文件数据到 ByteBuffer**
                 ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());

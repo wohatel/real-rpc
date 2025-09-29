@@ -80,6 +80,7 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
         CompositeByteBuf decompressed = in.alloc().compositeBuffer();
         return ReferenceByteBufUtil.exceptionRelease(() -> {
             EmbeddedChannel ch = decompressChannel.get();
+            ch.finishAndReleaseAll();
             ch.writeInbound(byteBuf);
             ch.flushInbound();
             ByteBuf buf;

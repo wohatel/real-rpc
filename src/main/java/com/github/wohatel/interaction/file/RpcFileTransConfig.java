@@ -40,7 +40,7 @@ public class RpcFileTransConfig {
     private long speedLimit = 5 * 1024 * 1024;
 
     /**
-     * 每块传输大小(512K)
+     * 每块传输大小(512K),不要设置太大
      */
     @Builder.Default
     private long chunkSize = 512 * 1024;

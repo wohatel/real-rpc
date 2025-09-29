@@ -88,6 +88,8 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
             // EmbeddedChannel 会关闭传入的byteBuf,所以只需要负责异常时释放就行
             return ReferenceByteBufUtil.exceptionRelease(() -> {
                 EmbeddedChannel ch = compressChannel.get();
+                // 清理残留
+                ch.finishAndReleaseAll();
                 ch.writeOutbound(byteBuf);
                 ch.flushOutbound();
                 ByteBuf buf;

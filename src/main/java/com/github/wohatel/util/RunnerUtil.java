@@ -13,7 +13,7 @@ public final class RunnerUtil {
     public static <T> T execSilent(Supplier<T> supplier) {
         try {
             return supplier.get();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("execSilent exception:", e);
             return null;
         }
@@ -22,7 +22,7 @@ public final class RunnerUtil {
     public static void execSilent(ThrowingRunnable runnable) {
         try {
             runnable.run();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("execSilent-runnable exception:", e);
         }
     }
@@ -35,7 +35,7 @@ public final class RunnerUtil {
     public static <T> T execSilentExceptionTo(Supplier<T> supplier, T result) {
         try {
             return supplier.get();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("execSilentExceptionTo exception:", e);
             return result;
         }
