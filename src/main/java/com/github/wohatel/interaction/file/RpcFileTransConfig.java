@@ -5,7 +5,8 @@ import com.github.wohatel.constant.RpcException;
 import lombok.Builder;
 import lombok.Data;
 
-/** * @author yaochuang
+/**
+ * @author yaochuang
  */
 @Data
 @Builder

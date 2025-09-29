@@ -16,7 +16,8 @@ import lombok.experimental.Accessors;
 
 import java.util.function.Consumer;
 
-/** * @author yaochuang
+/**
+ * @author yaochuang
  */
 @Data
 @Accessors(chain = true)

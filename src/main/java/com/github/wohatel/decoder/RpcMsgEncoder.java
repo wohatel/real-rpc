@@ -17,7 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-/** * @author yaochuang
+/**
+ * @author yaochuang
  */
 @Slf4j
 public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {

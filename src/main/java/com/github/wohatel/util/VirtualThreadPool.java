@@ -5,7 +5,8 @@ import lombok.Getter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** * @author yaochuang 2025/05/08 14:52
+/**
+ * @author yaochuang 2025/05/08 14:52
  */
 public class VirtualThreadPool {
     @Getter

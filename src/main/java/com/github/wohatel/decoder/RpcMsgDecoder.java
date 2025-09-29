@@ -17,7 +17,8 @@ import io.netty.handler.codec.compression.Lz4FrameDecoder;
 
 import java.util.List;
 
-/** * @author yaochuang
+/**
+ * @author yaochuang
  */
 public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
     private final ThreadLocal<EmbeddedChannel> decompressChannel = ThreadLocal.withInitial(() -> new EmbeddedChannel(new Lz4FrameDecoder()));
