@@ -72,7 +72,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
             }
             return ReferenceByteBufUtil.exceptionRelease(() -> {
                 EmbeddedChannel ch = compressChannel.get();
-                ch.finishAndReleaseAll();
+                ch.releaseOutbound();
                 ch.writeOutbound(byteBuf);
                 ch.flushOutbound();
                 ByteBuf buf;

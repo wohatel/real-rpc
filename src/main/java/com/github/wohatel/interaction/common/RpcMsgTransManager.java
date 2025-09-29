@@ -179,7 +179,7 @@ public class RpcMsgTransManager {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the file does not exist");
         }
         if (file.isDirectory()) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "the transferred files are a directory, please check them");
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the transferred file is a directory, please check them");
         }
         if (rpcSession == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession It can't be null, please check");
