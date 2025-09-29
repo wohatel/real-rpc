@@ -5,7 +5,6 @@ import com.github.wohatel.interaction.file.RpcFileRequest;
 import lombok.Getter;
 
 /**
- * description
  *
  * @author yaochuang 2025/04/18 14:59
  */

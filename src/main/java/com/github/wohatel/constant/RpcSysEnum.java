@@ -1,7 +1,6 @@
 package com.github.wohatel.constant;
 
 /**
- * description
  *
  * @author yaochuang 2025/08/28 09:41
  */

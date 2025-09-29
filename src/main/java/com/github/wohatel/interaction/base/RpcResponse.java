@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcResponse extends RpcRelay {
     private String responseId;
-    private String origRequestId; // 原始请求id
+    private String origRequestId;
     private boolean success = true;
-    private String msg; // 异常消息
-    private int code; // code
+    private String msg;
+    private int code;
 
     public static RpcResponse fromRequest(RpcRequest rpcRequest) {
         if (rpcRequest == null) {

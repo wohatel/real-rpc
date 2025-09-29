@@ -6,11 +6,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.File;
 
-/**
- * 文件发送方处理文件传输事件
- *
- * @author yaochuang 2025/03/27 13:29
- */
 @RequiredArgsConstructor
 public class RpcFileSenderWrapper {
 

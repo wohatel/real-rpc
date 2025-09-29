@@ -20,13 +20,7 @@ import java.nio.file.StandardOpenOption;
 @Slf4j
 public class FileUtil {
 
-    /**
-     * 文件追加或插入
-     *
-     * @param file          文件
-     * @param bytes         数组
-     * @param startPosition 开始位置
-     * @throws IOException 异常
+    /**     * File appendage or insertion
      */
     public static void appendFile(String file, byte[] bytes, long startPosition) throws IOException {
         try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {
@@ -37,7 +31,7 @@ public class FileUtil {
 
 
     /**
-     * 文件追加到末尾
+     * The file is appended to the end
      *
      */
     public static void appendFile(String file, byte[] bytes) throws IOException {
@@ -48,7 +42,7 @@ public class FileUtil {
     }
 
     /**
-     * md5文件hash
+     * md5 file hash
      *
      */
     @SneakyThrows
@@ -57,12 +51,12 @@ public class FileUtil {
     }
 
     /**
-     * 尝试压缩文件前 headSize 个字节，若压缩率低于指定阈值 rate 则返回 true
+     * The first headSize byte of the file is attempted,
+     * and true is returned if the compression rate is lower than the specified threshold rate
      *
-     * @param file     要压缩的文件
-     * @param headSize 读取文件的前 headSize 字节
-     * @param rate     压缩率阈值 (0-100)
-     * @return 是否值得压缩（压缩率低于给定值）
+     * @param file     file
+     * @param headSize Read the first headSize byte of the file
+     * @param rate     (0-100)
      */
     @SneakyThrows
     public static boolean tryCompress(File file, int headSize, int rate) {
@@ -76,7 +70,7 @@ public class FileUtil {
         try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             dis.readFully(inputBytes);
         }
-        // LZ4 压缩
+        // LZ4 used
         LZ4Factory factory = LZ4Factory.fastestInstance();
         LZ4Compressor compressor = factory.fastCompressor();
         int maxCompressedLength = compressor.maxCompressedLength(inputBytes.length);

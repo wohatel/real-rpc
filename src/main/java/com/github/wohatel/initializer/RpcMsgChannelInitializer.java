@@ -16,16 +16,12 @@ import lombok.experimental.Accessors;
 
 import java.util.function.Consumer;
 
-/**
- * @author yaochuang
+/** * @author yaochuang
  */
 @Data
 @Accessors(chain = true)
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    /**
-     * 默认最大帧的消息为16M
-     */
     private int maxFramePayloadLength = 16 * 1024 * 1024;
 
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
@@ -44,9 +40,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         rpcMessageInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestMsgHandler);
     }
 
-    /**
-     * 添加的默认的编码解码和压缩器
-     */
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         if (initChannelConsumer != null) {
@@ -57,7 +50,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     }
 
     private void initChannel0(SocketChannel socketChannel) {
-        // 默认最大的帧16M,如果接口超过16M说明是不合理的,需要将接口拆开,分成小数据
         int defaultMaxFrameLength = maxFramePayloadLength;
         socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         ChannelPipeline pipeline = socketChannel.pipeline();

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * description
  *
  * @author yaochuang 2025/09/17 17:50
  */

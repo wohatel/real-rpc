@@ -8,9 +8,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OneTimeLock {
 
-    private static final Cache<String, AtomicBoolean> executed = Caffeine.newBuilder().expireAfterWrite(3, TimeUnit.MINUTES) // 10分钟后过期自动清理
+    private static final Cache<String, AtomicBoolean> executed = Caffeine.newBuilder().expireAfterWrite(3, TimeUnit.MINUTES)// Automatically cleaned up after 3 minutes
             .build();
 
+    /**
+     * A key is executed only once
+     */
     public static boolean runOnce(String key, Runnable task) {
         AtomicBoolean flag = executed.get(key, k -> new AtomicBoolean(false));
         if (flag.compareAndSet(false, true)) {

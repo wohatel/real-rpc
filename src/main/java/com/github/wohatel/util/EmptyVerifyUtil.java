@@ -3,8 +3,7 @@ package com.github.wohatel.util;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * description
+/** * verify empty connection
  *
  * @author yaochuang 2025/09/17 18:00
  */

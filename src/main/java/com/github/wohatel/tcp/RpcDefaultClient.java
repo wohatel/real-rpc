@@ -41,16 +41,13 @@ import java.net.SocketAddress;
 import java.util.List;
 
 
-/**
- * @author yaochuang
- */
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
 
     protected final MultithreadEventLoopGroup eventLoopGroup;
     protected final Class<? extends Channel> channelClass;
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
-    // 如需要绑定本地网卡去连接远程服务需要set
+    // If you need to bind a local NIC to connect to remote services, you need to set it
     @Getter
     @Setter
     protected SocketAddress localAddress;
@@ -103,8 +100,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendFile(channel, file, input);
     }
 
-    /**
-     * 强制中断文件传输
+    /**     * Force interrupt file transfer
      */
     public void interruptSendFile(RpcSession rpcSession) {
         RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
@@ -139,8 +135,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
 
-    /**
-     * 建立会话
+    /**     * Establish a session
      *
      * @param rpcSession rpcSession
      * @return RpcSessionFuture
@@ -149,8 +144,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return startSession(rpcSession, null);
     }
 
-    /**
-     * 询问会话是否存在
+    /**     * Ask if the session status
      *
      * @param rpcSession rpcSession
      * @return RpcSessionFuture
@@ -167,8 +161,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return rpcResponse.isSuccess();
     }
 
-    /**
-     * 询问会话是否存在
+    /**     * Ask if the session exists
      *
      * @return RpcSessionFuture
      */
@@ -176,8 +169,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return RpcMsgTransManager.sendInquiryRemoteNodeIdRequest(channel);
     }
 
-    /**
-     * 建立会话
+    /**     * Establish a session with context
      *
      * @param rpcSession session
      * @return RpcSessionFuture
@@ -208,8 +200,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return rpcFuture;
     }
 
-    /**
-     * 关闭会话
+    /**     * close session
      */
     public void stopSession(RpcSession rpcSession) {
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
@@ -226,8 +217,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 
-    /**
-     * 获取session内置对象
+    /**     * get session future
      *
      * @param rpcSession session
      * @return RpcSessionFuture
@@ -236,9 +226,6 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
     }
 
-    /**
-     * 返回类型
-     */
     protected Class<? extends Channel> getChannelClass() {
         if (this.eventLoopGroup instanceof NioEventLoopGroup) {
             return NioSocketChannel.class;

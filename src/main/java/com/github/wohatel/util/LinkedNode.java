@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * description
  *
  * @author yaochuang 2025/09/12 15:21
  */
@@ -61,11 +60,6 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return current;
     }
 
-    /**
-     * 当前节点添加下个节点
-     *
-     * @param next 要添加的下个节点
-     */
     public LinkedNode<K, T> addNext(LinkedNode<K, T> next) {
         verifyNode(next);
         this.next = next;
@@ -74,24 +68,16 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return next;
     }
 
-
-    /**
-     * 判断是否包含node
-     *
-     * @param node 判断是否包含node
-     * @return boolean 是否包含
-     */
     public boolean containsNode(LinkedNode<K, T> node) {
         if (node == null) {
             return false;
         }
-        // 回溯到头节点
+
         LinkedNode<K, T> current = this;
         while (current.pre != null) {
             current = current.pre;
         }
 
-        // 从头节点向下遍历
         while (current != null) {
             if (current == node) {  // 比较节点对象本身
                 return true;
@@ -101,8 +87,7 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return false;
     }
 
-    /**
-     * 校验节点
+    /**     * 校验节点
      *
      * @param node 节点
      */
@@ -115,18 +100,12 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         }
     }
 
-    /**
-     * 是否有下游节点
-     *
-     * @return boolean
-     */
+
     public boolean hasNext() {
         return this.next != null;
     }
 
-    /**
-     * 获取头节点
-     */
+
     public LinkedNode<K, T> findHead() {
         LinkedNode<K, T> current = this;
         while (current.pre != null) {
@@ -135,9 +114,7 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return current;
     }
 
-    /**
-     * 获取尾节点
-     */
+
     public LinkedNode<K, T> findLast() {
         LinkedNode<K, T> current = this;
         while (current.next != null) {
@@ -146,9 +123,7 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return current;
     }
 
-    /**
-     * 在链表尾部追加节点
-     */
+
     public LinkedNode<K, T> addLast(LinkedNode<K, T> node) {
         verifyNode(node);
         LinkedNode<K, T> last = findLast();
@@ -158,9 +133,6 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return node;
     }
 
-    /**
-     * 在 target 节点之前插入 node
-     */
     public LinkedNode<K, T> addBefore(LinkedNode<K, T> node) {
         verifyNode(node);
         LinkedNode<K, T> prev = this.getPre();
@@ -174,10 +146,6 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return node;
     }
 
-
-    /**
-     * 删除节点,不存在不会报错
-     */
     public void remove(LinkedNode<K, T> node) {
         if (!containsNode(node)) {
             return;
@@ -192,9 +160,6 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         }
     }
 
-    /**
-     * 从当前节点开始迭代
-     */
     @Override
     public Iterator<LinkedNode<K, T>> iterator() {
         return new Iterator<>() {

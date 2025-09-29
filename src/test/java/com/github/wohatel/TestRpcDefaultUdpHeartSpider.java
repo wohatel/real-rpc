@@ -8,19 +8,17 @@ import org.junit.jupiter.api.Test;
 import java.net.InetSocketAddress;
 
 /**
- * description
+
  *
  * @author yaochuang 2025/09/28 11:15
  */
-public class TestRpcUdpHeartSpider {
+public class TestRpcDefaultUdpHeartSpider {
 
 
     @Test
     void sendHeart() throws InterruptedException {
-        RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider(new NioEventLoopGroup(), 3000L, 10_000L);
-        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(new NioEventLoopGroup(), 3000L, 10_000L, (ctx, pet) -> {
-            System.out.println("收到消息:" + pet.getMsg());
-        });
+        RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider(new NioEventLoopGroup());
+        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(new NioEventLoopGroup());
 
         spider1.bind(8765);
         spider2.bind(8766);

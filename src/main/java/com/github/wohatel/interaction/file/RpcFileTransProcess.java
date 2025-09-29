@@ -4,8 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-/**
- * 文件传输进度控制
+/** * 文件传输进度控制
  */
 @Getter
 @Setter

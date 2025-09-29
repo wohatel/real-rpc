@@ -60,7 +60,6 @@ public class RpcFileChannelDataTransManager {
                     sendStartError(rpcResponse, ctx.channel(), "remote accept file path error: send terminated");
                     return;
                 }
-                // 继续处理逻辑
                 readInitFile(ctx, rpcFileRequest, sessionContext, rpcFileWrapper, rpcFileReceiverHandler);
             } catch (Exception e) {
                 sendStartError(rpcResponse, ctx.channel(), e.getMessage());
@@ -68,7 +67,7 @@ public class RpcFileChannelDataTransManager {
         } else if (rpcFileRequest.isSessionFinish()) {
             RpcSession rpcSession = rpcFileRequest.getRpcSession();
             boolean running = RpcSessionTransManger.isRunning(rpcSession.getSessionId());
-            if (!running) {// 如果已经不再运行,则无需执行
+            if (!running) {
                 return;
             }
             RpcSessionTransManger.release(rpcSession.getSessionId());
@@ -107,11 +106,10 @@ public class RpcFileChannelDataTransManager {
         rpcResponse.setBody(JSONArray.toJSONString(body));
         rpcResponse.setMsg(fileWrapper.getMsg());
         rpcResponse.setSuccess(StringUtils.isBlank(fileWrapper.getMsg()));
-        // 告知开启session成功
         RpcMsgTransManager.sendResponse(ctx.channel(), rpcResponse);
-        // 没有异常情况
+
         if (StringUtils.isBlank(fileWrapper.getMsg())) {
-            if (!fileWrapper.isNeedTrans()) { // 直接结束
+            if (!fileWrapper.isNeedTrans()) {
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, fileWrapper.getFile(), fileWrapper.getTransModel(), rpcFileRequest.getFileInfo(), 0L);
                 RpcFileReceiverHandlerExecProxy.onSuccess(rpcFileReceiverHandler, impl);
                 log.info("receiver file reception ends: No transfer required");
@@ -139,11 +137,10 @@ public class RpcFileChannelDataTransManager {
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
-            // 以追加模式打开目标文件
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
                     RpcSessionTransManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> RpcSessionTransManger.isRunning(rpcSession.getSessionId()), 3, () -> RpcSessionTransManger.poll(rpcSession.getSessionId(), rpcSession.getTimeOutMillis() / 3));
-                    // 拉取之后也要判断是否正常
+                    // After pulling, you should also judge whether it is normal
                     if (poll == null) {
                         if (!RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
                             break;

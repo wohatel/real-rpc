@@ -21,16 +21,13 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * description
+
  *
  * @author yaochuang 2025/04/10 09:25
  */
 @Slf4j
 public class RpcSessionTransManger {
 
-    /**
-     * 文件块的释放,需要比较久的时间,为了避免单线程造成的资源关闭堆积,才出采用线程池= true
-     */
     private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.K_TEN, (sessionId, wrapper) -> closeQueue(sessionId));
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
 
@@ -51,19 +48,10 @@ public class RpcSessionTransManger {
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
     }
 
-    /**
-     * 刷新时间
-     *
-     * @param sessionId   会话id
-     * @param sessionTime 会话保留时长
-     */
     public static boolean flush(String sessionId, long sessionTime) {
         return SESSION_MANAGER.flushTime(sessionId, sessionTime);
     }
 
-    /**
-     * 刷新时间
-     */
     public static boolean flush(String sessionId) {
         RpcSession rpcSession = SESSION_MANAGER.getSession(sessionId).getContextWrapper().getRpcSession();
         if (rpcSession != null) {
@@ -90,9 +78,6 @@ public class RpcSessionTransManger {
         }
     }
 
-    /**
-     * 是否正常运行
-     */
     public static boolean isRunning(String sessionId) {
         return SESSION_MANAGER.contains(sessionId);
     }
@@ -121,17 +106,11 @@ public class RpcSessionTransManger {
         return SESSION_MANAGER.getSession(sessionId).getContextWrapper();
     }
 
-    /**
-     * 外部清理session
-     */
     public static void release(String sessionId) {
         SESSION_MANAGER.release(sessionId);
         closeQueue(sessionId);
     }
 
-    /**
-     * 外部清理session
-     */
     public static void releaseFile(String sessionId) {
         SessionDataWrapper sessionWrapper = SESSION_MANAGER.getSession(sessionId);
         if (sessionWrapper != null && sessionWrapper.isFile) {
@@ -139,9 +118,6 @@ public class RpcSessionTransManger {
         }
     }
 
-    /**
-     * 小窗口机制延迟结束
-     */
     public static void closeQueue(String sessionId) {
         BlockingQueue<FileChunkItem> queue = FILE_ITEM_MAP.remove(sessionId);
         if (queue == null) {
@@ -162,7 +138,7 @@ public class RpcSessionTransManger {
                     ReferenceCountUtil.safeRelease(poll.getByteBuf());
                     continue;
                 }
-                // 连续两次poll都是null，确认没人再写了
+                // Two polls in a row are null, confirming that no one writes anymore
                 break;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -171,11 +147,6 @@ public class RpcSessionTransManger {
         }
     }
 
-    /**
-     * description
-     *
-     * @author yaochuang 2025/04/10 09:20
-     */
     @Data
     public static class FileChunkItem {
         private ByteBuf byteBuf;

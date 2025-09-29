@@ -24,9 +24,8 @@ public class RpcFutureTransManager {
     private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut);
 
     /**
-     * 校验并刷新session请求时长
+     * Validates and refreshes the session request duration
      *
-     * @param rpcSessionRequest session请求
      */
     public static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
         if (rpcSessionRequest == null) {
@@ -62,9 +61,6 @@ public class RpcFutureTransManager {
 
     }
 
-    /**
-     * 获取到sessionFuture
-     */
     public static RpcSessionFuture getSessionFuture(String sessionId) {
         return (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
     }
@@ -77,17 +73,17 @@ public class RpcFutureTransManager {
             return;
         }
         RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getResponseId());
-        if (rpcFuture == null) { // 可能超时已被移除
+        if (rpcFuture == null) {
             return;
         }
-        // complete只会嗲用一次
+        // complete only call once
         rpcFuture.complete(rpcResponse);
         rpcFuture.setResponseTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             if (rpcSessionFuture.isSessionFinish()) {
                 remove(rpcResponse.getResponseId());
             } else {
-                // 自动叠加请求时间
+                // auto add time
                 RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getResponseId(), rpcSessionFuture.getTimeOut());
                 executeOnResponse(rpcFuture, rpcResponse);
             }
@@ -99,7 +95,6 @@ public class RpcFutureTransManager {
     }
 
     private static void executeOnResponse(RpcFuture rpcFuture, RpcResponse rpcResponse) {
-        // 执行完结事件
         List<RpcResponseMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
             for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
@@ -134,21 +129,12 @@ public class RpcFutureTransManager {
         return RPC_FUTURE_SESSION_MANAGER.sessionSize();
     }
 
-    /**
-     * 校验是否存在key
-     *
-     * @param requestId 请求id
-     * @return boolean
-     */
+
     public static boolean contains(String requestId) {
         return RPC_FUTURE_SESSION_MANAGER.contains(requestId);
     }
 
-    /**
-     * 处理timeout
-     *
-     * @param future future对象
-     */
+
     private static void handleTimeOut(String sessionId, RpcFuture future) {
         if (future == null) {
             return;
@@ -166,11 +152,7 @@ public class RpcFutureTransManager {
         }
     }
 
-    /**
-     * 处理timeout
-     *
-     * @param rpcSessionFuture sessionFuture
-     */
+
     private static void handleInterrupt(RpcSessionFuture rpcSessionFuture) {
         if (rpcSessionFuture == null) {
             return;

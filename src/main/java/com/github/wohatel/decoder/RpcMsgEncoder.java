@@ -17,8 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-/**
- * @author yaochuang
+/** * @author yaochuang
  */
 @Slf4j
 public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
@@ -34,33 +33,23 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
         out.add(target);
     }
 
-    /**
-     * 编码消息体到 ByteBuf
-     * 1: 是否压缩
-     * 2: 消息类型
-     * 3: 消息长度
-     * 4: 消息体
-     * 5: 文件长度
-     * 6: 文件
-     */
     private ByteBuf encodeMsg(ChannelHandlerContext ctx, RpcMsg msg) {
         ByteBuf buffer = ctx.alloc().buffer();
         return ReferenceByteBufUtil.exceptionRelease(() -> {
             buffer.writeBoolean(msg.isNeedCompress()); // 1: 是否压缩
             buffer.writeInt(msg.getRpcCommandType().getCode()); // 2: 消息体类型
-            // 消息体
+
             byte[] payloadBytes = JSON.toJSONBytes(msg.getPayload());
             buffer.writeInt(payloadBytes.length); // 3: 消息体长度
             buffer.writeBytes(payloadBytes);
 
-            // 文件体
             ByteBuf fileBuffer = msg.getByteBuffer();
             int fileLength = fileBuffer == null ? 0 : fileBuffer.readableBytes();
             buffer.writeInt(fileLength); // 4: 文件长度
             if (fileLength > 0) {
                 buffer.writeBytes(fileBuffer);
             }
-            // 文件释放逻辑
+
             if (msg.getRpcCommandType() == RpcCommandType.file) {
                 RpcFileRequest rpcFileRequest = msg.getPayload(RpcFileRequest.class);
                 RpcSession rpcSession = rpcFileRequest.getRpcSession();
@@ -73,22 +62,16 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
         }, buffer);
     }
 
-    /**
-     * 压缩整个 ByteBuf，零拷贝，多线程安全
-     */
     private ByteBuf tryCompress(ByteBuf input, boolean isCompress) {
         return ReferenceByteBufUtil.finallyRelease(() -> {
             CompositeByteBuf composite = input.alloc().compositeBuffer();
             composite.addComponent(true, input.alloc().buffer(1).writeBoolean(isCompress));
             ByteBuf byteBuf = input.retain();
             if (!isCompress) {
-                // 此处不能释放
                 return composite.addComponent(true, byteBuf);
             }
-            // EmbeddedChannel 会关闭传入的byteBuf,所以只需要负责异常时释放就行
             return ReferenceByteBufUtil.exceptionRelease(() -> {
                 EmbeddedChannel ch = compressChannel.get();
-                // 清理残留
                 ch.finishAndReleaseAll();
                 ch.writeOutbound(byteBuf);
                 ch.flushOutbound();

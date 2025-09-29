@@ -12,7 +12,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * description
  *
  * @author yaochuang 2025/09/16 09:30
  */
@@ -33,7 +32,7 @@ public class RpcMessageBaseInquiryHandler extends ChannelInboundHandlerAdapter {
                 }
                 case INQUIRY_NODE_ID -> {
                     RpcResponse response = request.toResponse();
-                    response.setBody(RpcDataReceiver.NODEID);
+                    response.setBody(RpcDataReceiver.NODE_ID);
                     RpcMsgTransManager.sendResponse(ctx.channel(), response);
                 }
             }

@@ -10,11 +10,12 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 public class RpcFileRequest extends RpcSessionRequest {
-    private boolean finished;//是否传输完毕
-    private long buffer;  //每次传输的大小
-    private long serial;  // 编号
-    private int cacheBlock; // 缓存块大小
+    private boolean finished;
+    private long buffer;  //trans length every time
+    private long serial;
+    private int cacheBlock;
     private RpcFileInfo fileInfo;
+
     public RpcFileRequest(RpcSession rpcSession) {
         super(rpcSession);
     }

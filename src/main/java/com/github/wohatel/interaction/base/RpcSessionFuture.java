@@ -4,8 +4,7 @@ package com.github.wohatel.interaction.base;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-/**
- * @author yaochuang
+/** * @author yaochuang
  */
 @Accessors(chain = true)
 @Data

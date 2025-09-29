@@ -69,9 +69,6 @@ public class RpcMsgTransManager {
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
     }
 
-    /**
-     * 发送udp消息
-     */
     public static <T> void sendUdpMsg(Channel channel, T msg, InetSocketAddress to) {
         if (msg == null) {
             return;
@@ -96,9 +93,6 @@ public class RpcMsgTransManager {
         }, buf);
     }
 
-    /**
-     * 发送文件块
-     */
     private static ChannelFuture sendFileOfSendTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
@@ -109,24 +103,12 @@ public class RpcMsgTransManager {
         return channel.writeAndFlush(build);
     }
 
-    /**
-     * 发送消息,并附带响应结果
-     *
-     * @param channel    通道
-     * @param rpcRequest 请求
-     * @return rpcfuture
-     */
+
     public static RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest) {
         return sendSynRequest(channel, rpcRequest, NumberConstant.OVER_TIME);
     }
 
-    /**
-     * 发送消息,并附带响应结果
-     *
-     * @param channel       通道
-     * @param rpcRequest    请求
-     * @param timeOutMillis 设定超时时间
-     */
+
     public static RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest, long timeOutMillis) {
         rpcRequest.setNeedResponse(true);
         RpcFuture rpcFuture = RpcFutureTransManager.addRequest(rpcRequest, timeOutMillis);
@@ -134,9 +116,7 @@ public class RpcMsgTransManager {
         return rpcFuture;
     }
 
-    /**
-     * 发送文件body体
-     */
+
     @SneakyThrows
     private static void sendFileOfSendBody(Channel channel, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress, boolean finished) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
@@ -148,9 +128,7 @@ public class RpcMsgTransManager {
         RpcMsgTransManager.sendFileOfSendTrunk(channel, rpcFileRequest, buffer);
     }
 
-    /**
-     * 发送文件开启session
-     */
+
     @SneakyThrows
     private static RpcSessionFuture sendFileOfStartSession(Channel channel, File file, RpcFileTransConfig fileTransConfig, RpcSession rpcSession, RpcSessionContext context) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
@@ -167,11 +145,9 @@ public class RpcMsgTransManager {
         if (context != null) {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));
         }
-        // 设置需要返回结果
         rpcFileRequest.setNeedResponse(true);
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
         rpcFuture.setChannelId(channel.id().asShortText());
-        // 发送消息体
         sendRequest(channel, rpcFileRequest);
         return rpcFuture;
     }
@@ -182,12 +158,9 @@ public class RpcMsgTransManager {
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISH);
-            // 设置需要返回结果
             rpcFileRequest.setNeedResponse(false);
-            // 发送消息体
             sendRequest(channel, rpcFileRequest);
         }
-        // 清理内存池
         ByteBufPoolManager.destory(rpcSession.getSessionId());
     }
 
@@ -196,23 +169,11 @@ public class RpcMsgTransManager {
         RpcSessionTransManger.releaseFile(rpcSession.getSessionId());
     }
 
-    /**
-     * 文件传输
-     *
-     * @param channel 通道
-     * @param file    文件
-     * @param input   输入参数
-     */
     public static void sendFile(Channel channel, File file, RpcFileSenderInput input) {
         final RpcFileSenderInput fileSenderInput = input == null ? RpcFileSenderInput.builder().build() : input;
         sendFile(channel, file, fileSenderInput.getRpcSession(), fileSenderInput.getContext(), fileSenderInput.getRpcFileTransConfig(), new RpcFileSenderListenerProxy(fileSenderInput.getRpcFileSenderListener()));
     }
 
-    /**
-     * @param channel            要发送到的channel
-     * @param file               发送的文件
-     * @param rpcFileTransConfig 文件传输的限制
-     */
     private static void sendFile(Channel channel, File file, final RpcSession rpcSession, RpcSessionContext context, RpcFileTransConfig rpcFileTransConfig, RpcFileSenderListenerProxy listener) {
         if (file == null || !file.exists()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the file does not exist");
@@ -250,33 +211,24 @@ public class RpcMsgTransManager {
         Long writeIndex = array.getLong(2);
         String filePath = array.getString(3);
         rpcFileTransProcess.setStartIndex(writeIndex);
-        // 汇总校验结果
         RpcFileSenderWrapper rpcFileSenderWrapper = new RpcFileSenderWrapper(rpcSession, file, transModel);
         if (needTrans) {
-            // 监听文件发送状态
+            // Listen to the file sending status
             listenSendFileBody(rpcFileSenderWrapper, rpcFuture, rpcFileTransProcess, listener);
-            // 发送文件数据
+            // Send file data
             sendFileBody(channel, file, rpcFileSenderWrapper, rpcFuture, rpcFileTransProcess, finalConfig, listener);
             return;
         }
-        // 失败时执行
         if (StringUtils.isNotBlank(startResponse.getMsg())) {
-            // 失败
             listener.onFailure(rpcFileSenderWrapper, startResponse.getMsg());
         } else {
-            // 成功的时候
             listener.onSuccess(rpcFileSenderWrapper);
         }
 
     }
 
     /**
-     * 监听文件发送
-     *
-     * @param rpcFileSenderWrapper 传输描述
-     * @param rpcFuture            future
-     * @param rpcFileTransProcess  传输进度
-     * @param listener             listener执行器
+     * Listen to file sending
      */
     private static void listenSendFileBody(RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, RpcFileSenderListenerProxy listener) {
         RpcResponseMsgListener rpcResponseMsgListener = new RpcResponseMsgListener() {
@@ -319,18 +271,15 @@ public class RpcMsgTransManager {
     }
 
     private static void sendFileBody(Channel channel, File file, RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, final RpcFileTransConfig finalConfig, RpcFileSenderListenerProxy listener) {
-        // 开始发送
         log.info("the file transfer begins:" + file.getAbsolutePath());
         RpcSession rpcSession = rpcFileSenderWrapper.getRpcSession();
-        // 判断文件是否尝试压缩,并且适合压缩
+        // Determine if a file is trying to compress and is suitable for compression
         boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
         RateLimiter rateLimiter = RateLimiter.create(finalConfig.getSpeedLimit());
         Long writeIndex = rpcFileTransProcess.getStartIndex();
-        // 池化内存申请
         int poolSize = finalConfig.getCacheBlock();
         int applyMemory = Math.min(poolSize, NumberConstant.EIGHT);
         ByteBufPoolManager.init(rpcSession.getSessionId(), applyMemory, (int) finalConfig.getChunkSize());
-        // 发送头文件
         try (FileInputStream fis = new FileInputStream(file); FileChannel fileChannel = fis.getChannel()) {
             long fileSize = fileChannel.size();
             int serial = 0;
@@ -338,7 +287,6 @@ public class RpcMsgTransManager {
             fileChannel.position(position);
             while (position < fileSize) {
                 log.info("the file transfer position:" + position + " size:" + fileSize);
-                // 校验是不是异常结束
                 if (rpcFuture.isSessionFinish()) {
                     break;
                 }
@@ -354,16 +302,16 @@ public class RpcMsgTransManager {
                     log.error("the link is not available");
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file sending timeout");
                 }
-                // **检测处理块数**差距
+                // Detect the number of blocks processed
                 RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
-                // **计算当前块大小**
+
                 int thisChunkSize = (int) Math.min(finalConfig.getChunkSize(), fileSize - position);
-                // **限速控制**
+
                 boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
                 if (!isEnough) {
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file Send Timeout: The rateLimiter limit too low");
                 }
-                // **读取文件数据到 ByteBuffer**
+
                 ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
                 ByteBuffer bufferIn = bufferRead.nioBuffer(0, thisChunkSize); // 转换为nio
                 int bytesRead = fileChannel.read(bufferIn);
@@ -372,10 +320,9 @@ public class RpcMsgTransManager {
                 }
                 bufferRead.writerIndex(bytesRead); // 读入的数据量
                 position += bytesRead;
-                // 已发送的数据
+
                 rpcFileTransProcess.setSendSize(position - writeIndex);
                 sendFileOfSendBody(channel, serial, bufferRead, finalConfig.getChunkSize(), rpcSession, isCompressSuitable, position >= fileSize);
-                // 序号++
                 serial++;
             }
         } catch (Exception e) {
@@ -387,7 +334,6 @@ public class RpcMsgTransManager {
     }
 
     public static String sendInquiryRemoteNodeIdRequest(Channel channel) {
-        // 同源的看谁发起的,不通源的看
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setContentType(RpcBaseAction.INQUIRY_SESSION.name());
         RpcFuture rpcFuture = sendSynRequest(channel, rpcRequest);

@@ -11,9 +11,6 @@ import lombok.Data;
 import lombok.Getter;
 
 
-/**
- * @author yaochuang
- */
 @Data
 public class RpcDataReceiver {
 
@@ -21,7 +18,7 @@ public class RpcDataReceiver {
 
     protected final Integer port;
 
-    public static String NODEID = System.currentTimeMillis() + NanoIdUtils.randomNanoId();
+    public static String NODE_ID = System.currentTimeMillis() + NanoIdUtils.randomNanoId();
 
     @Getter
     protected Channel channel;

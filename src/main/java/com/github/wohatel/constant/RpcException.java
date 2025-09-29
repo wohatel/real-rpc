@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * description
  *
  * @author yaochuang 2025/08/28 09:41
  */
@@ -34,8 +33,8 @@ public class RpcException extends RuntimeException {
 
     public static void printLineNumber(Throwable throwable, int level) {
         StackTraceElement[] stack = throwable.getStackTrace();
-        // stack[0] 是当前方法 myMethod
-        // stack[1] 是调用 myMethod 的地方
+        // stack[0] current method
+        // stack[1] the place call current
         int length = stack.length;
         if (level < length) {
             StackTraceElement caller = stack[level];

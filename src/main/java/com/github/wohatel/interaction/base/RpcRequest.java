@@ -16,20 +16,12 @@ public class RpcRequest extends RpcRelay {
     private String website; //  站点
     private String version; //  版本信息
 
-    /**
-     * 构建一个压缩的请求
-     */
     public static RpcRequest withBody(String body) {
         RpcRequest request = new RpcRequest();
         request.setBody(body);
         return request;
     }
 
-    /**
-     * 构建响应
-     *
-     * @return RpcResponse
-     */
     public RpcResponse toResponse() {
         return RpcResponse.fromRequest(this);
     }

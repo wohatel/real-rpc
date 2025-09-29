@@ -17,8 +17,7 @@ import io.netty.handler.codec.compression.Lz4FrameDecoder;
 
 import java.util.List;
 
-/**
- * @author yaochuang
+/** * @author yaochuang
  */
 public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
     private final ThreadLocal<EmbeddedChannel> decompressChannel = ThreadLocal.withInitial(() -> new EmbeddedChannel(new Lz4FrameDecoder()));
@@ -32,15 +31,6 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
         }, byteBuf);
     }
 
-    /**
-     * 解码消息体到 RpcMsg
-     * 1: 是否压缩
-     * 2: 消息类型
-     * 3: 消息长度
-     * 4: 消息体
-     * 5: 文件长度
-     * 6: 文件
-     */
     private RpcMsg decodeMsg(ByteBuf input) {
         RpcMsg msg = new RpcMsg();
         boolean compressed = input.readBoolean();
@@ -67,10 +57,6 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
         return msg;
     }
 
-
-    /**
-     * 尝试解压
-     */
     private ByteBuf tryDecompress(ByteBuf in) {
         boolean isCompress = in.readBoolean();
         ByteBuf byteBuf = in.retain();

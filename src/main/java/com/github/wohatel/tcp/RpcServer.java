@@ -22,8 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-/**
- * 绑定服务器到监听的端口，配置Channel，将入站消息通知给EchoServerHandler实例
+/** * Bind the server to the listening port and configure the channel
+ * to notify the EchoServerHandler instance of inbound messages
  *
  * @author yaochuang
  * @version 1.0.0
@@ -51,8 +51,7 @@ public class RpcServer extends RpcDataReceiver {
         this.childChannelOptions = childChannelOptions;
     }
 
-    /**
-     * 开启nettyServer
+    /**     * start netty tcp Server
      */
     @SneakyThrows
     @SuppressWarnings("all")
@@ -81,13 +80,10 @@ public class RpcServer extends RpcDataReceiver {
                 log.error("netty service start failure, cause：", cause);
             }
         });
-        this.channel = future.channel(); // 用于关闭server
+        this.channel = future.channel();
         return future;
     }
 
-    /**
-     * 返回类型
-     */
     protected Class<? extends ServerChannel> getServerChannelClass() {
         if (this.group instanceof NioEventLoopGroup) {
             return NioServerSocketChannel.class;

@@ -16,16 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RpcSessionContext {
-    /**
-     * 会话主题
-     */
+
     private String topic;
-    /**
-     * 会话事项
-     */
+
     private List<String> matters;
-    /**
-     * 回话正文信息
-     */
+
     private JSONObject parameters;
 }

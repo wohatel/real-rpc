@@ -10,13 +10,12 @@ import io.netty.channel.ChannelHandlerContext;
  */
 public interface RpcSimpleRequestMsgHandler {
     /**
-     * 如果request请求要求有响应,response可以设置body,同时要执行写RpcMsgTransUtil.write操作
+     * If the request request requires a response,
+     * the response can be set to body and perform the RpcMsgTransUtil.write operation
      * if request.isNeedResponse()
      * RpcMsgTransManager.write(ctx.channel(), response);
-     * 注意,如果操作特别耗时--- 需要用异步操作处理,避免线程阻塞,影响其它消息的消费
+     * Note that if the operation is particularly time-consuming--- it needs to be handled asynchronously to avoid thread blocking and affect the consumption of other messages
      *
-     * @param ctx     channel上下文
-     * @param request 请求
      */
     void channelRead(ChannelHandlerContext ctx, final RpcRequest request);
 }

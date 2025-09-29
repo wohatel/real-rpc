@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 
 
 /**
- * description
  *
  * @author yaochuang 2025/06/30 17:33
  */
@@ -59,7 +58,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 if (request.isSessionStart()) {
                     RpcResponse response = request.toResponse();
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
-                        String errorMsg = "{reqeustId:" + request.getRequestId() + "}构建session异常:会话id重复";
+                        String errorMsg = "{requestId:" + request.getRequestId() + "}build session id repeat";
                         linkedNode = LinkedNode.build(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
@@ -80,7 +79,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         rpcSessionRequestMsgHandler.channelRead(ctx, contextWrapper, request);
                     } else {
                         RpcResponse response = request.toResponse();
-                        response.setMsg("{reqeustId:" + request.getRequestId() + "}发送会话消息异常,会话不存在");
+                        response.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
                         response.setSuccess(false);
                         RpcMsgTransManager.sendResponse(ctx.channel(), response);
                     }

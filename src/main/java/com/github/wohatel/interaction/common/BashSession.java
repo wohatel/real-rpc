@@ -33,15 +33,14 @@ public class BashSession {
         this("bash", consumer);
     }
 
-    /**
-     *
-     * @param bashEnv  bash环境
-     *                 "bash" 基本上类linux系统都支持
-     *                 "zsh"  很多机器都支持
-     *                 "ash"  Alpine Linux 默认 shell（BusyBox 的一部分）
+    /**     *
+     * @param bashEnv  bashEnv
+     *                 "bash" linux or mac ... support
+     *                 "zsh"
+     *                 "ash"  Alpine Linux default shell
      *                 ....
-     *                 默认构建的是"bash"环境
-     * @param consumer 构建消费者, 处理日志
+     *                 "bash" is default
+     * @param consumer consumer for shell out
      */
     @SneakyThrows
     public BashSession(String bashEnv, Consumer<String> consumer) {
@@ -76,17 +75,13 @@ public class BashSession {
         }
     }
 
-    /**
-     * 查询历史
-     */
     public String history() {
         return String.join("\n", commandQueue);
     }
 
     /**
-     * 执行ctrl+C
+     * exec ctrl+C
      *
-     * @throws IOException 异常
      */
     public void sendCtrlC() throws IOException {
         lastOperateTime.set(System.currentTimeMillis());
@@ -95,11 +90,6 @@ public class BashSession {
         inputWriter.flush();
     }
 
-    /**
-     * 优雅杀死进程
-     *
-     * @param pid 进程id
-     */
     public void kill2Pid(Long pid) {
         try {
             lastOperateTime.set(System.currentTimeMillis());
@@ -112,11 +102,7 @@ public class BashSession {
         }
     }
 
-    /**
-     * 直接杀死进程
-     *
-     * @param pid
-     */
+
     public void kill9Pid(Long pid) {
         try {
             lastOperateTime.set(System.currentTimeMillis());
@@ -129,12 +115,6 @@ public class BashSession {
         }
     }
 
-    /**
-     * 单线程消费消息
-     * 注意consumer不要阻塞线程消费
-     *
-     * @param consumer 输出消费
-     */
     private void consumeMsg(Consumer<String> consumer) {
         VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
@@ -159,9 +139,7 @@ public class BashSession {
         });
     }
 
-    /**
-     * 判断是否可交互
-     */
+
     public boolean isInteractive() {
         Long foregroundProcess = findForegroundProcess();
         return foregroundProcess == null;

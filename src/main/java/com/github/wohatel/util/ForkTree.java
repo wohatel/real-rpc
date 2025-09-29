@@ -5,36 +5,32 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ForkTree - 基于列表模拟的多叉树（支持获取父节点、子节点索引）
+/** * ForkTree - Multi-forked tree based on list simulation
+ * (supports obtaining parent node and child node indexes)
  *
- * @param <T> 广播的数据类型
- * @param <N> 节点绑定的数据类型
  */
 @Data
 public class ForkTree<T, N> {
 
-    /**
-     * 树的节点列表，按层次顺序排列，节点不可重复且非空
+    /**     * The list of nodes in the tree,
+     * in hierarchical order, is non-repeatable and non-empty
      */
     private List<N> nodes;
 
-    /**
-     * 树的分叉数（默认2叉树）
+    /**     * Number of forks in the
+     * tree (default 2-forked tree)
      */
     private int treeFork = 2;
 
-    /**
-     * 广播的内容
+    /**     * content
      */
     private T data;
 
-    /**
-     * 获取某节点的第serial个孩子节点的索引
+    /**     * Get the index of the serial child node of a node
      *
-     * @param netNodeIndex 父节点索引
-     * @param serial       第几个孩子（从0开始）
-     * @return 子节点索引，若不存在返回-1
+     * @param netNodeIndex Parent index
+     * @param serial       Children (from 0)
+     * @return If the child node index does not exist, it returns -1
      */
     public int getChildIndex(int netNodeIndex, int serial) {
         if (isNodesEmpty()) {
@@ -47,11 +43,10 @@ public class ForkTree<T, N> {
         return (childIndex < nodes.size()) ? childIndex : -1;
     }
 
-    /**
-     * 获取某节点的父节点索引
+    /**     * Get the parent index of a node
      *
-     * @param netNodeIndex 当前节点索引
-     * @return 父节点索引，若为根节点或非法索引则返回-1
+     * @param netNodeIndex Current node index
+     * @return The parent node index returns -1 if it is the root node or an illegal index
      */
     public int getParentIndex(int netNodeIndex) {
         if (isNodesEmpty()) {
@@ -63,11 +58,11 @@ public class ForkTree<T, N> {
         return (netNodeIndex - 1) / treeFork;
     }
 
-    /**
-     * 获取某节点的所有直系父节点索引，一直到根节点（不包含自己）
+    /**     * Get all the indexes of the lineal
+     * parent of a node all the way to the root node (not including itself)
      *
-     * @param netNodeIndex 当前节点索引
-     * @return 父节点索引列表（从近到远）
+     * @param netNodeIndex Current node index
+     * @return Parent index list (from near to far)
      */
     public List<Integer> getAllParents(int netNodeIndex) {
         if (isNodesEmpty()) {
@@ -86,11 +81,10 @@ public class ForkTree<T, N> {
         return parents;
     }
 
-    /**
-     * 获取某节点的所有子孙节点索引（直系和间接）
+    /**     * Get all descendant node indexes (direct and indirect) of a node
      *
-     * @param netNodeIndex 当前节点索引
-     * @return 子孙节点索引列表
+     * @param netNodeIndex Current node index
+     * @return List of descendant node indexes
      */
     public List<Integer> getAllChildren(int netNodeIndex) {
         if (isNodesEmpty()) {
@@ -101,8 +95,7 @@ public class ForkTree<T, N> {
         return children;
     }
 
-    /**
-     * 递归收集子孙节点
+    /**     * Recursively collect descendant nodes
      */
     private void collectChildren(int netNodeIndex, List<Integer> result) {
         for (int serial = 0; serial < treeFork; serial++) {
@@ -114,9 +107,6 @@ public class ForkTree<T, N> {
         }
     }
 
-    /**
-     * 判断nodes列表是否为空
-     */
     private boolean isNodesEmpty() {
         return nodes == null || nodes.isEmpty();
     }

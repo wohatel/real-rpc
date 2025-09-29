@@ -7,16 +7,16 @@ import com.github.wohatel.util.OneTimeLock;
 import com.github.wohatel.util.VirtualThreadPool;
 
 /**
- * 文件接收端处理事件接口
+ * The file receiver handles the event interface
  *
  * @author yaochuang 2025/03/28 09:44
  */
 public class RpcFileReceiverHandlerExecProxy {
 
     /**
-     * 远程接收文件的进度,每次有变化就会触发
+     * Remotely receive the progress of the file, which is triggered every time there is a change
      * <p>
-     * 注意: 如果处理逻辑比较久,建议异步操作
+     * Note: If the logic is processed for a long time, it is recommended to operate asynchronously
      *
      */
     public static void onProcess(RpcFileReceiverHandler rpcFileReceiverHandler, RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
@@ -24,16 +24,14 @@ public class RpcFileReceiverHandlerExecProxy {
     }
 
     /**
-     * 文件接收异常执行
-     *
-     * @param e 发生的异常
+     * File Receiving Exception Execution
      */
     public static void onFailure(RpcFileReceiverHandler rpcFileReceiverHandler, final RpcFileReceiveWrapper rpcFileWrapper, final Exception e) {
         OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FAIL + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileReceiverHandler.onFailure(rpcFileWrapper, e)));
     }
 
     /**
-     * 文件整体传输完毕
+     * The file is transferred finished
      *
      */
     public static void onSuccess(RpcFileReceiverHandler rpcFileReceiverHandler, final RpcFileReceiveWrapper rpcFileWrapper) {

@@ -2,41 +2,37 @@ package com.github.wohatel.interaction.file;
 
 
 /**
- * description
  *
  * @author yaochuang 2025/05/13 14:41
  */
 public enum RpcFileTransModel {
 
-    /**
-     * 如果存在,就通知成功
+    /**     * If it exists, it is notified of success
      */
     SKIP,
 
-    /**
-     * 应用场景: 删除旧的文件,将发送方文件拷贝过来,生成新文件
+    /**     * Application scenario: Delete old files,
+     * copy sender files, and generate new files
      */
     REBUILD,
 
-    /**
-     * 应用场景: 上次文件没传完,将多个文件合并成一个,比如文本文件
-     * 如果旧文件不存在,则先创建文件,然后将整个发送方的文件内容追加到本地文件后面
-     * 如果旧文件存在,然后继续追加,然后将整个发送方的文件内容追加到本地文件后面
+    /**     * Application scenario: The last time the file was not transferred, merge multiple files into one, such as a text file
+     * If the old file does not exist, create the file first, and then append the entire sender's file contents after the local file
+     * If the old file exists, then continue appending, and then append the entire sender's file contents to the local file
      */
     APPEND,
 
-    /**
-     * 应用场景: 上次文件没传完,这次接着传
-     * 如果旧文件不存在,则创建文件,然后将整个发送方的文件内容追加到本地文件后面
-     * 如果旧文件存在,则计算下本地文件的长度,让发送发只发送长度后边的内容
+    /**     * Application scenario: The file was not finished last time, and this time it will be transmitted
+     * If the old file does not exist, create the file and append the entire sender's file contents after the local file
+     * If the old file exists, calculate the length of the local file so that the sender only sends the contents after the length
      */
     RESUME;
 
 
     public static RpcFileTransModel nameOf(String name) {
-        try{
+        try {
             return RpcFileTransModel.valueOf(name);
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }

@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.constant;
 
 /**
- * description
+
  *
  * @author yaochuang 2025/04/10 19:16
  */
@@ -23,7 +23,7 @@ public class NumberConstant {
 
     public static final int FIVE = 5;
     public static final int THREE_TEN = 30;
-    public static final int TEN_EIGHT_K = 18_000;
+    public static final long TEN_EIGHT_K = 18_000;
 
     public static final int THREE_TEN_K = 30_000;
     public static final int SEVENTY_FIVE = 75;

@@ -7,8 +7,7 @@ import lombok.Data;
 
 import java.util.Objects;
 
-/**
- * @author yaochuang
+/** * @author yaochuang
  */
 @Data
 public class RpcMsg {

@@ -71,7 +71,8 @@ public class ByteBufPoolManager {
         }
 
         /**
-         * 从池中获取 ByteBuf，如果在指定时间内无法获取，则抛出异常
+         * Get a ByteBuf from the pool and throw an exception
+         * if it can't be obtained within the specified time
          */
         public ByteBuf borrow(long timeoutMillis) throws TimeoutException, InterruptedException {
             ByteBuf buf = pool.poll(timeoutMillis, TimeUnit.MILLISECONDS);

@@ -6,11 +6,6 @@ import com.github.wohatel.interaction.constant.NumberConstant;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * 文件发送方处理文件传输事件
- *
- * @author yaochuang 2025/03/27 13:29
- */
 @Builder
 @Getter
 public class RpcFileSenderInput {

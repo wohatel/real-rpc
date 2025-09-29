@@ -72,19 +72,14 @@ public class RpcFuture {
         return this.completableFuture.get(timeMills, timeUnit);
     }
 
-    /**
-     * 告知CompletableFuture响应结束,在RpcFuture.get的时候处理
-     *
-     * @param response
+    /**     * Tell CompletableFuture that the response is over,
+     * and process it when RpcFuture.get is done
      */
     public void complete(RpcResponse response) {
         this.response = response;
         completableFuture.complete(response);
     }
 
-    /**
-     * 是否完成
-     */
     public boolean isDone() {
         return completableFuture.isDone();
     }

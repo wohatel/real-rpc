@@ -11,7 +11,6 @@ import java.net.InetSocketAddress;
 
 
 /**
- * description
  *
  */
 public class TestUdpBroadCast {

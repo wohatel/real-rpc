@@ -8,7 +8,6 @@ import lombok.Getter;
 import java.io.File;
 
 /**
- * description
  *
  * @author yaochuang 2025/05/13 14:41
  */
@@ -24,24 +23,14 @@ public class RpcFileReceiveWrapper extends RpcSessionContextWrapper {
         this.needTransLength = needTransLength;
     }
 
-    /**
-     * 本地接受文件的位置
-     */
     private final File file;
 
-    /**
-     * 文件是否追加或续传
-     */
+
     private final RpcFileTransModel transModel;
 
-    /**
-     * 发送放文件信息
-     */
+
     private final RpcFileInfo rpcFileInfo;
 
-    /**
-     * 需要返送的总字节数
-     */
     private final long needTransLength;
 
 }

@@ -1,17 +1,17 @@
 package com.github.wohatel.udp;
 
-import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.MultithreadEventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.ScheduledFuture;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,28 +20,169 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-/**
- * description
+/** * A simple UDP heartbeat proxy class can be used to detect heartbeats between services
  *
  * @author yaochuang 2025/09/28 09:44
  */
 @Slf4j
-public class RpcUdpHeartSpider {
-    @Getter
-    private final Long thresholdTimeMillis;
-    @Getter
-    private final Long pingInterval;
-    @Getter
-    private final RpcUdpSpider<RpcRequest> rpcUdpSpider;
+public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
+
     @Getter
     private final Map<InetSocketAddress, TimingHandler> timingHandlerMap = new ConcurrentHashMap<>();
     @Getter
     private final BroadCaster broadCaster = new BroadCaster();
+    @Getter
+    private final UdpHeartConfig udpHeartConfig;
+
+
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup) {
+        this(eventLoopGroup, null, null, null);
+    }
+
+    /**     * @param eventLoopGroup eventGroup
+     * @param channelOptions Connection channel options
+     */
+    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> simpleMsgConsumer) {
+        super(eventLoopGroup, channelOptions, null);
+        this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(NumberConstant.OVER_TIME, NumberConstant.TEN_EIGHT_K));
+        super.setRpcMsgConsumer((ctx, packet) -> {
+            RpcRequest request = packet.getMsg();
+            String contentType = request.getContentType();
+            RpcBaseAction action = RpcBaseAction.fromString(contentType);
+            if (action == RpcBaseAction.PING) {
+                RpcRequest rpcRequest = new RpcRequest();
+                rpcRequest.setContentType(RpcBaseAction.PONG.name());
+                // 对方是ping,则直接pong回去
+                RpcUdpSpider.sendGeneralMsg(ctx.channel(), rpcRequest, packet.getSender());
+            } else if (action == RpcBaseAction.PONG) {
+                TimingHandler handler = timingHandlerMap.get(packet.getSender());
+                if (handler != null) {
+                    handler.lastPongTime = System.currentTimeMillis();
+                }
+            } else {
+                if (simpleMsgConsumer != null) {
+                    simpleMsgConsumer.accept(ctx, packet);
+                }
+            }
+        });
+    }
+
+    /**     * set broadcast address
+     *
+     * @param broadcastAddress broadcast address
+     */
+    public void setBroadcastAddress(InetSocketAddress broadcastAddress) {
+        this.broadCaster.setBroadcastAddress(broadcastAddress);
+    }
+
+    /**     * Turn off the broadcast
+     */
+    public void stopBroadcast() {
+        this.broadCaster.setEnable(false);
+    }
+
+    /**     * Turn on the broadcast
+     */
+    public void enableBroadcast() {
+        this.broadCaster.setEnable(true);
+    }
+
+    /**     * Bind the port that the UDP service starts
+     */
+    @Override
+    public ChannelFuture bind(int port) {
+        ChannelFuture future = super.bind(port);
+        // 开始监听绑定,并添加任务
+        future.addListener((ChannelFutureListener) connectFuture -> {
+            Channel newChannel = connectFuture.channel();
+            if (connectFuture.isSuccess()) {
+                // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
+                ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
+                    // 在启用广播的情况下,采用广播协议
+                    RpcRequest rpcRequest = new RpcRequest();
+                    rpcRequest.setContentType(RpcBaseAction.PING.name());
+                    if (this.broadCaster.isReady()) {
+                        // 广播发送ping
+                        RunnerUtil.execSilent(() -> this.rpcUdpSpider.sendMsg(rpcRequest, broadCaster.broadcastAddress));
+                    } else {
+                        Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
+                        for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
+                            RunnerUtil.execSilent(() -> {
+                                TimingHandler value = entry.getValue();
+                                value.lastPingTime = System.currentTimeMillis();
+                                this.rpcUdpSpider.sendMsg(rpcRequest, entry.getKey());
+                            });
+                        }
+                    }
+                }, 0, this.udpHeartConfig.pingInterval, TimeUnit.MILLISECONDS);
+
+                // 如果检测到channel关闭了,就注销掉pingFuture的任务
+                newChannel.closeFuture().addListener(f -> {
+                    pingFuture.cancel(false);
+                });
+            } else {
+                Throwable cause = connectFuture.cause();
+                log.error("connection bind failed: port" + ":" + port, cause);
+            }
+        });
+        return future;
+    }
+
+    /**     * Add remote socket detection
+     */
+    public TimingHandler addRemoteSocket(InetSocketAddress socketAddress) {
+        return timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(this.udpHeartConfig.thresholdTimeMillis));
+    }
+
+    /**     * Delete remote socket detection
+     */
+    public void removeRemoteSocket(InetSocketAddress socketAddress) {
+        timingHandlerMap.remove(socketAddress);
+    }
+
+    /**     * Get remote socket detection
+     */
+    public TimingHandler getRemoteSocket(InetSocketAddress socketAddress) {
+        return timingHandlerMap.get(socketAddress);
+    }
+
+    /**     * is remote socket detection exists
+     */
+    public boolean containsRemoteSocket(InetSocketAddress socketAddress) {
+        return timingHandlerMap.containsKey(socketAddress);
+    }
+
+    /**     * Clean up unconnected sockets
+     */
+    public void releaseUnAliveSockets() {
+        Iterator<Map.Entry<InetSocketAddress, TimingHandler>> iterator = timingHandlerMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<InetSocketAddress, TimingHandler> next = iterator.next();
+            TimingHandler value = next.getValue();
+            // 如果么有向对方发送过ping,并且断连
+            if (value.lastPingTime != null && !value.isAlive()) {
+                iterator.remove();
+            }
+        }
+    }
+
+
+    @Data
+    @AllArgsConstructor
+    public static class UdpHeartConfig {
+        @Getter
+        private final Long pingInterval;
+
+        @Getter
+        private final Long thresholdTimeMillis;
+    }
+
 
     @Data
     public static class TimingHandler {
@@ -68,182 +209,6 @@ public class RpcUdpHeartSpider {
 
         public boolean isReady() {
             return broadcastAddress != null && enable;
-        }
-    }
-
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, Long pingInterval, Long thresholdTimeMillis) {
-        this(eventLoopGroup, null, pingInterval, thresholdTimeMillis, null);
-    }
-
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, Long pingInterval, Long thresholdTimeMillis, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> consumer) {
-        this(eventLoopGroup, null, pingInterval, thresholdTimeMillis, consumer);
-    }
-
-    /**
-     *
-     * @param eventLoopGroup      eventGroup
-     * @param channelOptions      连接参数
-     * @param pingInterval        ping的间隔
-     * @param thresholdTimeMillis 超时阈值判断
-     * @param consumer            执行其它ping,pong之外的消息逻辑
-     */
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, Long pingInterval, Long thresholdTimeMillis, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> consumer) {
-        this.thresholdTimeMillis = thresholdTimeMillis;
-        this.pingInterval = pingInterval;
-        SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> heartInbondHandler = new SimpleChannelInboundHandler<>() {
-            @Override
-            protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
-                RunnerUtil.execSilent(() -> {
-                    RpcRequest request = packet.getMsg();
-                    String contentType = request.getContentType();
-                    RpcBaseAction action = RpcBaseAction.fromString(contentType);
-                    if (action == RpcBaseAction.PING) {
-                        RpcRequest rpcRequest = new RpcRequest();
-                        rpcRequest.setContentType(RpcBaseAction.PONG.name());
-                        // 对方是ping,则直接pong回去
-                        RpcUdpSpider.sendGeneralMsg(channelHandlerContext.channel(), rpcRequest, packet.getSender());
-                    } else if (action == RpcBaseAction.PONG) {
-                        // 如果对方是pong,则记录pong时间
-                        TimingHandler handler = timingHandlerMap.get(packet.getSender());
-                        if (handler != null) {
-                            handler.lastPongTime = System.currentTimeMillis();
-                        }
-                    }
-                });
-                // 对所有消息进行消费(包括ping-pang)
-                if (consumer != null) {
-                    consumer.accept(channelHandlerContext, packet);
-                }
-            }
-        };
-        this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
-        }, eventLoopGroup, channelOptions, heartInbondHandler);
-    }
-
-    /**
-     * 开启广播
-     *
-     * @param broadcastAddress 广播地址
-     */
-    public void setBroadcastAddress(InetSocketAddress broadcastAddress) {
-        this.broadCaster.setBroadcastAddress(broadcastAddress);
-    }
-
-    /**
-     * 关闭广播
-     */
-    public void stopBroadcast() {
-        this.broadCaster.setEnable(false);
-    }
-
-    /**
-     * 关闭广播
-     */
-    public void enableBroadcast() {
-        this.broadCaster.setEnable(true);
-    }
-
-    /**
-     * bind端口
-     */
-    public ChannelFuture bind(int port) {
-        ChannelFuture future = rpcUdpSpider.bind(port);
-        future.addListener((ChannelFutureListener) connectFuture -> {
-            Channel newChannel = connectFuture.channel();
-            if (connectFuture.isSuccess()) {
-                // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
-                ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
-                    // 在启用广播的情况下,采用广播协议
-                    RpcRequest rpcRequest = new RpcRequest();
-                    rpcRequest.setContentType(RpcBaseAction.PING.name());
-                    if (this.broadCaster.isReady()) {
-                        // 广播发送ping
-                        RunnerUtil.execSilent(() -> this.rpcUdpSpider.sendMsg(rpcRequest, broadCaster.broadcastAddress));
-                    } else {
-                        Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
-                        for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
-                            RunnerUtil.execSilent(() -> {
-                                TimingHandler value = entry.getValue();
-                                value.lastPingTime = System.currentTimeMillis();
-                                this.rpcUdpSpider.sendMsg(rpcRequest, entry.getKey());
-                            });
-                        }
-                    }
-                }, 0, pingInterval, TimeUnit.MILLISECONDS);
-
-                // 如果检测到channel关闭了,就注销掉pingFuture的任务
-                newChannel.closeFuture().addListener(f -> {
-                    pingFuture.cancel(false);
-                });
-            } else {
-                Throwable cause = connectFuture.cause();
-                log.error("connection bind failed: port" + ":" + port, cause);
-            }
-        });
-        return future;
-    }
-
-    /**
-     * 关闭服务
-     */
-    public ChannelFuture close() {
-        return rpcUdpSpider.close();
-    }
-
-    /**
-     * 发送消息到对方
-     *
-     * @param rpcRequest 请求体
-     * @param to         发送目标
-     */
-    public void sendMsg(RpcRequest rpcRequest, InetSocketAddress to) {
-        rpcUdpSpider.sendMsg(rpcRequest, to);
-    }
-
-    /**
-     * 添加远端的socket 检测
-     *
-     */
-    public TimingHandler addRemoteSocket(InetSocketAddress socketAddress) {
-        return timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(thresholdTimeMillis));
-    }
-
-    /**
-     * 删除远端的socket 检测
-     *
-     */
-    public void removeRemoteSocket(InetSocketAddress socketAddress) {
-        timingHandlerMap.remove(socketAddress);
-    }
-
-    /**
-     * 获取远端的socket 检测
-     *
-     */
-    public TimingHandler getRemoteSocket(InetSocketAddress socketAddress) {
-        return timingHandlerMap.get(socketAddress);
-    }
-
-    /**
-     * 获取远端的socket 检测
-     *
-     */
-    public boolean containsRemoteSocket(InetSocketAddress socketAddress) {
-        return timingHandlerMap.containsKey(socketAddress);
-    }
-
-    /**
-     * 清理掉未联通的socket
-     */
-    public void releaseUnAliveSockets() {
-        Iterator<Map.Entry<InetSocketAddress, TimingHandler>> iterator = timingHandlerMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<InetSocketAddress, TimingHandler> next = iterator.next();
-            TimingHandler value = next.getValue();
-            // 如果么有向对方发送过ping,并且断连
-            if (value.lastPingTime != null && !value.isAlive()) {
-                iterator.remove();
-            }
         }
     }
 

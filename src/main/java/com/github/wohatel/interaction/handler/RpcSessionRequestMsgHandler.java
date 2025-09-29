@@ -4,33 +4,24 @@ import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import io.netty.channel.ChannelHandlerContext;
 
-/**
- * session消息接收方处理消息事件
- *
- * @author yaochuang 2025/03/25 11:29
- */
 public interface RpcSessionRequestMsgHandler {
     /**
-     * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
+     * Note that once the processing of a message is time-consuming,
+     * it will affect the consumption of other messages,
+     * so it is recommended to use asynchronous threads to process the read logic
      *
-     * @param ctx 通道
      */
     default boolean sessionStart(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
         return true;
     }
 
     /**
-     * 注意,一旦处理消息较为耗时,会影响其它消息的消费,建议使用异步线程处理读取逻辑
-     *
-     * @param ctx     通道
-     * @param request 请求
+     * Note that once the processing of a message is time-consuming,
+     * it will affect the consumption of other messages,
+     * so it is recommended to use asynchronous threads to process the read logic
      */
     void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
 
-    /**
-     * 接收到对方发来的结束会话请求
-     *
-     */
     default void sessionStop(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
 
     }

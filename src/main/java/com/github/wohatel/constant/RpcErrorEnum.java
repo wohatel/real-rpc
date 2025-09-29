@@ -3,20 +3,20 @@ package com.github.wohatel.constant;
 import lombok.Getter;
 
 /**
- * description
  *
  * @author yaochuang 2025/08/28 09:41
  */
 @Getter
 public enum RpcErrorEnum {
 
-    RUNTIME(500, "服务器异常"),
+    RUNTIME(500, "server exception"),
 
-    CONNECT(100, "连接异常"),
+    CONNECT(100, "connection exception"),
 
-    SEND_MSG(200, "数据发送异常"),
+    SEND_MSG(300, "send msg exception"),
 
-    HANDLE_MSG(300, "数据接收处理异常");
+    HANDLE_MSG(400, "receive msg exception"),
+    ;
 
     final int code;
 

@@ -29,7 +29,8 @@ import lombok.SneakyThrows;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-/**
+/** * a udp server for turn on with an port and send msg
+ *
  * @author yaochuang
  */
 @Data
@@ -51,15 +52,11 @@ public class RpcUdpSpider<T> {
         this.channelOptions = channelOptions;
     }
 
-    /**
-     * 构建一个简单的udp
-     */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
         return buildSpider(clazz, new NioEventLoopGroup(), null, simpleChannelInboundHandler);
     }
 
-    /**
-     * 构建一个简单的udp
+    /**     * Build a simple UDP service
      */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
         return new RpcUdpSpider<>(eventLoopGroup, channelOptions, new ChannelInitializer<>() {
@@ -104,13 +101,11 @@ public class RpcUdpSpider<T> {
 
     @SneakyThrows
     public ChannelFuture bind() {
-        // 表示随机绑定一个端口
+        // Indicates that a port is randomly bind
         return bind(0);
     }
 
-    /**
-     * 关闭
-     */
+
     public ChannelFuture close() {
         if (this.channel != null) {
             return channel.close();
@@ -118,27 +113,14 @@ public class RpcUdpSpider<T> {
         return null;
     }
 
-    /**
-     * 发送消息
-     */
     public void sendMsg(T msg, InetSocketAddress to) {
         sendGeneralMsg(this.channel, msg, to);
     }
 
-    /**
-     *
-     * @param channel 通道
-     * @param msg     消息提
-     * @param to      目标
-     * @param <T>     泛型
-     */
     public static <T> void sendGeneralMsg(Channel channel, T msg, InetSocketAddress to) {
         RpcMsgTransManager.sendUdpMsg(channel, msg, to);
     }
 
-    /**
-     * 返回类型
-     */
     protected Class<? extends Channel> getChannelClass() {
         if (this.eventLoopGroup instanceof NioEventLoopGroup) {
             return NioDatagramChannel.class;

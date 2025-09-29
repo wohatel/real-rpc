@@ -8,8 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
-/**
- * description
+/** * decode to TypeReference<T>
  *
  * @author yaochuang 2025/09/17 17:06
  */
