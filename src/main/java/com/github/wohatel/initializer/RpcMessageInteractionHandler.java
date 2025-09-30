@@ -15,7 +15,7 @@ import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.util.JsonUtil;
-import com.github.wohatel.util.LinkedNode;
+import com.github.wohatel.util.KeyValue;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -54,17 +54,17 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
-                LinkedNode<String, Boolean> linkedNode = null;
+                KeyValue<String, Boolean> linkedNode = null;
                 if (request.isSessionStart()) {
                     RpcResponse response = request.toResponse();
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
                         String errorMsg = "{requestId:" + request.getRequestId() + "}build session id repeat";
-                        linkedNode = LinkedNode.build(errorMsg, false);
+                        linkedNode = new KeyValue<>(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
                         RpcSessionTransManger.initSession(context, session, ctx.channel().id().asShortText());
                         RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                        linkedNode = RunnerUtil.execSilentException(() -> LinkedNode.build(null, rpcSessionRequestMsgHandler.sessionStart(ctx, contextWrapper)), e -> LinkedNode.build(e.getMessage(), false));
+                        linkedNode = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.sessionStart(ctx, contextWrapper)), e -> new KeyValue<>(e.getMessage(), false));
                     }
                     response.setSuccess(linkedNode.getValue());
                     response.setMsg(linkedNode.getKey());

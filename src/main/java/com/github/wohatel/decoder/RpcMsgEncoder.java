@@ -37,8 +37,10 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
             if (msg.isNeedCompress()) {
                 ByteBuf compressBuf = tryCompress(encodeBuf);
                 outerBuffer.writeBytes(compressBuf);
+                ReferenceByteBufUtil.safeRelease(compressBuf);
             } else {
                 outerBuffer.writeBytes(encodeBuf);
+                ReferenceByteBufUtil.safeRelease(encodeBuf);
             }
             out.add(outerBuffer);
         } catch (Throwable e) {
@@ -49,7 +51,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
     }
 
     private ByteBuf encodeMsg(ChannelHandlerContext ctx, RpcMsg msg) {
-        CompositeByteBuf buffer = ctx.alloc().compositeBuffer();
+        ByteBuf buffer = ctx.alloc().buffer();
         try {
             buffer.writeBoolean(msg.isNeedCompress()); // 1: 是否压缩
             buffer.writeInt(msg.getRpcCommandType().getCode()); // 2: 消息体类型
@@ -64,7 +66,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "fileBuffer is released");
                 }
                 buffer.writeInt(fileBuffer.readableBytes());
-                buffer.addComponent(true, fileBuffer.copy());
+                buffer.writeBytes(fileBuffer);
             }
             if (msg.getRpcCommandType() == RpcCommandType.file) {
                 RpcFileRequest rpcFileRequest = msg.getPayload(RpcFileRequest.class);
