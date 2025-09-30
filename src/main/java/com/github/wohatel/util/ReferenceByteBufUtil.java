@@ -1,6 +1,7 @@
 package com.github.wohatel.util;
 
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -13,9 +14,11 @@ public class ReferenceByteBufUtil {
         if (inputs != null) {
             for (Object byteBuf : inputs) {
                 try {
-                    ReferenceCountUtil.release(byteBuf);
+                    if (byteBuf instanceof ReferenceCounted ref && ref.refCnt() > 0) {
+                        ReferenceCountUtil.release(ref);
+                    }
                 } catch (Throwable throwable2) {
-                    log.error("release buf exception:", throwable2);
+                    log.warn("release buf exception:", throwable2);
                 }
             }
         }
