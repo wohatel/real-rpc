@@ -63,8 +63,7 @@ public class RpcMsgEncoder extends MessageToMessageEncoder<RpcMsg> {
                 if (fileBuffer.refCnt() <= 0) {
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "fileBuffer is released");
                 }
-                buffer.writeInt(fileBuffer.readableBytes());
-                buffer.addComponent(true, fileBuffer.copy());
+                buffer.addComponent(true, fileBuffer);
             }
             if (msg.getRpcCommandType() == RpcCommandType.file) {
                 RpcFileRequest rpcFileRequest = msg.getPayload(RpcFileRequest.class);

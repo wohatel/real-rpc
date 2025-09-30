@@ -3,17 +3,20 @@ package com.github.wohatel.interaction.common;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @Slf4j
@@ -58,15 +61,17 @@ public class ByteBufPoolManager {
 
     private static class ByteBufPool {
         private final BlockingQueue<ByteBuf> pool;
-        private final List<ByteBuf> list;
+        private final Map<ByteBuf, Boolean> byteBufMap;
+        private final int chunkSize;
+        private final AtomicBoolean released = new AtomicBoolean(false);
 
         public ByteBufPool(int poolSize, int chunkSize) {
             this.pool = new ArrayBlockingQueue<>(poolSize);
-            list = new ArrayList<>(poolSize);
+            this.byteBufMap = new ConcurrentHashMap<>(NumberConstant.TEN);
+            this.chunkSize = chunkSize;
             for (int i = 0; i < poolSize; i++) {
                 ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize);
                 pool.add(buf);
-                list.add(buf);
             }
         }
 
@@ -80,28 +85,32 @@ public class ByteBufPoolManager {
                 log.error("borrow timed out waiting for available ByteBuf from pool");
                 throw new TimeoutException("timed out waiting for available ByteBuf from pool");
             }
+            byteBufMap.put(buf, true);
             return buf;
         }
 
         public void release(ByteBuf buf) {
             if (buf != null) {
-                buf.clear(); // 重置写指针
-                pool.offer(buf); // 放回池中（不会阻塞）
+                buf.clear();
+                byteBufMap.remove(buf);
+                if (!released.get()) {
+                    pool.add(UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize));
+                }
             }
         }
 
         public void destory() {
-            for (ByteBuf byteBuf : list) {
-                try {
-                    if (byteBuf != null && byteBuf.refCnt() > 0) {
-                        byteBuf.release();
-                    }
-                } catch (Exception e) {
-                    log.error("destroy anomalies:", e);
+            if (released.compareAndSet(false, true)) {
+                ByteBuf buf;
+                while ((buf = pool.poll()) != null) {
+                    ReferenceByteBufUtil.safeRelease(buf);
+                }
+                Iterator<Map.Entry<ByteBuf, Boolean>> iterator = byteBufMap.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    ReferenceByteBufUtil.safeRelease(iterator.next().getKey());
+                    iterator.remove();
                 }
             }
-            list.clear();
-            pool.clear();
         }
     }
 
