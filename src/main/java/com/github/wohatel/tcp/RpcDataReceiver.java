@@ -14,6 +14,8 @@ import lombok.Getter;
 @Data
 public class RpcDataReceiver {
 
+    protected final String uniqueId;
+
     protected final String host;
 
     protected final Integer port;
@@ -26,6 +28,7 @@ public class RpcDataReceiver {
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
 
     protected RpcDataReceiver(String host, Integer port) {
+        this.uniqueId = NanoIdUtils.randomNanoId();
         this.host = host;
         this.port = port;
     }

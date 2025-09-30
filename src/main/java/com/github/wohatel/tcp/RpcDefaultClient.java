@@ -124,7 +124,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist, try opening a new one");
         }
-        if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
+        if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         if (sessionFuture.isSessionFinish()) {
@@ -186,12 +186,11 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.START);
-        rpcRequest.setOrigin(channel.id().asShortText());
         if (context != null) {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
-        rpcFuture.setChannelId(channel.id().asShortText());
+        rpcFuture.setUniqueId(this.uniqueId);
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {
@@ -207,7 +206,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture == null || sessionFuture.isSessionFinish()) {
             return;
         }
-        if (!channel.id().asShortText().equals(sessionFuture.getChannelId())) {
+        if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);

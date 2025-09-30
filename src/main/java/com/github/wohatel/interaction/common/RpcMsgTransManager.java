@@ -147,7 +147,6 @@ public class RpcMsgTransManager {
         }
         rpcFileRequest.setNeedResponse(true);
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
-        rpcFuture.setChannelId(channel.id().asShortText());
         sendRequest(channel, rpcFileRequest);
         return rpcFuture;
     }

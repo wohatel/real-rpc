@@ -177,9 +177,6 @@ public class RpcFutureTransManager {
         if (future == null) {
             return null;
         }
-        if (!channelId.equals(future.getChannelId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "the channelId is not equals to the future channelId");
-        }
         if (!future.isSessionFinish()) {
             future.setRpcSessionProcess(RpcSessionProcess.FiNISH);
             RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);

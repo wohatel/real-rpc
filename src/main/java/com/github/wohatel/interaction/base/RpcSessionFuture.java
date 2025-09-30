@@ -13,7 +13,7 @@ public class RpcSessionFuture extends RpcFuture {
 
     private volatile RpcSessionProcess rpcSessionProcess;
 
-    private String channelId;
+    private String uniqueId;
 
     public boolean isSessionFinish() {
         return rpcSessionProcess == RpcSessionProcess.FiNISH;
