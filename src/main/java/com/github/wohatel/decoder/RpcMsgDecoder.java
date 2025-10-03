@@ -83,11 +83,9 @@ public class RpcMsgDecoder extends MessageToMessageDecoder<ByteBuf> {
             }
             return decompressed;
         } catch (Throwable e) {
-            ReferenceByteBufUtil.safeRelease(decompressed);
+            ReferenceByteBufUtil.safeRelease(decompressed, byteBuf);
             log.error("RpcMsgDecoder tryDecompress exception:", e);
             throw e;
-        } finally {
-            ReferenceByteBufUtil.safeRelease(byteBuf);
         }
     }
 }
