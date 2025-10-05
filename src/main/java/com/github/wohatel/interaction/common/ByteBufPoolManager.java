@@ -91,7 +91,7 @@ public class ByteBufPoolManager {
 
         public void release(ByteBuf buf) {
             if (buf != null) {
-                buf.clear();
+                ReferenceByteBufUtil.safeRelease(buf);
                 byteBufMap.remove(buf);
                 if (!released.get()) {
                     pool.add(UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize));
