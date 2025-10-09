@@ -38,7 +38,7 @@ public class ByteBufPoolManager {
         if (!SESSION_MANAGER.contains(sessionId)) {
             log.error("release session is not exist");
             // 优先释放buf
-            buf.release();
+            ReferenceByteBufUtil.safeRelease(buf);
             throw new RpcException(RpcErrorEnum.RUNTIME, "session is not exist");
         }
         SESSION_MANAGER.flushTime(sessionId);
@@ -60,7 +60,7 @@ public class ByteBufPoolManager {
 
     private static class ByteBufPool {
         private final BlockingQueue<ByteBuf> pool;
-        private final Map<ByteBuf, Boolean> byteBufMap;
+        private final Map<Integer, ByteBuf> byteBufMap;
         private final int chunkSize;
         private final AtomicBoolean released = new AtomicBoolean(false);
 
@@ -84,30 +84,39 @@ public class ByteBufPoolManager {
                 log.error("borrow timed out waiting for available ByteBuf from pool");
                 throw new TimeoutException("timed out waiting for available ByteBuf from pool");
             }
-            byteBufMap.put(buf, true);
+            byteBufMap.put(System.identityHashCode(buf), buf);
             return buf;
         }
 
+        /**
+         * 归还buf
+         *
+         * @param buf 内存
+         */
         public void release(ByteBuf buf) {
-            if (buf != null) {
-                byteBufMap.remove(buf);
-                ReferenceByteBufUtil.safeRelease(buf);
+            if (buf == null) return;
+            if (byteBufMap.remove(System.identityHashCode(buf)) != null) {
+                buf.clear();
                 if (!released.get()) {
-                    pool.add(UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize));
+                    pool.add(buf);
                 }
+            } else {
+                log.warn("attempted to release a ByteBuf that was not borrowed from pool");
             }
         }
 
+        /**
+         * 销毁
+         */
         public void destory() {
             if (released.compareAndSet(false, true)) {
                 ByteBuf buf;
                 while ((buf = pool.poll()) != null) {
                     ReferenceByteBufUtil.safeRelease(buf);
                 }
-                byteBufMap.keySet().forEach(ReferenceByteBufUtil::safeRelease);
+                byteBufMap.forEach((key, value) -> ReferenceByteBufUtil.safeRelease(value));
                 byteBufMap.clear();
             }
         }
     }
-
 }

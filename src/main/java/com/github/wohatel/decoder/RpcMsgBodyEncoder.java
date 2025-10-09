@@ -8,7 +8,6 @@ import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.util.SnappyDirectByteBufUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +25,8 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         // 压缩消息体
         tryCompressPayload(msg, out);
         if (msg.getRpcCommandType() == RpcCommandType.file) {
-            tryCompressFileBuffer(msg, out);
+            tryCompressFileBuffer(ctx, msg, out);
         }
-        ctx.flush();
     }
 
     public void tryCompressPayload(RpcMsg msg, ByteBuf out) {
@@ -44,16 +42,18 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         }
     }
 
-    public void tryCompressFileBuffer(RpcMsg msg, ByteBuf out) throws Exception {
+    public void tryCompressFileBuffer(ChannelHandlerContext ctx, RpcMsg msg, ByteBuf out) throws Exception {
         ByteBuf fileBuffer = msg.getByteBuffer();
         if (fileBuffer == null) {
             out.writeInt(0);
         } else {
             if (msg.isNeedCompress()) {
-                ByteBuf compress = SnappyDirectByteBufUtil.compress(UnpooledByteBufAllocator.DEFAULT, fileBuffer.copy());
+                ByteBuf compress = SnappyDirectByteBufUtil.compress(ctx.alloc(), fileBuffer.slice());
+                System.out.println(compress.readableBytes());
                 out.writeInt(compress.readableBytes());
                 out.writeBytes(compress);
                 compress.release();
+
             } else {
                 out.writeInt(fileBuffer.readableBytes());
                 out.writeBytes(fileBuffer);
@@ -63,6 +63,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         ByteBufPoolManager.release(rpcSession.getSessionId(), fileBuffer);
         if (rpcFileRequest.isFinished()) {
+            System.out.println("结束");
             ByteBufPoolManager.destory(rpcSession.getSessionId());
         }
     }

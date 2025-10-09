@@ -9,7 +9,6 @@ import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.util.SnappyDirectByteBufUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
             case file -> {
                 RpcFileRequest fileRequest = JSON.parseObject(payloadBytes, RpcFileRequest.class);
                 msg.setPayload(fileRequest);
-                tryDeCompressFileBuffer(msg, in);
+                tryDeCompressFileBuffer(ctx, msg, in);
             }
         }
         out.add(msg);
@@ -54,13 +53,13 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
         return payloadBytes;
     }
 
-    public void tryDeCompressFileBuffer(RpcMsg msg, ByteBuf in) throws Exception {
+    public void tryDeCompressFileBuffer(ChannelHandlerContext ctx, RpcMsg msg, ByteBuf in) throws Exception {
         int fileLength = in.readInt();
         if (fileLength > 0) {
             if (msg.isNeedCompress()) {
                 // 此处引入一个视图,不需要释放
                 ByteBuf fileBuf = in.readSlice(fileLength);
-                ByteBuf decompress = SnappyDirectByteBufUtil.decompress(UnpooledByteBufAllocator.DEFAULT, fileBuf);
+                ByteBuf decompress = SnappyDirectByteBufUtil.decompress(ctx.alloc(), fileBuf);
                 // decompress 需要下游释放
                 msg.setByteBuffer(decompress);
             } else {
