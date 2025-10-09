@@ -49,7 +49,6 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         } else {
             if (msg.isNeedCompress()) {
                 ByteBuf compress = SnappyDirectByteBufUtil.compress(ctx.alloc(), fileBuffer.slice());
-                System.out.println(compress.readableBytes());
                 out.writeInt(compress.readableBytes());
                 out.writeBytes(compress);
                 compress.release();
