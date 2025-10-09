@@ -6,6 +6,7 @@ import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -56,13 +57,13 @@ public class RpcServer extends RpcDataReceiver {
     @SneakyThrows
     @SuppressWarnings("all")
     public ChannelFuture start() {
-        System.out.println(rpcMsgChannelInitializer);
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }
         InetSocketAddress address = StringUtils.isBlank(host) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
         ServerBootstrap b = new ServerBootstrap();
         b.group(group, childGroup).channel(serverChannelClass);
+        b.childOption(ChannelOption.TCP_NODELAY, true);
         b.localAddress(address).childHandler(rpcMsgChannelInitializer);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
             for (ChannelOptionAndValue channelOption : channelOptions) {

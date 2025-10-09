@@ -8,6 +8,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
 import io.netty.channel.MultithreadEventLoopGroup;
 import lombok.Getter;
@@ -52,6 +53,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             bootstrap = new Bootstrap();
             bootstrap.group(eventLoopGroup);
             bootstrap.channel(channelClass);
+            bootstrap.option(ChannelOption.TCP_NODELAY, true);
             if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
                 for (ChannelOptionAndValue<Object> channelOption : channelOptions) {
                     bootstrap.option(channelOption.getChannelOption(), channelOption.getValue());

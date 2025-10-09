@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -161,15 +160,10 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     /**     * Clean up unconnected sockets
      */
     public void releaseUnAliveSockets() {
-        Iterator<Map.Entry<InetSocketAddress, TimingHandler>> iterator = timingHandlerMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<InetSocketAddress, TimingHandler> next = iterator.next();
-            TimingHandler value = next.getValue();
-            // 如果么有向对方发送过ping,并且断连
-            if (value.lastPingTime != null && !value.isAlive()) {
-                iterator.remove();
-            }
-        }
+        timingHandlerMap.entrySet().removeIf(entry -> {
+            TimingHandler value = entry.getValue();
+            return value.lastPingTime != null && !value.isAlive();
+        });
     }
 
 

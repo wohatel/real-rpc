@@ -1,7 +1,7 @@
 package com.github.wohatel.initializer;
 
-import com.github.wohatel.decoder.RpcMsgDecoder;
-import com.github.wohatel.decoder.RpcMsgEncoder;
+import com.github.wohatel.decoder.RpcMsgBodyDecoder;
+import com.github.wohatel.decoder.RpcMsgBodyEncoder;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
@@ -56,8 +56,10 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(defaultMaxFrameLength, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-        pipeline.addLast("decoder", new RpcMsgDecoder());
-        pipeline.addLast("encoder", new RpcMsgEncoder());
+
+        pipeline.addLast("decoder", new RpcMsgBodyDecoder());
+        pipeline.addLast("encoder", new RpcMsgBodyEncoder());
+
         pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
         pipeline.addLast("msgHandler", rpcMessageInteractionHandler);
     }

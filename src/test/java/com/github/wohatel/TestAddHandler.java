@@ -1,7 +1,7 @@
 package com.github.wohatel;
 
-import com.github.wohatel.decoder.RpcMsgDecoder;
-import com.github.wohatel.decoder.RpcMsgEncoder;
+import com.github.wohatel.decoder.RpcMsgBodyDecoder;
+import com.github.wohatel.decoder.RpcMsgBodyEncoder;
 import com.github.wohatel.initializer.RpcMessageBaseInquiryHandler;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.base.RpcRequest;
@@ -69,8 +69,9 @@ public class TestAddHandler {
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
             pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
-            pipeline.addLast("decoder", new RpcMsgDecoder());
-            pipeline.addLast("encoder", new RpcMsgEncoder());
+            pipeline.addLast("decoder", new RpcMsgBodyDecoder());
+            pipeline.addLast("encoder", new RpcMsgBodyEncoder());
+
             pipeline.addLast("actived", adapter);
             pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
             pipeline.addLast("msgHandler", rpcMsgChannelInitializer.getRpcMessageInteractionHandler());

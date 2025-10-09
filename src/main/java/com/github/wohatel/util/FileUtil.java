@@ -3,8 +3,6 @@ package com.github.wohatel.util;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import net.jpountz.lz4.LZ4Compressor;
-import net.jpountz.lz4.LZ4Factory;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.BufferedInputStream;
@@ -70,13 +68,8 @@ public class FileUtil {
         try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             dis.readFully(inputBytes);
         }
-        // LZ4 used
-        LZ4Factory factory = LZ4Factory.fastestInstance();
-        LZ4Compressor compressor = factory.fastCompressor();
-        int maxCompressedLength = compressor.maxCompressedLength(inputBytes.length);
-        byte[] compressed = new byte[maxCompressedLength];
-        int compressedSize = compressor.compress(inputBytes, 0, inputBytes.length, compressed, 0, maxCompressedLength);
-        double compressRate = compressedSize * 100.0 / headSize;
+        byte[] compressed = SnappyDirectByteBufUtil.compress(inputBytes);
+        double compressRate = compressed.length * 100.0 / headSize;
         log.info("file:" + file.getName() + " compressRate is " + compressRate + "%");
         return compressRate < rate;
     }

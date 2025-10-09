@@ -9,7 +9,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -91,8 +90,8 @@ public class ByteBufPoolManager {
 
         public void release(ByteBuf buf) {
             if (buf != null) {
-                ReferenceByteBufUtil.safeRelease(buf);
                 byteBufMap.remove(buf);
+                ReferenceByteBufUtil.safeRelease(buf);
                 if (!released.get()) {
                     pool.add(UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize));
                 }
@@ -105,11 +104,8 @@ public class ByteBufPoolManager {
                 while ((buf = pool.poll()) != null) {
                     ReferenceByteBufUtil.safeRelease(buf);
                 }
-                Iterator<Map.Entry<ByteBuf, Boolean>> iterator = byteBufMap.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    ReferenceByteBufUtil.safeRelease(iterator.next().getKey());
-                    iterator.remove();
-                }
+                byteBufMap.keySet().forEach(ReferenceByteBufUtil::safeRelease);
+                byteBufMap.clear();
             }
         }
     }

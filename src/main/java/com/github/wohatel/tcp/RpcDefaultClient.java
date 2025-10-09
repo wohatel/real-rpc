@@ -24,6 +24,7 @@ import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
@@ -78,6 +79,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         b.group(eventLoopGroup);
         b.channel(channelClass);
         b.handler(rpcMsgChannelInitializer);
+        b.option(ChannelOption.TCP_NODELAY, true);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
             for (ChannelOptionAndValue channelOption : channelOptions) {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());

@@ -5,7 +5,7 @@
 
     <groupId>io.github.wohatel</groupId>
     <artifactId>real-rpc</artifactId>
-    <version>2.0.5</version>
+    <version>2.1.1</version>
     <name>real-rpc</name>
     <packaging>jar</packaging>
     <description>
@@ -22,11 +22,9 @@
     </properties>
 
     <dependencies>
-
         <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-            <version>1.8.0</version> <!-- 可根据需要选择版本 -->
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -85,6 +83,11 @@
     <!--参考依赖版本,如果下游服务有自己的版本,则会自动替换为下游声明的版本-->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>1.1.10.8</version>
+            </dependency>
             <dependency>
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
