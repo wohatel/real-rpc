@@ -333,15 +333,5 @@ public class RpcMsgTransManager {
         }
     }
 
-    public static String sendInquiryRemoteNodeIdRequest(Channel channel) {
-        RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setContentType(RpcBaseAction.INQUIRY_SESSION.name());
-        RpcFuture rpcFuture = sendSynRequest(channel, rpcRequest);
-        RpcResponse rpcResponse = rpcFuture.get();
-        if (rpcResponse.isSuccess()) {
-            return rpcResponse.getBody();
-        }
-        return null;
-    }
 }
 

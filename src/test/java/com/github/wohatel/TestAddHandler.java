@@ -2,7 +2,6 @@ package com.github.wohatel;
 
 import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
-import com.github.wohatel.initializer.RpcMessageBaseInquiryHandler;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.tcp.RpcDefaultClient;
@@ -73,7 +72,6 @@ public class TestAddHandler {
             pipeline.addLast("encoder", new RpcMsgBodyEncoder());
 
             pipeline.addLast("actived", adapter);
-            pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
             pipeline.addLast("msgHandler", rpcMsgChannelInitializer.getRpcMessageInteractionHandler());
         });
 

@@ -32,7 +32,7 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
         msg.setRpcCommandType(RpcCommandType.fromCode(type));
         byte[] payloadBytes = tryDeCompressPayload(msg, in);
         switch (msg.getRpcCommandType()) {
-            case request, base -> msg.setPayload(JSON.parseObject(payloadBytes, RpcRequest.class));
+            case request -> msg.setPayload(JSON.parseObject(payloadBytes, RpcRequest.class));
             case session -> msg.setPayload(JSON.parseObject(payloadBytes, RpcSessionRequest.class));
             case response -> msg.setPayload(JSON.parseObject(payloadBytes, RpcResponse.class));
             case file -> {

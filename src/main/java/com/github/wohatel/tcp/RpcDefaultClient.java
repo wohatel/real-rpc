@@ -146,31 +146,6 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return startSession(rpcSession, null);
     }
 
-    /**     * Ask if the session status
-     *
-     * @param rpcSession rpcSession
-     * @return RpcSessionFuture
-     */
-    public boolean inquiryServerSessionStatus(RpcSession rpcSession) {
-        if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
-            return false;
-        }
-        RpcRequest rpcRequest = new RpcRequest();
-        rpcRequest.setContentType(RpcBaseAction.INQUIRY_SESSION.name());
-        rpcRequest.setBody(rpcSession.getSessionId());
-        RpcFuture rpcFuture = RpcMsgTransManager.sendSynRequest(channel, rpcRequest);
-        RpcResponse rpcResponse = rpcFuture.get();
-        return rpcResponse.isSuccess();
-    }
-
-    /**     * Ask if the session exists
-     *
-     * @return RpcSessionFuture
-     */
-    public String inquiryServerNodeId() {
-        return RpcMsgTransManager.sendInquiryRemoteNodeIdRequest(channel);
-    }
-
     /**     * Establish a session with context
      *
      * @param rpcSession session

@@ -56,7 +56,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
         pipeline.addLast("decoder", new RpcMsgBodyDecoder());
         pipeline.addLast("encoder", new RpcMsgBodyEncoder());
-        pipeline.addLast("baseHandler", new RpcMessageBaseInquiryHandler());
         pipeline.addLast("msgHandler", rpcMessageInteractionHandler);
     }
 }
