@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author yaochuang 2025/09/17 17:06
  */
-public class ByteBufDecoder {
+public class ByteBufUtil {
     @SuppressWarnings("unchecked")
     public static <T> T decode(ByteBuf buf, TypeReference<T> typeRef) throws IOException {
         Type type = typeRef.getType();
@@ -25,5 +25,26 @@ public class ByteBufDecoder {
             return (T) array;
         }
         return JSON.parseObject(buf.toString(StandardCharsets.UTF_8), type);
+    }
+
+    public static byte[] toBytes(ByteBuf buf) {
+        if (buf == null) return null;
+        int len = buf.readableBytes();
+        byte[] array = new byte[len];
+        if (buf.hasArray()) {
+            // 计算真实偏移
+            int offset = buf.arrayOffset() + buf.readerIndex();
+            System.arraycopy(buf.array(), offset, array, 0, len);
+        } else {
+            // direct buffer 或 slice，安全拷贝
+            buf.getBytes(buf.readerIndex(), array);
+        }
+        return array;
+    }
+
+    public static byte[] readBytes(ByteBuf buf, int length) {
+        byte[] bytes = new byte[length];
+        buf.readBytes(bytes);
+        return bytes;
     }
 }

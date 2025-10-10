@@ -7,7 +7,6 @@ import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -60,20 +59,17 @@ public class RpcSessionTransManger {
         return false;
     }
 
-    public static boolean addOrReleaseFile(String sessionId, FileChunkItem fileChunkItem) {
+    public static boolean addFileChunk(String sessionId, FileChunkItem fileChunkItem) {
         try {
             SessionDataWrapper session = SESSION_MANAGER.getSession(sessionId);
             if (session.isFile) {
                 FILE_ITEM_MAP.get(sessionId).add(fileChunkItem);
                 SESSION_MANAGER.flushTime(sessionId);
                 return true;
-            } else {
-                releaseFileChunk(fileChunkItem);
-                return false;
             }
+            return false;
         } catch (Exception e) {
             log.error("file block - receive - print exception information:", e);
-            releaseFileChunk(fileChunkItem);
             return false;
         }
     }
@@ -110,14 +106,7 @@ public class RpcSessionTransManger {
         SESSION_MANAGER.release(sessionId);
         closeQueue(sessionId);
     }
-
-    public static void releaseFile(String sessionId) {
-        SessionDataWrapper sessionWrapper = SESSION_MANAGER.getSession(sessionId);
-        if (sessionWrapper != null && sessionWrapper.isFile) {
-            release(sessionId);
-        }
-    }
-
+    
     public static void closeQueue(String sessionId) {
         BlockingQueue<FileChunkItem> queue = FILE_ITEM_MAP.remove(sessionId);
         if (queue == null) {
@@ -129,13 +118,11 @@ public class RpcSessionTransManger {
                 // 先无等待poll
                 poll = queue.poll();
                 if (poll != null) {
-                    ReferenceCountUtil.safeRelease(poll.getByteBuf());
                     continue;
                 }
                 // 再等待1秒
                 poll = queue.poll(1, TimeUnit.SECONDS);
                 if (poll != null) {
-                    ReferenceCountUtil.safeRelease(poll.getByteBuf());
                     continue;
                 }
                 // Two polls in a row are null, confirming that no one writes anymore
@@ -152,22 +139,6 @@ public class RpcSessionTransManger {
         private ByteBuf byteBuf;
         private long buffer;  //每次传输的大小
         private long serial;  // 编号
-    }
-
-    public static void releaseFileChunk(FileChunkItem item) {
-        if (item == null) {
-            return;
-        }
-        releaseFileChunk(item.getByteBuf());
-    }
-
-    public static void releaseFileChunk(ByteBuf byteBuf) {
-        if (byteBuf == null) {
-            return;
-        }
-        if (byteBuf.refCnt() > 0) {
-            ReferenceCountUtil.safeRelease(byteBuf);
-        }
     }
 
 }

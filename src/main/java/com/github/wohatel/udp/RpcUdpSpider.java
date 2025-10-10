@@ -5,7 +5,7 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
-import com.github.wohatel.util.ByteBufDecoder;
+import com.github.wohatel.util.ByteBufUtil;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -65,7 +65,7 @@ public class RpcUdpSpider<T> {
                 SimpleChannelInboundHandler<DatagramPacket> decoder = new SimpleChannelInboundHandler<>() {
                     @Override
                     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
-                        T decode = ByteBufDecoder.decode(datagramPacket.content(), clazz);
+                        T decode = ByteBufUtil.decode(datagramPacket.content(), clazz);
                         RpcUdpPacket<T> rpcUdpPacket = new RpcUdpPacket<>();
                         rpcUdpPacket.setMsg(decode);
                         rpcUdpPacket.setSender(datagramPacket.sender());

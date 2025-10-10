@@ -19,7 +19,6 @@ import com.github.wohatel.util.VirtualThreadPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.ReferenceCountUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -83,7 +82,7 @@ public class RpcFileChannelDataTransManager {
         item.setBuffer(rpcFileRequest.getBuffer());
         item.setSerial(rpcFileRequest.getSerial());
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
-        boolean addStatus = RpcSessionTransManger.addOrReleaseFile(rpcSession.getSessionId(), item);
+        boolean addStatus = RpcSessionTransManger.addFileChunk(rpcSession.getSessionId(), item);
         if (!addStatus) {
             RpcResponse response = rpcFileRequest.toResponse();
             response.setSuccess(false);
@@ -150,21 +149,17 @@ public class RpcFileChannelDataTransManager {
                     if (i != poll.getSerial()) {
                         throw new RpcException(RpcErrorEnum.HANDLE_MSG, "file blocks are missing:" + i);
                     }
+
                     ByteBuf byteBuf = poll.getByteBuf();
-                    try {
-                        int readableBytes = byteBuf.readableBytes();
-                        byteBuf.getBytes(byteBuf.readerIndex(), fileChannel, readableBytes);
-                    } finally {
-                        if (byteBuf.refCnt() > 0) {
-                            ReferenceCountUtil.safeRelease(byteBuf);
-                        }
-                    }
-                    long recieveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
-                    response.setBody(String.valueOf(recieveSize));
+                    int readableBytes = byteBuf.readableBytes();
+                    // 无需释放,前边解析使用的是unpooled堆内存
+                    byteBuf.getBytes(byteBuf.readerIndex(), fileChannel, readableBytes);
+                    long receiveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
+                    response.setBody(String.valueOf(receiveSize));
                     RpcMsgTransManager.sendResponse(ctx.channel(), response);
                     if (isProcessOverride) {
                         // 同步执行
-                        RpcFileReceiverHandlerExecProxy.onProcess(rpcFileReceiverHandler, impl, recieveSize);
+                        RpcFileReceiverHandlerExecProxy.onProcess(rpcFileReceiverHandler, impl, receiveSize);
                     }
                     handleChunks.incrementAndGet();
                 }

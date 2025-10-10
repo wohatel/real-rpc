@@ -6,6 +6,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.ByteBufPoolManager;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.util.ByteBufUtil;
 import com.github.wohatel.util.SnappyDirectByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,11 +49,13 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
             out.writeInt(0);
         } else {
             if (msg.isNeedCompress()) {
-                ByteBuf compress = SnappyDirectByteBufUtil.compress(ctx.alloc(), fileBuffer.slice());
-                out.writeInt(compress.readableBytes());
-                out.writeBytes(compress);
-                compress.release();
-
+//                ByteBuf compress = SnappyDirectByteBufUtil.compress(ctx.alloc(), fileBuffer.slice());
+//                out.writeInt(compress.readableBytes());
+//                out.writeBytes(compress);
+//                compress.release();
+                byte[] bytes = SnappyDirectByteBufUtil.compress(ByteBufUtil.toBytes(fileBuffer));
+                out.writeInt(bytes.length);
+                out.writeBytes(bytes);
             } else {
                 out.writeInt(fileBuffer.readableBytes());
                 out.writeBytes(fileBuffer);

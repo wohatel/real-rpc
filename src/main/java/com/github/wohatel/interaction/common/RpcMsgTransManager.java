@@ -165,7 +165,8 @@ public class RpcMsgTransManager {
 
     @SneakyThrows
     public static void interruptReceiveFile(RpcSession rpcSession) {
-        RpcSessionTransManger.releaseFile(rpcSession.getSessionId());
+        // 直接终端文件的接收
+        RpcSessionTransManger.release(rpcSession.getSessionId());
     }
 
     public static void sendFile(Channel channel, File file, RpcFileSenderInput input) {

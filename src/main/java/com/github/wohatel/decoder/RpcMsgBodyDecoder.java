@@ -7,8 +7,10 @@ import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.util.ByteBufUtil;
 import com.github.wohatel.util.SnappyDirectByteBufUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
@@ -58,10 +60,9 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
         if (fileLength > 0) {
             if (msg.isNeedCompress()) {
                 // 此处引入一个视图,不需要释放
-                ByteBuf fileBuf = in.readSlice(fileLength);
-                ByteBuf decompress = SnappyDirectByteBufUtil.decompress(ctx.alloc(), fileBuf);
-                // decompress 需要下游释放
-                msg.setByteBuffer(decompress);
+                byte[] bytes = ByteBufUtil.readBytes(in, fileLength);
+                byte[] decompress = SnappyDirectByteBufUtil.decompress(bytes);
+                msg.setByteBuffer(Unpooled.wrappedBuffer(decompress));
             } else {
                 // 此处引入一个引用,需要下游释放
                 ByteBuf fileBuf = in.readRetainedSlice(fileLength);
