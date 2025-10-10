@@ -38,7 +38,7 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
             case file -> {
                 RpcFileRequest fileRequest = JSON.parseObject(payloadBytes, RpcFileRequest.class);
                 msg.setPayload(fileRequest);
-                tryDeCompressFileBuffer(ctx, msg, in);
+                tryDeCompressFileBuffer(msg, in);
             }
         }
         out.add(msg);
@@ -55,17 +55,15 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
         return payloadBytes;
     }
 
-    public void tryDeCompressFileBuffer(ChannelHandlerContext ctx, RpcMsg msg, ByteBuf in) throws Exception {
+    public void tryDeCompressFileBuffer(RpcMsg msg, ByteBuf in) {
         int fileLength = in.readInt();
         if (fileLength > 0) {
             if (msg.isNeedCompress()) {
-                // 此处引入一个视图,不需要释放
                 byte[] bytes = ByteBufUtil.readBytes(in, fileLength);
                 byte[] decompress = SnappyDirectByteBufUtil.decompress(bytes);
                 msg.setByteBuffer(Unpooled.wrappedBuffer(decompress));
             } else {
-                // 此处引入一个引用,需要下游释放
-                ByteBuf fileBuf = in.readRetainedSlice(fileLength);
+                ByteBuf fileBuf = Unpooled.wrappedBuffer(ByteBufUtil.readBytes(in, fileLength));
                 msg.setByteBuffer(fileBuf); // 下游负责 release
             }
         }

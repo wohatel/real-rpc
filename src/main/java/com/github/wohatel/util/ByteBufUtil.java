@@ -27,7 +27,7 @@ public class ByteBufUtil {
         return JSON.parseObject(buf.toString(StandardCharsets.UTF_8), type);
     }
 
-    public static byte[] toBytes(ByteBuf buf) {
+    public static byte[] readBytes(ByteBuf buf) {
         if (buf == null) return null;
         int len = buf.readableBytes();
         byte[] array = new byte[len];
