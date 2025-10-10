@@ -29,4 +29,5 @@ public class NumberConstant {
     public static final int SEVENTY_FIVE = 75;
     public static final int ONE_K = 1_000;
     public static final int ONE_POINT_FILE_K = 1_500;
+    public static final int DATA_LIMIT_M_16 = 16 * 1024 * 1024;
 }

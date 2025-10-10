@@ -2,6 +2,7 @@ package com.github.wohatel.initializer;
 
 import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
+import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
@@ -22,8 +23,6 @@ import java.util.function.Consumer;
 @Data
 @Accessors(chain = true)
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {
-
-    private int maxFramePayloadLength = 16 * 1024 * 1024;
 
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
@@ -51,10 +50,9 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     }
 
     private void initChannel0(SocketChannel socketChannel) {
-        int defaultMaxFrameLength = maxFramePayloadLength;
         socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         ChannelPipeline pipeline = socketChannel.pipeline();
-        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(defaultMaxFrameLength, 0, 4, 0, 4));
+        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(NumberConstant.DATA_LIMIT_M_16, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
         pipeline.addLast("decoder", new RpcMsgBodyDecoder());
         pipeline.addLast("encoder", new RpcMsgBodyEncoder());
