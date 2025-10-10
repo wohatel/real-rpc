@@ -26,7 +26,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         // 压缩消息体
         tryCompressPayload(msg, out);
         if (msg.getRpcCommandType() == RpcCommandType.file) {
-            tryCompressFileBuffer(ctx, msg, out);
+            tryCompressFileBuffer(msg, out);
         }
     }
 
@@ -43,7 +43,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         }
     }
 
-    public void tryCompressFileBuffer(ChannelHandlerContext ctx, RpcMsg msg, ByteBuf out) throws Exception {
+    public void tryCompressFileBuffer(RpcMsg msg, ByteBuf out) throws Exception {
         ByteBuf fileBuffer = msg.getByteBuffer();
         if (fileBuffer == null) {
             out.writeInt(0);
