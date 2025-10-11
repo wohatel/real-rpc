@@ -128,4 +128,12 @@ public class RpcEventLoopManager {
         throw new RpcException(RpcErrorEnum.RUNTIME, "udp eventLoopGroup types are not supported");
     }
 
+    public void shutdownGracefully() {
+        if (eventLoopGroup != null) {
+            eventLoopGroup.shutdownGracefully();
+        }
+        if (workerEventLoopGroup != null) {
+            workerEventLoopGroup.shutdownGracefully();
+        }
+    }
 }
