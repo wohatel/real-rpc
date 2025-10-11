@@ -3,13 +3,13 @@ package com.github.wohatel.udp;
 import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.util.concurrent.ScheduledFuture;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,15 +40,15 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     private final UdpHeartConfig udpHeartConfig;
 
 
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup) {
-        this(eventLoopGroup, null, null, null);
+    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager) {
+        this(rpcEventLoopManager, null, null, null);
     }
 
     /**     * @param eventLoopGroup eventGroup
      * @param channelOptions Connection channel options
      */
-    public RpcUdpHeartSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> simpleMsgConsumer) {
-        super(eventLoopGroup, channelOptions, null);
+    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> simpleMsgConsumer) {
+        super(rpcEventLoopManager, channelOptions, null);
         this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(NumberConstant.OVER_TIME, NumberConstant.TEN_EIGHT_K));
         super.setRpcMsgConsumer((ctx, packet) -> {
             RpcRequest request = packet.getMsg();

@@ -4,6 +4,7 @@ import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -49,10 +50,9 @@ public class TestAddHandler {
      */
     @Test
     void initChannel() throws InterruptedException {
-
         // 线程组暂时用一个
-        group = new NioEventLoopGroup();
-        server = new RpcServer(8765, group, group);
+        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
+        server = new RpcServer(8765, eventLoopManager);
 
 
         // 在server启动之前预先定义处理器链路(也可对client预先定义)
@@ -78,7 +78,7 @@ public class TestAddHandler {
         System.out.println(rpcMsgChannelInitializer);
         server.start().sync();
 
-        client = new RpcDefaultClient("127.0.0.1", 8765, group);
+        client = new RpcDefaultClient("127.0.0.1", 8765, eventLoopManager);
 
         // 等待客户端连接成功
         client.connect().sync();

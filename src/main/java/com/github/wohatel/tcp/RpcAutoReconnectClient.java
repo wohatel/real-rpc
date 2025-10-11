@@ -3,6 +3,7 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -10,7 +11,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
-import io.netty.channel.MultithreadEventLoopGroup;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -35,12 +35,12 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     private Bootstrap bootstrap;
 
-    public RpcAutoReconnectClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup) {
-        this(host, port, eventLoopGroup, null);
+    public RpcAutoReconnectClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
+        this(host, port, rpcEventLoopManager, null);
     }
 
-    public RpcAutoReconnectClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, eventLoopGroup, channelOptions);
+    public RpcAutoReconnectClient(String host, int port, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, rpcEventLoopManager, channelOptions);
     }
 
     /**     * Try the link
@@ -51,8 +51,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         }
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
-            bootstrap.group(eventLoopGroup);
-            bootstrap.channel(channelClass);
+            bootstrap.group(rpcEventLoopManager.getEventLoopGroup());
+            bootstrap.channel(rpcEventLoopManager.getChannelClass());
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
                 for (ChannelOptionAndValue<Object> channelOption : channelOptions) {

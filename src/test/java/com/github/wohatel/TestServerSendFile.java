@@ -2,6 +2,7 @@ package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
@@ -28,16 +29,15 @@ public class TestServerSendFile {
 
     private static RpcServer server;
     private static RpcAutoReconnectClient client;
-    private static NioEventLoopGroup group;
 
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        group = new NioEventLoopGroup();
-        server = new RpcServer(8765, group, group);
+        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
+        server = new RpcServer(8765, eventLoopManager);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcAutoReconnectClient("127.0.0.1", 8765, group);
+        client = new RpcAutoReconnectClient("127.0.0.1", 8765, eventLoopManager);
         // 等待客户端连接成功
         client.autoReconnect();
     }

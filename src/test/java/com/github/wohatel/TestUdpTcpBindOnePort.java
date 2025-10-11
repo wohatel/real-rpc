@@ -2,6 +2,7 @@ package com.github.wohatel;
 
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -35,9 +36,9 @@ public class TestUdpTcpBindOnePort {
         });
         server.bind(8765).sync();
 
+        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
         // tcp绑定8765
-        NioEventLoopGroup eventExecutors = new NioEventLoopGroup();
-        RpcServer rpcServer = new RpcServer(8765, eventExecutors, eventExecutors);
+        RpcServer rpcServer = new RpcServer(8765, eventLoopManager);
         rpcServer.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
@@ -57,7 +58,7 @@ public class TestUdpTcpBindOnePort {
         client.bind().sync();
 
         // tcp-client
-        RpcDefaultClient rpcDefaultClient = new RpcDefaultClient("127.0.0.1", 8765, eventExecutors);
+        RpcDefaultClient rpcDefaultClient = new RpcDefaultClient("127.0.0.1", 8765, eventLoopManager);
         rpcDefaultClient.connect().sync();
 
 

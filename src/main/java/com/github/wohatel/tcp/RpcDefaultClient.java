@@ -2,7 +2,6 @@ package com.github.wohatel.tcp;
 
 
 import com.alibaba.fastjson2.JSONObject;
-import com.github.wohatel.constant.RpcBaseAction;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
@@ -13,6 +12,7 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
@@ -22,16 +22,8 @@ import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.MultithreadEventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.kqueue.KQueueSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +37,7 @@ import java.util.List;
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
 
-    protected final MultithreadEventLoopGroup eventLoopGroup;
-    protected final Class<? extends Channel> channelClass;
+    protected final RpcEventLoopManager rpcEventLoopManager;
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
     // If you need to bind a local NIC to connect to remote services, you need to set it
     @Getter
@@ -54,14 +45,13 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected SocketAddress localAddress;
 
 
-    public RpcDefaultClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup) {
-        this(host, port, eventLoopGroup, null);
+    public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
+        this(host, port, rpcEventLoopManager, null);
     }
 
-    public RpcDefaultClient(String host, int port, MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port);
-        this.eventLoopGroup = eventLoopGroup;
-        this.channelClass = getChannelClass();
+        this.rpcEventLoopManager = rpcEventLoopManager;
         this.channelOptions = channelOptions;
     }
 
@@ -76,8 +66,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
             throw new RpcException(RpcErrorEnum.CONNECT, "the connection is alive:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
-        b.group(eventLoopGroup);
-        b.channel(channelClass);
+        b.group(rpcEventLoopManager.getEventLoopGroup());
+        b.channel(rpcEventLoopManager.getChannelClass());
         b.handler(rpcMsgChannelInitializer);
         b.option(ChannelOption.TCP_NODELAY, true);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
@@ -200,18 +190,5 @@ public class RpcDefaultClient extends RpcDataReceiver {
      */
     public RpcSessionFuture getSessionFuture(RpcSession rpcSession) {
         return RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
-    }
-
-    protected Class<? extends Channel> getChannelClass() {
-        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
-            return NioSocketChannel.class;
-        }
-        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
-            return EpollSocketChannel.class;
-        }
-        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
-            return KQueueSocketChannel.class;
-        }
-        throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup types are not supported at the moment");
     }
 }

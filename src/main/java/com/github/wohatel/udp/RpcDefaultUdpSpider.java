@@ -3,9 +3,9 @@ package com.github.wohatel.udp;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +32,10 @@ public class RpcDefaultUdpSpider {
 
     /**
      *
-     * @param eventLoopGroup eventGroup
+     * @param rpcEventLoopManager rpcEventLoopManager
      * @param channelOptions Connection channel options
      */
-    public RpcDefaultUdpSpider(MultithreadEventLoopGroup eventLoopGroup, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
+    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
         this.rpcMsgConsumer = udpMsgConsumer;
         SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> heartInbondHandler = new SimpleChannelInboundHandler<>() {
             @Override
@@ -46,7 +46,7 @@ public class RpcDefaultUdpSpider {
             }
         };
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
-        }, eventLoopGroup, channelOptions, heartInbondHandler);
+        }, rpcEventLoopManager, channelOptions, heartInbondHandler);
     }
 
     /**
