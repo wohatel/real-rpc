@@ -18,14 +18,14 @@ public class RpcDataReceiver {
 
     protected final String host;
 
-    protected final Integer port;
+    protected final int port;
 
     @Getter
     protected Channel channel;
 
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
 
-    protected RpcDataReceiver(String host, Integer port) {
+    protected RpcDataReceiver(String host, int port) {
         this.uniqueId = NanoIdUtils.randomNanoId();
         this.host = host;
         this.port = port;
@@ -53,13 +53,5 @@ public class RpcDataReceiver {
             return channel.close();
         }
         return null;
-    }
-
-    public boolean isAlive() {
-        return channel != null && channel.isActive();
-    }
-
-    public boolean isWritable() {
-        return channel != null && channel.isWritable();
     }
 }
