@@ -172,7 +172,7 @@ public class RpcFutureTransManager {
         RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, sessionTime);
     }
 
-    public static RpcSessionFuture stopSessionGracefully(String sessionId, String channelId) {
+    public static RpcSessionFuture stopSessionGracefully(String sessionId) {
         RpcSessionFuture future = (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
         if (future == null) {
             return null;

@@ -2,8 +2,14 @@ package com.github.wohatel.tcp;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.base.RpcFuture;
+import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
+import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -13,6 +19,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -29,6 +36,10 @@ public class RpcServer extends RpcDataReceiver {
     private final List<ChannelOptionAndValue<Object>> channelOptions;
     private final List<ChannelOptionAndValue<Object>> childChannelOptions;
     private final RpcEventLoopManager rpcEventLoopManager;
+
+    public RpcServer(int port) {
+        this(port, RpcEventLoopManager.ofDefault());
+    }
 
     public RpcServer(int port, RpcEventLoopManager rpcEventLoopManager) {
         this(null, port, rpcEventLoopManager, null, null);
@@ -74,4 +85,25 @@ public class RpcServer extends RpcDataReceiver {
         return future;
     }
 
+    public void sendFile(File file, RpcFileSenderInput input) {
+        RpcMsgTransManager.sendFile(channel, file, input);
+    }
+
+    /**     * Force interrupt file transfer
+     */
+    public void interruptSendFile(RpcSession rpcSession) {
+        RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
+    }
+
+    public void sendRequest(RpcRequest rpcRequest) {
+        RpcMsgTransManager.sendRequest(channel, rpcRequest);
+    }
+
+    public RpcFuture sendSynRequest(RpcRequest rpcRequest) {
+        return this.sendSynRequest(rpcRequest, NumberConstant.OVER_TIME);
+    }
+
+    public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
+        return RpcMsgTransManager.sendSynRequest(channel, rpcRequest, timeOut);
+    }
 }

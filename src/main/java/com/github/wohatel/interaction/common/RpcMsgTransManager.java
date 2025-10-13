@@ -153,7 +153,7 @@ public class RpcMsgTransManager {
 
     @SneakyThrows
     public static void interruptSendFile(Channel channel, RpcSession rpcSession) {
-        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(), channel.id().asShortText());
+        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISH);

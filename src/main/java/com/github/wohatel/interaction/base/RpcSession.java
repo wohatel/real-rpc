@@ -3,6 +3,7 @@ package com.github.wohatel.interaction.base;
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  *

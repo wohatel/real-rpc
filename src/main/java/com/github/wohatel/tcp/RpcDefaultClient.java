@@ -1,6 +1,5 @@
 package com.github.wohatel.tcp;
 
-
 import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
@@ -44,6 +43,9 @@ public class RpcDefaultClient extends RpcDataReceiver {
     @Setter
     protected SocketAddress localAddress;
 
+    public RpcDefaultClient(String host, int port) {
+        this(host, port, RpcEventLoopManager.ofDefault());
+    }
 
     public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
         this(host, port, rpcEventLoopManager, null);
@@ -179,7 +181,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
         rpcRequest.setNeedResponse(false);
-        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId(), this.channel.id().asShortText());
+        RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 

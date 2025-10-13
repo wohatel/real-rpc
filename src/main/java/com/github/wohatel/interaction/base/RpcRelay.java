@@ -2,12 +2,14 @@ package com.github.wohatel.interaction.base;
 
 import com.github.wohatel.tcp.RpcDataReceiver;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  *
  * @author yaochuang 2025/06/09 10:07
  */
 @Data
+@Accessors(chain = true)
 public class RpcRelay {
     protected String origin = RpcDataReceiver.NODE_ID;
     protected boolean enableCompress; // 数据传输过长中是否压缩

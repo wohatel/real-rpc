@@ -5,10 +5,12 @@ import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 public class RpcRequest extends RpcRelay {
     private String requestId = NanoIdUtils.randomNanoId();
     private boolean needResponse; // 请求到达服务端后,要求服务端给予响应

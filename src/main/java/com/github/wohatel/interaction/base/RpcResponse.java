@@ -4,10 +4,12 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Accessors(chain = true)
 public class RpcResponse extends RpcRelay {
     private String responseId;
     private String origRequestId;

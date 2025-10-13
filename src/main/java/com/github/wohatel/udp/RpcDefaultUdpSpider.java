@@ -30,6 +30,28 @@ public class RpcDefaultUdpSpider {
     @Setter
     protected BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer;
 
+    @Getter
+    protected SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> inbondHandler = new SimpleChannelInboundHandler<>() {
+        @Override
+        protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
+            if (rpcMsgConsumer != null) {
+                rpcMsgConsumer.accept(channelHandlerContext, packet);
+            }
+        }
+    };
+
+    public RpcDefaultUdpSpider() {
+        this(RpcEventLoopManager.ofDefault());
+    }
+
+    /**
+     *
+     * @param rpcEventLoopManager rpcEventLoopManager
+     */
+    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager) {
+        this(rpcEventLoopManager, null, null);
+    }
+
     /**
      *
      * @param rpcEventLoopManager rpcEventLoopManager
@@ -37,16 +59,8 @@ public class RpcDefaultUdpSpider {
      */
     public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
         this.rpcMsgConsumer = udpMsgConsumer;
-        SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> heartInbondHandler = new SimpleChannelInboundHandler<>() {
-            @Override
-            protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
-                if (rpcMsgConsumer != null) {
-                    rpcMsgConsumer.accept(channelHandlerContext, packet);
-                }
-            }
-        };
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
-        }, rpcEventLoopManager, channelOptions, heartInbondHandler);
+        }, rpcEventLoopManager, channelOptions, inbondHandler);
     }
 
     /**

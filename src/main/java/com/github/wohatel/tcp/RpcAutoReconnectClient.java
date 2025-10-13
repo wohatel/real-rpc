@@ -35,6 +35,10 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
 
     private Bootstrap bootstrap;
 
+    public RpcAutoReconnectClient(String host, int port) {
+        this(host, port, RpcEventLoopManager.ofDefault());
+    }
+
     public RpcAutoReconnectClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
         this(host, port, rpcEventLoopManager, null);
     }

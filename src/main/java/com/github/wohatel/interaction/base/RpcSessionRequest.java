@@ -4,10 +4,12 @@ package com.github.wohatel.interaction.base;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
+@Accessors(chain = true)
 public class RpcSessionRequest extends RpcRequest {
     private RpcSession rpcSession;
     private RpcSessionProcess sessionProcess;

@@ -66,6 +66,10 @@ public class RpcEventLoopManager {
     public static RpcEventLoopManager of(EventLoopGroup eventLoopGroup) {
         return of(eventLoopGroup, null, null, null, null);
     }
+    
+    public static RpcEventLoopManager ofDefault() {
+        return of(new NioEventLoopGroup());
+    }
 
     public static RpcEventLoopManager ofUdp(EventLoopGroup eventLoopGroup, Class<? extends Channel> datagramChannelClass) {
         return of(eventLoopGroup, null, null, null, datagramChannelClass);
