@@ -8,7 +8,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -26,8 +25,6 @@ public class RpcDefaultUdpSpider {
     @Getter
     protected final RpcUdpSpider<RpcRequest> rpcUdpSpider;
 
-    @Getter
-    @Setter
     protected BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer;
 
     @Getter
@@ -42,6 +39,10 @@ public class RpcDefaultUdpSpider {
 
     public RpcDefaultUdpSpider() {
         this(RpcEventLoopManager.ofDefault());
+    }
+
+    public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer) {
+        this.rpcMsgConsumer = rpcMsgConsumer;
     }
 
     /**

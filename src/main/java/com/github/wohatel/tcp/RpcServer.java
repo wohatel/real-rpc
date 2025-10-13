@@ -12,6 +12,7 @@ import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import lombok.Getter;
@@ -85,25 +86,55 @@ public class RpcServer extends RpcDataReceiver {
         return future;
     }
 
-    public void sendFile(File file, RpcFileSenderInput input) {
+    /**
+     * send file to the channel of remote
+     *
+     * @param channel channel of remote
+     * @param file    file
+     * @param input   input file config
+     */
+    public void sendFile(Channel channel, File file, RpcFileSenderInput input) {
         RpcMsgTransManager.sendFile(channel, file, input);
     }
 
-    /**     * Force interrupt file transfer
+    /**
+     * Force interrupt file transfer then notice the remote channel
+     * local file trans is interrupted
      */
-    public void interruptSendFile(RpcSession rpcSession) {
-        RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
+    public void interruptSendFile(Channel channel, RpcSession rpcSession) {
+        RpcMsgTransManager.interruptSendFile(channel, rpcSession);
     }
 
-    public void sendRequest(RpcRequest rpcRequest) {
+    /**
+     * send request
+     *
+     * @param channel    remote channel
+     * @param rpcRequest request
+     */
+    public void sendRequest(Channel channel, RpcRequest rpcRequest) {
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 
-    public RpcFuture sendSynRequest(RpcRequest rpcRequest) {
-        return this.sendSynRequest(rpcRequest, NumberConstant.OVER_TIME);
+    /**
+     * send request and wait for response in future
+     *
+     * @param channel    channel
+     * @param rpcRequest rpcRequest
+     * @return RpcFuture
+     */
+    public RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest) {
+        return this.sendSynRequest(channel, rpcRequest, NumberConstant.OVER_TIME);
     }
 
-    public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
+    /**
+     * send request and wait for response in future
+     *
+     * @param channel    channel
+     * @param rpcRequest rpcRequest
+     * @param timeOut    called handle timeout event when no response in certain millis
+     * @return RpcFuture
+     */
+    public RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest, long timeOut) {
         return RpcMsgTransManager.sendSynRequest(channel, rpcRequest, timeOut);
     }
 }

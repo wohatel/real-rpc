@@ -50,7 +50,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> simpleMsgConsumer) {
         super(rpcEventLoopManager, channelOptions, null);
         this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(NumberConstant.OVER_TIME, NumberConstant.TEN_EIGHT_K));
-        super.setRpcMsgConsumer((ctx, packet) -> {
+        super.onMsgReceive((ctx, packet) -> {
             RpcRequest request = packet.getMsg();
             String contentType = request.getContentType();
             RpcBaseAction action = RpcBaseAction.fromString(contentType);

@@ -20,8 +20,6 @@ public class RpcDataReceiver {
 
     protected final Integer port;
 
-    public static String NODE_ID = System.currentTimeMillis() + NanoIdUtils.randomNanoId();
-
     @Getter
     protected Channel channel;
 

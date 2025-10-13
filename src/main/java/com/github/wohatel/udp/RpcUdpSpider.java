@@ -15,7 +15,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.Data;
@@ -46,7 +45,7 @@ public class RpcUdpSpider<T> {
     }
 
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return buildSpider(clazz, RpcEventLoopManager.of(new NioEventLoopGroup()), null, simpleChannelInboundHandler);
+        return buildSpider(clazz, RpcEventLoopManager.ofDefault(), null, simpleChannelInboundHandler);
     }
 
     /**     * Build a simple UDP service
@@ -74,7 +73,7 @@ public class RpcUdpSpider<T> {
     @SuppressWarnings("all")
     public ChannelFuture bind(int port) {
         if (this.channel != null && this.channel.isActive()) {
-            throw new RpcException(RpcErrorEnum.CONNECT, "repeat bindings");
+            throw new RpcException(RpcErrorEnum.CONNECT, "udp repeat bindings");
         }
         Bootstrap b = new Bootstrap();
         b.group(rpcEventLoopManager.getEventLoopGroup());
