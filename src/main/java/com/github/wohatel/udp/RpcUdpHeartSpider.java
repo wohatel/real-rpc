@@ -1,6 +1,6 @@
 package com.github.wohatel.udp;
 
-import com.github.wohatel.constant.RpcBaseAction;
+import com.github.wohatel.constant.RpcUdpAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
@@ -25,7 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-/** * A simple UDP heartbeat proxy class can be used to detect heartbeats between services
+/**
+ * A simple UDP heartbeat proxy class can be used to detect heartbeats between services
  *
  * @author yaochuang 2025/09/28 09:44
  */
@@ -41,32 +42,44 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
 
 
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager) {
-        this(rpcEventLoopManager, null, null, null);
+        this(rpcEventLoopManager, null, null);
     }
 
-    /**     * @param eventLoopGroup eventGroup
+
+    /**
      * @param channelOptions Connection channel options
      */
-    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> simpleMsgConsumer) {
+    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config) {
+        this(rpcEventLoopManager, channelOptions, config, null);
+    }
+
+    /**
+     * @param channelOptions Connection channel options
+     */
+    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super(rpcEventLoopManager, channelOptions, null);
         this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(NumberConstant.OVER_TIME, NumberConstant.TEN_EIGHT_K));
+        this.onMsgReceive(msgConsumer);
+    }
+
+    public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super.onMsgReceive((ctx, packet) -> {
             RpcRequest request = packet.getMsg();
             String contentType = request.getContentType();
-            RpcBaseAction action = RpcBaseAction.fromString(contentType);
-            if (action == RpcBaseAction.PING) {
+            RpcUdpAction action = RpcUdpAction.fromString(contentType);
+            if (action == RpcUdpAction.PING) {
                 RpcRequest rpcRequest = new RpcRequest();
-                rpcRequest.setContentType(RpcBaseAction.PONG.name());
+                rpcRequest.setContentType(RpcUdpAction.PONG.name());
                 // 对方是ping,则直接pong回去
                 RpcUdpSpider.sendGeneralMsg(ctx.channel(), rpcRequest, packet.getSender());
-            } else if (action == RpcBaseAction.PONG) {
+            } else if (action == RpcUdpAction.PONG) {
                 TimingHandler handler = timingHandlerMap.get(packet.getSender());
                 if (handler != null) {
                     handler.lastPongTime = System.currentTimeMillis();
                 }
             } else {
-                if (simpleMsgConsumer != null) {
-                    simpleMsgConsumer.accept(ctx, packet);
+                if (msgConsumer != null) {
+                    msgConsumer.accept(ctx, packet);
                 }
             }
         });
@@ -105,7 +118,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
                 ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
                     // 在启用广播的情况下,采用广播协议
                     RpcRequest rpcRequest = new RpcRequest();
-                    rpcRequest.setContentType(RpcBaseAction.PING.name());
+                    rpcRequest.setContentType(RpcUdpAction.PING.name());
                     if (this.broadCaster.isReady()) {
                         // 广播发送ping
                         RunnerUtil.execSilent(() -> this.rpcUdpSpider.sendMsg(rpcRequest, broadCaster.broadcastAddress));

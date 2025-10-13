@@ -4,14 +4,14 @@ package com.github.wohatel.constant;
  *
  * @author yaochuang 2025/09/15 15:32
  */
-public enum RpcBaseAction {
-    INQUIRY_SESSION, INQUIRY_NODE_ID, PING, PONG;
+public enum RpcUdpAction {
+    PING, PONG;
 
-    public static RpcBaseAction fromString(String action) {
+    public static RpcUdpAction fromString(String action) {
         if (action == null) {
             return null;
         }
-        for (RpcBaseAction actionEnum : RpcBaseAction.values()) {
+        for (RpcUdpAction actionEnum : RpcUdpAction.values()) {
             if (actionEnum.name().equalsIgnoreCase(action)) {
                 return actionEnum;
             }

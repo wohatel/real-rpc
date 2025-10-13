@@ -19,7 +19,8 @@ public class TestRpcDefaultUdpHeartSpider {
     @Test
     void sendHeart() throws InterruptedException {
         RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider(RpcEventLoopManager.of(new NioEventLoopGroup()));
-        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(RpcEventLoopManager.of(new NioEventLoopGroup()));
+        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(RpcEventLoopManager.ofDefault());
+        spider2.onMsgReceive((ctx, re) -> System.out.println(re.getMsg()));
 
         spider1.bind(8765);
         spider2.bind(8766);
