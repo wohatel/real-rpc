@@ -66,7 +66,7 @@ public class RpcEventLoopManager {
     public static RpcEventLoopManager of(EventLoopGroup eventLoopGroup) {
         return of(eventLoopGroup, null, null, null, null);
     }
-    
+
     public static RpcEventLoopManager ofDefault() {
         return of(new NioEventLoopGroup());
     }
@@ -134,10 +134,14 @@ public class RpcEventLoopManager {
 
     public void shutdownGracefully() {
         if (eventLoopGroup != null) {
-            eventLoopGroup.shutdownGracefully();
+            if (!eventLoopGroup.isShutdown() && !eventLoopGroup.isShuttingDown()) {
+                eventLoopGroup.shutdownGracefully();
+            }
         }
         if (workerEventLoopGroup != null) {
-            workerEventLoopGroup.shutdownGracefully();
+            if (!workerEventLoopGroup.isShutdown() && !workerEventLoopGroup.isShuttingDown()) {
+                workerEventLoopGroup.shutdownGracefully();
+            }
         }
     }
 }
