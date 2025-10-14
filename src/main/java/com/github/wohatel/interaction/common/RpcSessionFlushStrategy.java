@@ -2,6 +2,7 @@ package com.github.wohatel.interaction.common;
 
 
 import lombok.Data;
+import lombok.Getter;
 
 @Data
 public class RpcSessionFlushStrategy {
@@ -9,7 +10,8 @@ public class RpcSessionFlushStrategy {
     /**
      * Refresh starts when the remaining time is less than the session time
      */
-    public static double flushSeed = 0.5;
+    @Getter
+    private static double flushSeed = 0.5;
 
     /**
      * Determine if a refresh is required
@@ -38,6 +40,9 @@ public class RpcSessionFlushStrategy {
 
 
     public void reSetFlushSeed(double flushSeed) {
+        if (flushSeed < 0.0 || flushSeed > 1.0) {
+            throw new IllegalArgumentException("flushSeed must be between 0 and 1: " + flushSeed);
+        }
         RpcSessionFlushStrategy.flushSeed = flushSeed;
     }
 }

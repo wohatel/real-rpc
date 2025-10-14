@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ByteBufPoolManager {
 
     private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN_EIGHT_K, (sessionId, bytePoll) -> {
-        bytePoll.destory();
+        bytePoll.destroy();
     });
 
     public static void init(String sessionId, int poolSize, int chunkSize) {
@@ -45,7 +45,7 @@ public class ByteBufPoolManager {
         SESSION_MANAGER.getSession(sessionId).release(buf);
     }
 
-    public static void destory(String sessionId) {
+    public static void destroy(String sessionId) {
         SESSION_MANAGER.releaseAndSessionClose(sessionId);
     }
 
@@ -108,7 +108,7 @@ public class ByteBufPoolManager {
         /**
          * 销毁
          */
-        public void destory() {
+        public void destroy() {
             if (released.compareAndSet(false, true)) {
                 ByteBuf buf;
                 while ((buf = pool.poll()) != null) {

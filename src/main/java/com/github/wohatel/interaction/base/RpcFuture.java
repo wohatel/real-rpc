@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit;
 @Accessors(chain = true)
 public class RpcFuture {
 
-    private final CompletableFuture<RpcResponse> completableFuture = new CompletableFuture<>();
+    private final CompletableFuture<RpcResponse> completableFuture;
     @Getter
     @Setter
-    private long timeOut = NumberConstant.OVER_TIME;
+    private long timeOut;
     @Getter
     @Setter
     private long requestTime = System.currentTimeMillis();
@@ -38,9 +38,11 @@ public class RpcFuture {
 
     public RpcFuture(long timeOut) {
         this.timeOut = timeOut;
+        this.completableFuture = new CompletableFuture<>();
     }
 
     public RpcFuture() {
+        this(NumberConstant.OVER_TIME);
     }
 
     public synchronized RpcFuture addListener(RpcResponseMsgListener rpcResponseMsgListener) {

@@ -82,9 +82,9 @@ public class RpcDefaultClient extends RpcDataReceiver {
         this.channel = f.channel();
         f.addListener(future -> {
             if (future.isSuccess()) {
-                log.info("connect to-" + host + ":" + port + " success");
+                log.info("connect to-{}:{} success", host, port);
             } else {
-                log.error("connect to-" + host + ":" + port + "failure");
+                log.error("connect to-{}:{} failure", host, port);
             }
         });
         return f;

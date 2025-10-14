@@ -61,7 +61,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         ByteBufPoolManager.release(rpcSession.getSessionId(), fileBuffer);
         if (rpcFileRequest.isFinished()) {
-            ByteBufPoolManager.destory(rpcSession.getSessionId());
+            ByteBufPoolManager.destroy(rpcSession.getSessionId());
         }
     }
 

@@ -119,7 +119,7 @@ public class RpcFileChannelDataTransManager {
                 VirtualThreadPool.execute(() -> handleAsynRecieveFile(ctx, rpcFileRequest, rpcFileReceiverHandler));
             }
         } else {
-            log.error("recipient file receipt ends: " + fileWrapper.getMsg());
+            log.error("recipient file receipt ends: {}", fileWrapper.getMsg());
         }
     }
 

@@ -144,7 +144,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
                 });
             } else {
                 Throwable cause = connectFuture.cause();
-                log.error("connection bind failed: port" + ":" + port, cause);
+                log.error("connection bind failed: port:{}", port, cause);
             }
         });
         return future;

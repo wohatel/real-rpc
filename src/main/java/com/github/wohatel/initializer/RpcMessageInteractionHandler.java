@@ -54,22 +54,22 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
-                KeyValue<String, Boolean> linkedNode = null;
+                KeyValue<String, Boolean> keyValue = null;
                 if (request.isSessionStart()) {
                     RpcResponse response = request.toResponse();
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
-                        String errorMsg = "{requestId:" + request.getRequestId() + "}build session id repeat";
-                        linkedNode = new KeyValue<>(errorMsg, false);
+                        String errorMsg = "{requestId:" + request.getRequestId() + "} build session id repeat";
+                        keyValue = new KeyValue<>(errorMsg, false);
                     } else {
                         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
                         RpcSessionTransManger.initSession(context, session, ctx.channel().id().asShortText());
                         RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                        linkedNode = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.sessionStart(ctx, contextWrapper)), e -> new KeyValue<>(e.getMessage(), false));
+                        keyValue = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.sessionStart(ctx, contextWrapper)), e -> new KeyValue<>(e.getMessage(), false));
                     }
-                    response.setSuccess(linkedNode.getValue());
-                    response.setMsg(linkedNode.getKey());
+                    response.setSuccess(keyValue.getValue());
+                    response.setMsg(keyValue.getKey());
                     RpcMsgTransManager.sendResponse(ctx.channel(), response);
-                    if (!linkedNode.getValue()) {
+                    if (!keyValue.getValue()) {
                         RpcSessionTransManger.release(session.getSessionId());
                     }
                 } else if (request.isSessionRequest()) {

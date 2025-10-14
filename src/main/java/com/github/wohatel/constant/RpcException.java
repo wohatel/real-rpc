@@ -38,7 +38,7 @@ public class RpcException extends RuntimeException {
         int length = stack.length;
         if (level < length) {
             StackTraceElement caller = stack[level];
-            log.error("Called from: " + caller.getClassName() + "." + caller.getMethodName() + "()" + " at line " + caller.getLineNumber());
+            log.error("Called from: {}.{} at line {}", caller.getClassName(), caller.getMethodName(), caller.getLineNumber());
         }
     }
 }

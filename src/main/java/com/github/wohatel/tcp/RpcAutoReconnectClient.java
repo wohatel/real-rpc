@@ -91,7 +91,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             Channel newChannel = connectFuture.channel();
             this.channel = newChannel;
             if (connectFuture.isSuccess()) {
-                log.info("the connection was successful: " + host + ":" + port);
+                log.info("the connection was successful--{}:{} ", host, port);
                 // 监听关闭，关闭后自动重连（异步调度，避免递归）
                 newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
                     log.error("the connection is broken and will try to reconnect...");
@@ -99,7 +99,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                 });
             } else {
                 Throwable cause = connectFuture.cause();
-                log.error("connection failed: " + host + ":" + port, cause);
+                log.error("connection failed: {}:{}", host, port, cause);
 
                 // 清理失败 channel
                 if (newChannel != null && newChannel.isOpen()) {

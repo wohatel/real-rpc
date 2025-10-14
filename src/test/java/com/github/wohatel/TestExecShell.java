@@ -71,7 +71,7 @@ public class TestExecShell {
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
                     // 服务端判断不满足条件,直接关闭
-
+                    return  false;
                 }
                 return true;
             }

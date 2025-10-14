@@ -23,15 +23,14 @@ import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
 import com.github.wohatel.util.FileUtil;
 import com.github.wohatel.util.JsonUtil;
-import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.VirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.CharsetUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -43,6 +42,7 @@ import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 
@@ -75,24 +75,21 @@ public class RpcMsgTransManager {
         if (channel == null || !channel.isActive()) {
             throw new IllegalStateException("Channel unavailable, send failed");
         }
-        final ByteBuf buf = channel.alloc().buffer();
-        ReferenceByteBufUtil.exceptionRelease(() -> {
-            if (msg instanceof byte[] bytes) {
-                // 原样发送 byte[]
-                buf.writeBytes(bytes);
-            } else if (msg instanceof String s) {
-                // 原样发送字符串，不加双引号
-                buf.writeCharSequence(s, CharsetUtil.UTF_8);
-            } else {
-                // 对象 / 泛型 → JSON 序列化
-                buf.writeBytes(JSON.toJSONBytes(msg));
-            }
-            DatagramPacket packet = new DatagramPacket(buf, to);
-            channel.writeAndFlush(packet);
-        }, buf);
+        byte[] msgBytes = null;
+        if (msg instanceof byte[] bytes) {
+            msgBytes = bytes;
+        } else if (msg instanceof String s) {
+            // 原样发送字符串，不加双引号
+            msgBytes = s.getBytes(StandardCharsets.UTF_8);
+        } else {
+            // 对象 / 泛型 → JSON 序列化
+            msgBytes = JSON.toJSONBytes(msg);
+        }
+        DatagramPacket packet = new DatagramPacket(Unpooled.wrappedBuffer(msgBytes), to);
+        channel.writeAndFlush(packet);
     }
 
-    private static ChannelFuture sendFileOfSendTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
+    private static ChannelFuture sendFileTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
@@ -124,7 +121,7 @@ public class RpcMsgTransManager {
         rpcFileRequest.setSerial(serial);
         rpcFileRequest.setEnableCompress(needCompress);
         rpcFileRequest.setFinished(finished);
-        RpcMsgTransManager.sendFileOfSendTrunk(channel, rpcFileRequest, buffer);
+        RpcMsgTransManager.sendFileTrunk(channel, rpcFileRequest, buffer);
     }
 
 
@@ -159,7 +156,7 @@ public class RpcMsgTransManager {
             rpcFileRequest.setNeedResponse(false);
             sendRequest(channel, rpcFileRequest);
         }
-        ByteBufPoolManager.destory(rpcSession.getSessionId());
+        ByteBufPoolManager.destroy(rpcSession.getSessionId());
     }
 
     @SneakyThrows
@@ -241,14 +238,14 @@ public class RpcMsgTransManager {
                     if (handleSize == rpcFileTransProcess.getFileLength() - rpcFileTransProcess.getStartIndex()) {
                         listener.onSuccess(rpcFileSenderWrapper);
                         rpcFuture.release();
-                        ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
+                        ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
                     }
                 } else {
-                    log.error("The sender receives an exception message from the receiver:" + response.getMsg() + JsonUtil.toJson(response));
+                    log.error("The sender receives an exception message from the receiver:{}", response.getMsg() + JsonUtil.toJson(response));
                     rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     rpcFuture.release();
-                    ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
+                    ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
                 }
             }
 
@@ -256,21 +253,22 @@ public class RpcMsgTransManager {
             public void onTimeout() {
                 log.error("send file time out");
                 rpcFuture.release();
-                ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
+                ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
 
             @Override
             public void onSessionInterrupt() {
                 log.info("send file was interrupt");
                 rpcFuture.release();
-                ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
+                ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
         };
         VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcResponseMsgListener));
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private static void sendFileBody(Channel channel, File file, RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, final RpcFileTransConfig finalConfig, RpcFileSenderListenerProxy listener) {
-        log.info("the file transfer begins:" + file.getAbsolutePath());
+        log.info("the file transfer begins:{}", file.getAbsolutePath());
         RpcSession rpcSession = rpcFileSenderWrapper.getRpcSession();
         // Determine if a file is trying to compress and is suitable for compression
         boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
@@ -285,12 +283,12 @@ public class RpcMsgTransManager {
             long position = writeIndex;
             fileChannel.position(position);
             while (position < fileSize) {
-                log.info("the file transfer position:" + position + " size:" + fileSize);
+                log.info("the file transfer position:{} size:", fileSize);
                 if (rpcFuture.isSessionFinish()) {
                     break;
                 }
                 if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
-                    log.info("the file trans is removed from rpcFuture" + rpcSession.getSessionId());
+                    log.info("the file trans is removed from rpcFuture:{}", rpcSession.getSessionId());
                     break;
                 }
                 if (!channel.isActive()) {
@@ -328,7 +326,7 @@ public class RpcMsgTransManager {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
             log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
-            ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
+            ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
         }
     }
 

@@ -28,7 +28,9 @@ public class BashSession {
     private volatile boolean stop;
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
 
-
+    /**
+     * @param consumer consumer for shell out
+     */
     public BashSession(Consumer<String> consumer) {
         this("bash", consumer);
     }
@@ -50,7 +52,6 @@ public class BashSession {
         process = builder.start();
         this.bashSessionId = process.pid();
         VirtualThreadPool.execute(() -> readStream(process.inputReader()));
-        VirtualThreadPool.execute(() -> readStream(process.errorReader()));
         consumeMsg(consumer);
     }
 
