@@ -12,21 +12,25 @@ import java.util.List;
 @Data
 public class ForkTree<T, N> {
 
-    /**     * The list of nodes in the tree,
+    /**     
+     * The list of nodes in the tree,
      * in hierarchical order, is non-repeatable and non-empty
      */
     private List<N> nodes;
 
-    /**     * Number of forks in the
+    /**     
+     * Number of forks in the
      * tree (default 2-forked tree)
      */
     private int treeFork = 2;
 
-    /**     * content
+    /**     
+     * content
      */
     private T data;
 
-    /**     * Get the index of the serial child node of a node
+    /**     
+     * Get the index of the serial child node of a node
      *
      * @param netNodeIndex Parent index
      * @param serial       Children (from 0)
@@ -43,7 +47,8 @@ public class ForkTree<T, N> {
         return (childIndex < nodes.size()) ? childIndex : -1;
     }
 
-    /**     * Get the parent index of a node
+    /**     
+     * Get the parent index of a node
      *
      * @param netNodeIndex Current node index
      * @return The parent node index returns -1 if it is the root node or an illegal index
@@ -58,7 +63,8 @@ public class ForkTree<T, N> {
         return (netNodeIndex - 1) / treeFork;
     }
 
-    /**     * Get all the indexes of the lineal
+    /**     
+     * Get all the indexes of the lineal
      * parent of a node all the way to the root node (not including itself)
      *
      * @param netNodeIndex Current node index
@@ -81,7 +87,8 @@ public class ForkTree<T, N> {
         return parents;
     }
 
-    /**     * Get all descendant node indexes (direct and indirect) of a node
+    /**     
+     * Get all descendant node indexes (direct and indirect) of a node
      *
      * @param netNodeIndex Current node index
      * @return List of descendant node indexes
@@ -95,7 +102,8 @@ public class ForkTree<T, N> {
         return children;
     }
 
-    /**     * Recursively collect descendant nodes
+    /**     
+     * Recursively collect descendant nodes
      */
     private void collectChildren(int netNodeIndex, List<Integer> result) {
         for (int serial = 0; serial < treeFork; serial++) {

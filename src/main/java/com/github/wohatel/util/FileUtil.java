@@ -18,7 +18,8 @@ import java.nio.file.StandardOpenOption;
 @Slf4j
 public class FileUtil {
 
-    /**     * File appendage or insertion
+    /**     
+     * File appendage or insertion
      */
     public static void appendFile(String file, byte[] bytes, long startPosition) throws IOException {
         try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {

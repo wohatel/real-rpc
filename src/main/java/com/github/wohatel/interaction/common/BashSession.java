@@ -33,7 +33,8 @@ public class BashSession {
         this("bash", consumer);
     }
 
-    /**     *
+    /**     
+     *
      * @param bashEnv  bashEnv
      *                 "bash" linux or mac ... support
      *                 "zsh"

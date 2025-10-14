@@ -94,7 +94,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendFile(channel, file, input);
     }
 
-    /**     * Force interrupt file transfer
+    /**     
+     * Force interrupt file transfer
      */
     public void interruptSendFile(RpcSession rpcSession) {
         RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
@@ -129,7 +130,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
 
-    /**     * Establish a session
+    /**     
+     * Establish a session
      *
      * @param rpcSession rpcSession
      * @return RpcSessionFuture
@@ -138,7 +140,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return startSession(rpcSession, null);
     }
 
-    /**     * Establish a session with context
+    /**     
+     * Establish a session with context
      *
      * @param rpcSession session
      * @return RpcSessionFuture
@@ -168,7 +171,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return rpcFuture;
     }
 
-    /**     * close session
+    /**     
+     * close session
      */
     public void stopSession(RpcSession rpcSession) {
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
@@ -185,7 +189,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }
 
-    /**     * get session future
+    /**     
+     * get session future
      *
      * @param rpcSession session
      * @return RpcSessionFuture

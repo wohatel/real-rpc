@@ -33,18 +33,21 @@ public class RpcFileTransConfig {
         this.sendFileMd5 = sendFileMd5;
     }
 
-    /**     * Speed limit value, default speed limit 5M
+    /**     
+     * Speed limit value, default speed limit 5M
      */
     @Builder.Default
     private long speedLimit = 5 * 1024 * 1024;
 
-    /**     * The transfer size per block (512K)
+    /**     
+     * The transfer size per block (512K)
      * should not be set too large
      */
     @Builder.Default
     private long chunkSize = 512 * 1024;
 
-    /**     * Limit: The number of blocks cached locally and remotely,
+    /**     
+     * Limit: The number of blocks cached locally and remotely,
      * when sending is paused, default 5
      */
     @Builder.Default
@@ -53,14 +56,16 @@ public class RpcFileTransConfig {
     @Builder.Default
     private boolean tryCompress = true;
 
-    /**     * Compression is attempted only when the compression efficiency is at that value
+    /**     
+     * Compression is attempted only when the compression efficiency is at that value
      * (0-100), the smaller the compression ratio, the better the compression effect
      * Default is 70
      */
     @Builder.Default
     private int compressRatePercent = 70;
 
-    /**     * Whether to calculate file Md5
+    /**     
+     * Whether to calculate file Md5
      */
     @Builder.Default
     private boolean sendFileMd5 = false;

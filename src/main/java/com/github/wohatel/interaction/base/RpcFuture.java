@@ -72,7 +72,8 @@ public class RpcFuture {
         return this.completableFuture.get(timeMills, timeUnit);
     }
 
-    /**     * Tell CompletableFuture that the response is over,
+    /**     
+     * Tell CompletableFuture that the response is over,
      * and process it when RpcFuture.get is done
      */
     public void complete(RpcResponse response) {

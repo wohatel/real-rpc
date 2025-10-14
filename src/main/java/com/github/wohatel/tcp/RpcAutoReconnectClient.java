@@ -27,7 +27,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     @Setter
     private Long autoReconnectInterval = 5000L;
 
-    /**     * Whether automatic reconnection is allowed
+    /**     
+     * Whether automatic reconnection is allowed
      */
     @Getter
     @Setter
@@ -47,7 +48,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         super(host, port, rpcEventLoopManager, channelOptions);
     }
 
-    /**     * Try the link
+    /**     
+     * Try the link
      */
     private ChannelFuture tryConnect() {
         if (this.channel != null && this.channel.isActive()) {
@@ -75,7 +77,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         throw new RpcException(RpcErrorEnum.CONNECT, "rpcAutoReconnectClient connect link is not supported, please use it instead autoReconnect()");
     }
 
-    /**     * Automatic reconnection when broken
+    /**     
+     * Automatic reconnection when broken
      */
     @SneakyThrows
     public void autoReconnect() {
@@ -112,7 +115,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         });
     }
 
-    /**     * Take the initiative to shut down
+    /**     
+     * Take the initiative to shut down
      */
     @Override
     public ChannelFuture close() {

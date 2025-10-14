@@ -33,7 +33,8 @@ public class SessionManager<T> {
     private final BiConsumer<String, T> sessionClose;
     private BiPredicate<String, T> autoFlushPredicate;
 
-    /**     * Refresh factor (if 0.4)
+    /**     
+     * Refresh factor (if 0.4)
      * If the timeout corresponding to a request is 10s, if the distance from the timeout is > 4s, it will not be refreshed, and it will be refreshed if it is less than 4s.
      * That is, the higher this value, the more frequently it is refreshed
      * If the refresh factor is negative, refresh immediately
@@ -59,7 +60,8 @@ public class SessionManager<T> {
     }
 
 
-    /**     * 初始化资源
+    /**     
+     * 初始化资源
      *
      * @param sessionId sessionId
      * @param resource  资源
@@ -68,7 +70,8 @@ public class SessionManager<T> {
         this.initSession(sessionId, resource, null);
     }
 
-    /**     * 初始化资源
+    /**     
+     * 初始化资源
      *
      * @param sessionId sessionId
      * @param resource  资源
@@ -105,7 +108,8 @@ public class SessionManager<T> {
         return container.containsKey(sessionId);
     }
 
-    /**     * 获取session
+    /**     
+     * 获取session
      *
      * @param sessionId 获取session的资源
      * @return 返回session的资源
@@ -114,7 +118,8 @@ public class SessionManager<T> {
         return container.get(sessionId);
     }
 
-    /**     * 获取session
+    /**     
+     * 获取session
      *
      * @param sessionId 获取session的资源
      * @return 返回session的资源
@@ -131,7 +136,8 @@ public class SessionManager<T> {
         return container.size();
     }
 
-    /**     * 关闭管理器
+    /**     
+     * 关闭管理器
      */
     public void destroy() {
         this.setStop(true);
@@ -151,7 +157,8 @@ public class SessionManager<T> {
         }
     }
 
-    /**     * 刷新时间
+    /**     
+     * 刷新时间
      *
      * @param sessionId sessionId
      * @return 刷新下sesssion的最近交互时间
@@ -171,7 +178,8 @@ public class SessionManager<T> {
         return false;
     }
 
-    /**     * 刷新时间
+    /**     
+     * 刷新时间
      *
      * @param sessionId sessionId
      * @return 刷新下会话的最近交互时间
@@ -180,7 +188,8 @@ public class SessionManager<T> {
         return flushTime(sessionId, sessionTime, false);
     }
 
-    /**     * 刷新时间
+    /**     
+     * 刷新时间
      *
      * @param sessionId sessionId
      * @return 刷新下会话的最近交互时间
@@ -189,7 +198,8 @@ public class SessionManager<T> {
         return this.flushTime(sessionId, sessionTime);
     }
 
-    /**     * 循环清理
+    /**     
+     * 循环清理
      */
     private void cleanerLoop() {
         while (!stop) {
@@ -231,7 +241,8 @@ public class SessionManager<T> {
         }
     }
 
-    /**     * 校验验证是否成功
+    /**     
+     * 校验验证是否成功
      */
     private boolean autoTest(String sessionId, T resource) {
         if (this.autoFlushPredicate == null) {

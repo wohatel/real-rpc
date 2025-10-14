@@ -87,7 +87,8 @@ public class LinkedNode<K, T> implements Iterable<LinkedNode<K, T>> {
         return false;
     }
 
-    /**     * 校验节点
+    /**     
+     * 校验节点
      *
      * @param node 节点
      */

@@ -7,7 +7,8 @@ import java.lang.reflect.Method;
  */
 public class ReflectUtil {
 
-    /**     * Gets the first name match method in a given class (including inherited public methods)
+    /**     
+     * Gets the first name match method in a given class (including inherited public methods)
      */
     public static Method getFirstMethodByName(Class<?> clazz, String methodName) {
         for (Method method : clazz.getMethods()) { // 包含继承的方法
@@ -18,7 +19,8 @@ public class ReflectUtil {
         return null;
     }
 
-    /**     * Determine if the method is a rewrite of the default method in the interface
+    /**     
+     * Determine if the method is a rewrite of the default method in the interface
      */
     public static boolean isOverridingInterfaceDefaultMethod(Class<?> implClass, String methodName) {
         Method method = getFirstMethodByName(implClass, methodName);
@@ -29,7 +31,8 @@ public class ReflectUtil {
         return !method.getDeclaringClass().isInterface();
     }
 
-    /**     * Determine if the method is a rewrite of the default method in the interface
+    /**     
+     * Determine if the method is a rewrite of the default method in the interface
      */
     public static boolean isOverridingInterfaceDefaultMethodByImplObj(Object implObj, String methodName) {
         if (implObj == null) {

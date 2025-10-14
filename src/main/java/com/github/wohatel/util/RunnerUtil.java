@@ -75,7 +75,8 @@ public final class RunnerUtil {
         return null;
     }
 
-    /**     * Try n times until the test is OK
+    /**     
+     * Try n times until the test is OK
      */
     public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries) {
         for (int i = 0; i < maxTries; i++) {
@@ -87,7 +88,8 @@ public final class RunnerUtil {
         return condition.getAsBoolean();
     }
 
-    /**     * Wrapping thread sleep
+    /**     
+     * Wrapping thread sleep
      */
     public static void sleep(long millis) {
         try {
