@@ -8,5 +8,18 @@ import lombok.Getter;
  */
 @Getter
 public enum RpcSessionProcess {
-    START, ING, FiNISH
+    /**
+     * try to start session
+     */
+    TOSTART,
+
+    /**
+     * is running in session
+     */
+    RUNNING,
+
+    /**
+     * session is finished
+     */
+    FiNISHED
 }

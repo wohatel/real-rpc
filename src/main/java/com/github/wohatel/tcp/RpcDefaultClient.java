@@ -125,7 +125,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture.isSessionFinish()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
-        rpcSessionRequest.setSessionProcess(RpcSessionProcess.ING);
+        rpcSessionRequest.setSessionProcess(RpcSessionProcess.RUNNING);
         RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
         RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
@@ -157,7 +157,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session already exists and is opened by the remote end");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.START);
+        rpcRequest.setSessionProcess(RpcSessionProcess.TOSTART);
         if (context != null) {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
@@ -166,7 +166,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcResponse rpcResponse = rpcFuture.get();
         if (rpcResponse.isSuccess()) {
-            rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
+            rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);
         }
         return rpcFuture;
     }
@@ -183,7 +183,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.FiNISH);
+        rpcRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
         rpcRequest.setNeedResponse(false);
         RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         RpcMsgTransManager.sendRequest(channel, rpcRequest);

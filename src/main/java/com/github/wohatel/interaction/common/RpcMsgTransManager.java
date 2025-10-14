@@ -119,7 +119,7 @@ public class RpcMsgTransManager {
     @SneakyThrows
     private static void sendFileOfSendBody(Channel channel, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress, boolean finished) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
-        rpcFileRequest.setSessionProcess(RpcSessionProcess.ING);
+        rpcFileRequest.setSessionProcess(RpcSessionProcess.RUNNING);
         rpcFileRequest.setBuffer(chunkSize);
         rpcFileRequest.setSerial(serial);
         rpcFileRequest.setEnableCompress(needCompress);
@@ -140,7 +140,7 @@ public class RpcMsgTransManager {
         rpcFileRequest.setFileInfo(rpcFileInfo);
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
         rpcFileRequest.setCacheBlock(fileTransConfig.getCacheBlock());
-        rpcFileRequest.setSessionProcess(RpcSessionProcess.START);
+        rpcFileRequest.setSessionProcess(RpcSessionProcess.TOSTART);
         if (context != null) {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));
         }
@@ -155,7 +155,7 @@ public class RpcMsgTransManager {
         RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
-            rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISH);
+            rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
             rpcFileRequest.setNeedResponse(false);
             sendRequest(channel, rpcFileRequest);
         }
@@ -202,7 +202,7 @@ public class RpcMsgTransManager {
         if (!startResponse.isSuccess()) {
             throw new RpcException(RpcErrorEnum.RUNTIME, "remote execution of file transfer failed:" + startResponse.getMsg());
         }
-        rpcFuture.setRpcSessionProcess(RpcSessionProcess.ING);
+        rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);
         String responseBody = startResponse.getBody();
         JSONArray array = JSONArray.parseArray(responseBody);
         Boolean needTrans = array.getBoolean(0);
@@ -245,7 +245,7 @@ public class RpcMsgTransManager {
                     }
                 } else {
                     log.error("The sender receives an exception message from the receiver:" + response.getMsg() + JsonUtil.toJson(response));
-                    rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH); // 标记结束
+                    rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, response.getMsg());
                     rpcFuture.release();
                     ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());
@@ -325,7 +325,7 @@ public class RpcMsgTransManager {
                 serial++;
             }
         } catch (Exception e) {
-            rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISH);
+            rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
             log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
             ByteBufPoolManager.destory(rpcFileSenderWrapper.getRpcSession().getSessionId());

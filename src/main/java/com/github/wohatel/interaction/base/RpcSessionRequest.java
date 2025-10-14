@@ -24,15 +24,15 @@ public class RpcSessionRequest extends RpcRequest {
     }
     
     public boolean isSessionRequest() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.ING;
+        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.RUNNING;
     }
 
     public boolean isSessionStart() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.START;
+        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.TOSTART;
     }
 
     public boolean isSessionFinish() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.FiNISH;
+        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.FiNISHED;
     }
 
 }

@@ -36,7 +36,7 @@ public class RpcFutureTransManager {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session the identity cannot be null");
         }
         if (contains(rpcSession.getSessionId())) {
-            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.START) {
+            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.TOSTART) {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "sessions cannot be opened repeatedly");
             }
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
@@ -47,9 +47,9 @@ public class RpcFutureTransManager {
             }
             return rpcFuture;
         } else {
-            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.ING) {
+            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.RUNNING) {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "session does not exist or has ended, and session messages cannot be sent");
-            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISH) {
+            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISHED) {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist or has ended, and there is no need to end the session");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
@@ -178,7 +178,7 @@ public class RpcFutureTransManager {
             return null;
         }
         if (!future.isSessionFinish()) {
-            future.setRpcSessionProcess(RpcSessionProcess.FiNISH);
+            future.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
             RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
         }
         handleInterrupt(future);
