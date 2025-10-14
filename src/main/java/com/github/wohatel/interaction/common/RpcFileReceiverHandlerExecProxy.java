@@ -19,8 +19,8 @@ public class RpcFileReceiverHandlerExecProxy {
      * Note: If the logic is processed for a long time, it is recommended to operate asynchronously
      *
      */
-    public static void onProcess(RpcFileReceiverHandler rpcFileReceiverHandler, RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
-        VirtualThreadPool.execute(() -> rpcFileReceiverHandler.onProcess(rpcFileWrapper, recieveSize));
+    public static void onProcess(RpcFileReceiverHandler rpcFileReceiverHandler, RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
+        VirtualThreadPool.execute(() -> rpcFileReceiverHandler.onProcess(rpcFileWrapper, receiveSize));
     }
 
     /**
