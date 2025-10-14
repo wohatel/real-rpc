@@ -25,7 +25,6 @@ public class TestAddHandler {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static NioEventLoopGroup group;
 
     private static ChannelInboundHandlerAdapter adapter = new ChannelInboundHandlerAdapter() {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {

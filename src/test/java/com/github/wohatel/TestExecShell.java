@@ -27,7 +27,6 @@ public class TestExecShell {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static NioEventLoopGroup group;
     private static SessionManager<BashSession> sessionManager;
 
     @BeforeAll

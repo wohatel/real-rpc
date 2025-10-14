@@ -16,7 +16,6 @@ public class TestCompress {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static NioEventLoopGroup group;
 
     @BeforeAll
     static void beforeAll() throws InterruptedException {

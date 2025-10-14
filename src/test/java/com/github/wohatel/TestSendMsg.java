@@ -7,7 +7,6 @@ import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.MultithreadEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ public class TestSendMsg {
 
     private static RpcServer server;
     private static RpcDefaultClient client;
-    private static MultithreadEventLoopGroup group;
 
     @BeforeAll
     static void beforeAll() throws InterruptedException {
