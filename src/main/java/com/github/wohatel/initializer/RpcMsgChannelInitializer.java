@@ -6,7 +6,6 @@ import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -50,7 +49,6 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     }
 
     private void initChannel0(SocketChannel socketChannel) {
-        socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(NumberConstant.DATA_LIMIT_M_16, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
