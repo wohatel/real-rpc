@@ -21,7 +21,7 @@ public interface RpcFileReceiverHandler {
     /**
      * Remotely receive the progress of the file, which is triggered every time there is a change
      */
-    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long recieveSize) {
+    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
 
     }
 
