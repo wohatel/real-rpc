@@ -45,6 +45,10 @@ public class RpcFuture {
         this(NumberConstant.OVER_TIME);
     }
 
+    /**
+     * listen response to this future
+     * if this future instanceOf RpcSessionFuture: then when RpcSessionProcess.RUNNING
+     */
     public synchronized RpcFuture addListener(RpcResponseMsgListener rpcResponseMsgListener) {
         if (rpcResponseMsgListener != null) {
             if (listeners == null) {

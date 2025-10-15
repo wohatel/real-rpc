@@ -85,7 +85,9 @@ public class RpcFutureTransManager {
             } else {
                 // auto add time
                 RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getResponseId(), rpcSessionFuture.getTimeOut());
-                executeOnResponse(rpcFuture, rpcResponse);
+                if (rpcSessionFuture.isSessionRunning()) {
+                    executeOnResponse(rpcFuture, rpcResponse);
+                }
             }
         } else {
             // 清掉

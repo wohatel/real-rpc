@@ -61,7 +61,8 @@ public class TestExecShell {
                 RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
-                    BashSession bashSession = new BashSession(str -> {
+                    BashSession bashSession = new BashSession();
+                    bashSession.onPrintOut(str -> {
                         // 此处以response的方式返回,接收方需要以future.addListener 方式监听
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcResponse response = rpcSession.toResponse();
@@ -71,7 +72,7 @@ public class TestExecShell {
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
                     // 服务端判断不满足条件,直接关闭
-                    return  false;
+                    return false;
                 }
                 return true;
             }
@@ -81,10 +82,9 @@ public class TestExecShell {
                 // 假如客户端把命令写到body字段
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
+                // 将command也放入输出
                 session.sendCommand(command);
-                RpcResponse response = request.toResponse();
-                response.setBody(command);
-                RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                session.getOutputQueue().offer(command);
             }
 
             @Override
@@ -103,19 +103,21 @@ public class TestExecShell {
         RpcSessionContext rpcSessionContext = new RpcSessionContext();
         rpcSessionContext.setTopic("开启shell");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
-        RpcResponse rpcResponse = rpcSessionFuture.get();
-        System.out.println(rpcResponse.getBody());
+        if (rpcSessionFuture.get().isSuccess()) {
+            System.out.println("服务端已开启session" + rpcSessionFuture.get().getOrigRequestId());
+        }
         // 此处接收response的数据
         rpcSessionFuture.addListener(response -> {
             if (response.isSuccess()) {
                 String body = response.getBody();
-                System.out.println("打印response:" + body);
+                System.out.println(body);
             }
         });
 
-        // 打印工作目录下的文件列表
+//         打印工作目录下的文件列表
         client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));
-        // 切换了目录
+        Thread.sleep(1000);
+//         切换了目录
         client.sendSessionRequest(new RpcSessionRequest(session, "cd /tmp"));
         // 打印/tmp下的文件目录
         client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));

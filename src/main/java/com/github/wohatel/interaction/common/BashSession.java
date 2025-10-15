@@ -24,15 +24,16 @@ public class BashSession {
     private final Process process;
     private long bashSessionId;
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<String> outputQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> outputQueue;
     private volatile boolean stop;
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
 
-    /**
-     * @param consumer consumer for shell out
-     */
-    public BashSession(Consumer<String> consumer) {
-        this("bash", consumer);
+    public BashSession() {
+        this(10000);
+    }
+
+    public BashSession(int outlineLimit) {
+        this("bash", outlineLimit);
     }
 
     /**     
@@ -43,16 +44,15 @@ public class BashSession {
      *                 "ash"  Alpine Linux default shell
      *                 ....
      *                 "bash" is default
-     * @param consumer consumer for shell out
      */
     @SneakyThrows
-    public BashSession(String bashEnv, Consumer<String> consumer) {
+    public BashSession(String bashEnv, int outlineLimit) {
         ProcessBuilder builder = new ProcessBuilder(bashEnv);
         builder.redirectErrorStream(true); // stderr 合并到 stdout
         process = builder.start();
         this.bashSessionId = process.pid();
         VirtualThreadPool.execute(() -> readStream(process.inputReader()));
-        consumeMsg(consumer);
+        this.outputQueue = new LinkedBlockingQueue<>(outlineLimit);
     }
 
     @SneakyThrows
@@ -65,15 +65,16 @@ public class BashSession {
 
     @SneakyThrows
     public void sendCommand(String cmd) {
-        lastOperateTime.set(System.currentTimeMillis());
-        commandQueue.add(cmd);
-        BufferedWriter inputWriter = process.outputWriter();
-        inputWriter.write(cmd);
-        inputWriter.write("\n");
-        inputWriter.flush();
-        // 默认存500个,如果超出就删除10%
-        if (commandQueue.size() > 500) {
-            commandQueue.drainTo(new ArrayList<>(50), 50);
+        if (!stop) {
+            lastOperateTime.set(System.currentTimeMillis());
+            BufferedWriter inputWriter = process.outputWriter();
+            inputWriter.write(cmd);
+            inputWriter.write("\n");
+            inputWriter.flush();
+            // 默认存500个,如果超出就删除10%
+            if (commandQueue.size() > 500) {
+                commandQueue.drainTo(new ArrayList<>(50), 50);
+            }
         }
     }
 
@@ -117,7 +118,12 @@ public class BashSession {
         }
     }
 
-    private void consumeMsg(Consumer<String> consumer) {
+    /**
+     * 处理标准输出或错误输出
+     *
+     * @param consumer 消费每一行输出信息
+     */
+    public void onPrintOut(Consumer<String> consumer) {
         VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
             while (!stop) {
@@ -142,6 +148,11 @@ public class BashSession {
     }
 
 
+    /**
+     * 是否是交互式
+     *
+     * @return boolean
+     */
     public boolean isInteractive() {
         Long foregroundProcess = findForegroundProcess();
         return foregroundProcess == null;
