@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OneTimeLock {
 
-    private static final Cache<String, AtomicBoolean> executed = Caffeine.newBuilder().expireAfterWrite(3, TimeUnit.MINUTES)// Automatically cleaned up after 3 minutes
+    private static final Cache<String, AtomicBoolean> executed = Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES)// Automatically cleaned up after 3 minutes
             .build();
 
     /**

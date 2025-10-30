@@ -20,7 +20,7 @@ public class JsonUtil {
         return JSON.parseObject(JSON.toJSONString(obj), clazz);
     }
 
-    public static <T> List<T> parseArray(Collection collection, Class<T> clazz) {
+    public static <T> List<T> parseArray(Collection<?> collection, Class<T> clazz) {
         if (collection == null) {
             return null;
         }
