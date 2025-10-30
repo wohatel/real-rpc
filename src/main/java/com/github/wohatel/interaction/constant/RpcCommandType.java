@@ -13,7 +13,7 @@ public enum RpcCommandType {
     ;
 
     @Getter
-    int code;
+    final int code;
 
     public static RpcCommandType fromCode(int codeValue) {
         return Arrays.stream(RpcCommandType.values()).filter(t -> t.getCode() == codeValue).findFirst().orElse(null);
