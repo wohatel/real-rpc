@@ -22,6 +22,10 @@ public interface RpcSessionRequestMsgHandler {
      */
     void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
 
+    /**
+     * client tell server: "session will be close",then server handle this service
+     * only can exec once
+     */
     default void sessionStop(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
 
     }

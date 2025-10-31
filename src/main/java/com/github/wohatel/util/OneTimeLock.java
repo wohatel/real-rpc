@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class OneTimeLock {
 
-    private static Cache<@NonNull String, AtomicBoolean> executed;
+    private static volatile Cache<@NonNull String, AtomicBoolean> executed;
 
 
     public static Cache<@NonNull String, AtomicBoolean> getExecutedInstance() {
