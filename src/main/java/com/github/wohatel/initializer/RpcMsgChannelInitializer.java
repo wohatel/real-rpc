@@ -12,6 +12,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.function.Consumer;
@@ -19,6 +20,7 @@ import java.util.function.Consumer;
 /**
  * @author yaochuang
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {

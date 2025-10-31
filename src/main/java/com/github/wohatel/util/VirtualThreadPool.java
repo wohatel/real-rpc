@@ -1,6 +1,5 @@
 package com.github.wohatel.util;
 
-import lombok.Getter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,17 +8,32 @@ import java.util.concurrent.Executors;
  * @author yaochuang 2025/05/08 14:52
  */
 public class VirtualThreadPool {
-    @Getter
-    private static final ExecutorService EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
+
+    private static volatile ExecutorService executor;
+
+    public static ExecutorService getExecutorInstance() {
+        if (executor == null) {
+            synchronized (VirtualThreadPool.class) {
+                if (executor == null) {
+                    executor = Executors.newVirtualThreadPerTaskExecutor();
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                        if (!executor.isShutdown()) {
+                            executor.shutdown();
+                        }
+                    }));
+                }
+            }
+        }
+        return executor;
+    }
 
     public static void execute(boolean ack, Runnable task) {
         if (ack) {
-            EXECUTOR.execute(task);
+            getExecutorInstance().execute(task);
         }
     }
 
     public static void execute(Runnable task) {
-        EXECUTOR.execute(task);
+        execute(true, task);
     }
-
 }

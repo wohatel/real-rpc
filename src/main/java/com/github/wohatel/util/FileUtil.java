@@ -18,37 +18,6 @@ import java.nio.file.StandardOpenOption;
 @Slf4j
 public class FileUtil {
 
-    /**     
-     * File appendage or insertion
-     */
-    public static void appendFile(String file, byte[] bytes, long startPosition) throws IOException {
-        try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-            channel.write(byteBuffer, startPosition);
-        }
-    }
-
-
-    /**
-     * The file is appended to the end
-     *
-     */
-    public static void appendFile(String file, byte[] bytes) throws IOException {
-        try (FileChannel channel = FileChannel.open(Paths.get(file), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);) {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-            channel.write(byteBuffer);
-        }
-    }
-
-    /**
-     * md5 file hash
-     *
-     */
-    @SneakyThrows
-    public static String fileMd5Hash(File file) {
-        return DigestUtils.md5Hex(new FileInputStream(file));
-    }
-
     /**
      * The first headSize byte of the file is attempted,
      * and true is returned if the compression rate is lower than the specified threshold rate

@@ -14,5 +14,5 @@ import lombok.Setter;
 public class RpcNodeId {
     @Getter
     @Setter
-    private static String NODE_ID = NanoIdUtils.randomNanoId() + ":" + System.currentTimeMillis();
+    private static String NODEID = NanoIdUtils.randomNanoId() + ":" + System.currentTimeMillis();
 }

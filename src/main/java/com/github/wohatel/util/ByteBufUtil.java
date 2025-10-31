@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
@@ -14,7 +13,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class ByteBufUtil {
     @SuppressWarnings("unchecked")
-    public static <T> T decode(ByteBuf buf, TypeReference<T> typeRef) throws IOException {
+    public static <T> T decode(ByteBuf buf, TypeReference<T> typeRef) {
         Type type = typeRef.getType();
         if (type == String.class) {
             return (T) buf.toString(StandardCharsets.UTF_8);

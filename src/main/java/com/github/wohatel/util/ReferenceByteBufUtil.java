@@ -24,43 +24,4 @@ public class ReferenceByteBufUtil {
         }
     }
 
-
-    public static void finallyRelease(Runnable runnable, Object... inputs) {
-        try {
-            runnable.run();
-        } catch (Throwable throwable) {
-            throw throwable;
-        } finally {
-            safeRelease(inputs);
-        }
-    }
-
-    public static <T> T finallyRelease(CalledAble<T> calledAble, Object... inputs) {
-        try {
-            return calledAble.call();
-        } catch (Throwable throwable) {
-            throw throwable;
-        } finally {
-            safeRelease(inputs);
-        }
-    }
-
-    public static <T> T exceptionRelease(CalledAble<T> calledAble, Object... inputs) {
-        try {
-            return calledAble.call();
-        } catch (Throwable throwable) {
-            safeRelease(inputs);
-            throw throwable;
-        }
-    }
-
-    public static void exceptionRelease(Runnable runnable, Object... inputs) {
-        try {
-            runnable.run();
-        } catch (Throwable throwable) {
-            safeRelease(inputs);
-            throw throwable;
-        }
-    }
-
 }

@@ -2,11 +2,13 @@ package com.github.wohatel.interaction.base;
 
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
  * @author yaochuang
  */
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @Data
 public class RpcSessionFuture extends RpcFuture {

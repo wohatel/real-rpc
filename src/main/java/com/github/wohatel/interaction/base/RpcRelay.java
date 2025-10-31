@@ -10,7 +10,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class RpcRelay {
-    protected String origin = RpcNodeId.getNODE_ID();
+    protected String origin = RpcNodeId.getNODEID();
     protected boolean enableCompress; // 数据传输过长中是否压缩
     protected String contentType; // 内容类型
     protected String header;  //  头部信息

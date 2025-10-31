@@ -20,7 +20,7 @@ public enum RpcErrorEnum {
 
     final int code;
 
-    String msg;
+    final String msg;
 
     RpcErrorEnum(int code) {
         this(code, null);

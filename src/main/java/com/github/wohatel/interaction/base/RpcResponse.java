@@ -21,10 +21,10 @@ public class RpcResponse extends RpcRelay {
         if (rpcRequest == null) {
             throw new IllegalArgumentException("RpcRequest is null");
         }
-        if (rpcRequest instanceof RpcSessionRequest sesssionRequest) {
+        if (rpcRequest instanceof RpcSessionRequest sessionRequest) {
             RpcResponse response = new RpcResponse();
-            response.setResponseId(sesssionRequest.getRpcSession().getSessionId());
-            response.setOrigRequestId(sesssionRequest.getRequestId());
+            response.setResponseId(sessionRequest.getRpcSession().getSessionId());
+            response.setOrigRequestId(sessionRequest.getRequestId());
             return response;
         }
         RpcResponse response = new RpcResponse();
