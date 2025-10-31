@@ -12,7 +12,7 @@ import lombok.Data;
 @Builder
 public class RpcFileTransConfig {
 
-    public RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
+    private RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
         if (speedLimit <= 0) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the speed limit cannot be <=0");
         }

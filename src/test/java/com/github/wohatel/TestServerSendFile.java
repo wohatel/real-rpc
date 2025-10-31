@@ -14,7 +14,6 @@ import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcAutoReconnectClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
