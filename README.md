@@ -31,8 +31,8 @@
     - onSessionRequestReceive(): 服务端接受到client发来的sessionRequest处理逻辑
 
     
-- RpcResponse
-    - 此类即源端请求后,处理完逻辑返回的结果,用的时候请注意RpcRequest中的needResponse参数,如果需要返回,业务处理返回
+- RpcReaction
+    - 此类即源端请求后,处理完逻辑返回的结果,用的时候请注意RpcRequest中的needReaction参数,如果需要返回,业务处理返回
     - 返回方式: 规范的编码如下只有sendSynRequest的时候可以读取结果
 
 ```
@@ -41,11 +41,11 @@
     future.get();
     
     接收端判断:
-    if (req.isNeedResponse()) {
-        RpcResponse response = req.toResponse();
-        response.setBody("thanks, got it");
+    if (req.isNeedReaction()) {
+        RpcReaction reaction = req.toReaction();
+        reaction.setBody("thanks, got it");
         // 响应结果
-        RpcMsgTransManager.sendResponse(ctx.channel(), response);
+        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
     }
 ```
 
