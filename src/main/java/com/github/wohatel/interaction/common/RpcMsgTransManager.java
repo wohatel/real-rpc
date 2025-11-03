@@ -255,13 +255,6 @@ public class RpcMsgTransManager {
                 rpcFuture.release();
                 ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
-
-            @Override
-            public void onSessionInterrupt() {
-                log.info("send file was interrupt");
-                rpcFuture.release();
-                ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
-            }
         };
         VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcReactionMsgListener));
     }

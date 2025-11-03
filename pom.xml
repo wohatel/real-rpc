@@ -190,6 +190,7 @@
                         <version>3.11.0</version>
                         <configuration>
                             <release>${java.version}</release>
+                            <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
                     <!--要生成Javadoc和Source jar文件，您必须配置javadoc和源Maven插件-->

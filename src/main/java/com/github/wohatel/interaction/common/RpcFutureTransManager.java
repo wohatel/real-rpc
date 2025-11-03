@@ -154,22 +154,6 @@ public class RpcFutureTransManager {
         }
     }
 
-
-    private static void handleInterrupt(RpcSessionFuture rpcSessionFuture) {
-        if (rpcSessionFuture == null) {
-            return;
-        }
-        if (rpcSessionFuture.isSessionFinish()) {
-            return;
-        }
-        List<RpcReactionMsgListener> listeners = rpcSessionFuture.getListeners();
-        if (listeners != null) {
-            for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(rpcReactionMsgListener::onSessionInterrupt);
-            }
-        }
-    }
-
     public static void flushTime(String sessionId, long sessionTime) {
         RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, sessionTime);
     }
@@ -183,7 +167,7 @@ public class RpcFutureTransManager {
             future.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
             RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
         }
-        handleInterrupt(future);
+
         return future;
     }
 }

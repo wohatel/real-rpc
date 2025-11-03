@@ -8,10 +8,4 @@ public interface RpcReactionMsgListener {
 
     default void onTimeout() {
     }
-
-    /**
-     * it will be called when client stopSession or interruptSession
-     */
-    default void onSessionInterrupt() {
-    }
 }
