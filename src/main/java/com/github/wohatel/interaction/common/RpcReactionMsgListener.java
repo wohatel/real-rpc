@@ -1,10 +1,10 @@
 package com.github.wohatel.interaction.common;
 
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 
-public interface RpcResponseMsgListener {
+public interface RpcReactionMsgListener {
 
-    void onResponse(RpcResponse response);
+    void onReaction(RpcReaction reaction);
 
     default void onTimeout() {
     }

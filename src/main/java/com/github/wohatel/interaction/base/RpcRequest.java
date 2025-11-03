@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class RpcRequest extends RpcRelay {
     private String requestId = NanoIdUtils.randomNanoId();
-    private boolean needResponse; // 请求到达服务端后,要求服务端给予响应
+    private boolean needReaction; // 请求到达服务端后,要求服务端给予响应
     private String command; // 命令
     private String website; //  站点
     private String version; //  版本信息
@@ -24,7 +24,7 @@ public class RpcRequest extends RpcRelay {
         return request;
     }
 
-    public RpcResponse toResponse() {
-        return RpcResponse.fromRequest(this);
+    public RpcReaction toReaction() {
+        return RpcReaction.fromRequest(this);
     }
 }

@@ -45,9 +45,9 @@ public class RpcMsg {
         return rpcMsg;
     }
 
-    public static RpcMsg fromResponse(RpcResponse response) {
-        Objects.requireNonNull(response);
-        return new RpcMsg(RpcCommandType.response, response);
+    public static RpcMsg fromReaction(RpcReaction reaction) {
+        Objects.requireNonNull(reaction);
+        return new RpcMsg(RpcCommandType.reaction, reaction);
     }
 
     public static RpcMsg fromFileRequest(RpcFileRequest fileRequest) {

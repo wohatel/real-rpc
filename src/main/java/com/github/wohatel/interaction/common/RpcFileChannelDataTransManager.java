@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcMsg;
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileLocal;
@@ -40,15 +40,15 @@ public class RpcFileChannelDataTransManager {
     @SneakyThrows
     public static void channelRead(ChannelHandlerContext ctx, RpcMsg rpcMsg, RpcFileReceiverHandler rpcFileReceiverHandler) {
         RpcFileRequest rpcFileRequest = rpcMsg.getPayload(RpcFileRequest.class);
-        RpcResponse rpcResponse = rpcFileRequest.toResponse();
+        RpcReaction rpcReaction = rpcFileRequest.toReaction();
         if (rpcFileReceiverHandler == null) {
-            sendStartError(rpcResponse, ctx.channel(), "there is no receive file configuration for remote receive file events: Transmission terminated");
+            sendStartError(rpcReaction, ctx.channel(), "there is no receive file configuration for remote receive file events: Transmission terminated");
             return;
         }
         if (rpcFileRequest.isSessionStart()) {
             boolean running = RpcSessionTransManger.isRunning(rpcFileRequest.getRpcSession().getSessionId());
             if (running) {
-                sendStartError(rpcResponse, ctx.channel(), "do not enable repeat sessions, please check");
+                sendStartError(rpcReaction, ctx.channel(), "do not enable repeat sessions, please check");
                 return;
             }
             String body = rpcFileRequest.getBody();
@@ -56,12 +56,12 @@ public class RpcFileChannelDataTransManager {
             try {
                 RpcFileLocal rpcFileWrapper = rpcFileReceiverHandler.getTargetFile(rpcFileRequest.getRpcSession(), sessionContext, rpcFileRequest.getFileInfo());
                 if (rpcFileWrapper == null) {
-                    sendStartError(rpcResponse, ctx.channel(), "remote accept file path error: send terminated");
+                    sendStartError(rpcReaction, ctx.channel(), "remote accept file path error: send terminated");
                     return;
                 }
                 readInitFile(ctx, rpcFileRequest, sessionContext, rpcFileWrapper, rpcFileReceiverHandler);
             } catch (Exception e) {
-                sendStartError(rpcResponse, ctx.channel(), e.getMessage());
+                sendStartError(rpcReaction, ctx.channel(), e.getMessage());
             }
         } else if (rpcFileRequest.isSessionFinish()) {
             RpcSession rpcSession = rpcFileRequest.getRpcSession();
@@ -84,10 +84,10 @@ public class RpcFileChannelDataTransManager {
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         boolean addStatus = RpcSessionTransManger.addFileChunk(rpcSession.getSessionId(), item);
         if (!addStatus) {
-            RpcResponse response = rpcFileRequest.toResponse();
-            response.setSuccess(false);
-            response.setMsg("stop receiving file blocks");
-            RpcMsgTransManager.sendResponse(ctx.channel(), response);
+            RpcReaction reaction = rpcFileRequest.toReaction();
+            reaction.setSuccess(false);
+            reaction.setMsg("stop receiving file blocks");
+            RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
         }
     }
 
@@ -101,11 +101,11 @@ public class RpcFileChannelDataTransManager {
         body.add(String.valueOf(fileWrapper.getWriteIndex()));
         body.add(fileWrapper.getFile().getAbsolutePath());
 
-        RpcResponse rpcResponse = rpcFileRequest.toResponse();
-        rpcResponse.setBody(JSONArray.toJSONString(body));
-        rpcResponse.setMsg(fileWrapper.getMsg());
-        rpcResponse.setSuccess(StringUtils.isBlank(fileWrapper.getMsg()));
-        RpcMsgTransManager.sendResponse(ctx.channel(), rpcResponse);
+        RpcReaction rpcReaction = rpcFileRequest.toReaction();
+        rpcReaction.setBody(JSONArray.toJSONString(body));
+        rpcReaction.setMsg(fileWrapper.getMsg());
+        rpcReaction.setSuccess(StringUtils.isBlank(fileWrapper.getMsg()));
+        RpcMsgTransManager.sendReaction(ctx.channel(), rpcReaction);
 
         if (StringUtils.isBlank(fileWrapper.getMsg())) {
             if (!fileWrapper.isNeedTrans()) {
@@ -132,7 +132,7 @@ public class RpcFileChannelDataTransManager {
         long length = impl.getNeedTransLength();
         long chunkSize = rpcFileRequest.getBuffer();
         long chunks = (length + chunkSize - 1) / chunkSize;
-        RpcResponse response = rpcFileRequest.toResponse();
+        RpcReaction reaction = rpcFileRequest.toReaction();
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileReceiverHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
@@ -155,8 +155,8 @@ public class RpcFileChannelDataTransManager {
                     // 无需释放,前边解析使用的是unpooled堆内存
                     byteBuf.getBytes(byteBuf.readerIndex(), fileChannel, readableBytes);
                     long receiveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
-                    response.setBody(String.valueOf(receiveSize));
-                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                    reaction.setBody(String.valueOf(receiveSize));
+                    RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     if (isProcessOverride) {
                         // 同步执行
                         RpcFileReceiverHandlerExecProxy.onProcess(rpcFileReceiverHandler, impl, receiveSize);
@@ -169,18 +169,18 @@ public class RpcFileChannelDataTransManager {
             }
         } catch (Exception e) {
             log.error("file Block - Merge - Print Exception Information", e);
-            response.setMsg(e.getMessage());
-            response.setSuccess(false);
-            RpcMsgTransManager.sendResponse(ctx.channel(), response);
+            reaction.setMsg(e.getMessage());
+            reaction.setSuccess(false);
+            RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
             RpcFileReceiverHandlerExecProxy.onFailure(rpcFileReceiverHandler, impl, e);
         } finally {
             RpcSessionTransManger.release(rpcSession.getSessionId());
         }
     }
 
-    private static void sendStartError(RpcResponse rpcResponse, Channel channel, String message) {
-        rpcResponse.setMsg(message);
-        rpcResponse.setSuccess(false);
-        RpcMsgTransManager.sendResponse(channel, rpcResponse);
+    private static void sendStartError(RpcReaction rpcReaction, Channel channel, String message) {
+        rpcReaction.setMsg(message);
+        rpcReaction.setSuccess(false);
+        RpcMsgTransManager.sendReaction(channel, rpcReaction);
     }
 }

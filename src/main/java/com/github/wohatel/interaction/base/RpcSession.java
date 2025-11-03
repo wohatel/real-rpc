@@ -22,8 +22,8 @@ public class RpcSession {
         this.timeOutMillis = timeOutMillis;
     }
 
-    public RpcResponse toResponse() {
-        return RpcResponse.fromSession(this);
+    public RpcReaction toReaction() {
+        return RpcReaction.fromSession(this);
     }
 
     public RpcSessionRequest toRpcSessionRequest() {

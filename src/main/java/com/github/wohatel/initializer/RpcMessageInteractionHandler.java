@@ -2,7 +2,7 @@ package com.github.wohatel.initializer;
 
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcFileChannelDataTransManager;
@@ -44,7 +44,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcMsg rpcMsg = (RpcMsg) msg;
         switch (rpcMsg.getRpcCommandType()) {
-            case response -> RpcFutureTransManager.addResponse(rpcMsg.getPayload(RpcResponse.class));
+            case reaction -> RpcFutureTransManager.addReaction(rpcMsg.getPayload(RpcReaction.class));
             case request -> {
                 if (rpcSimpleRequestMsgHandler != null) {
                     RpcRequest request = rpcMsg.getPayload(RpcRequest.class);
@@ -56,7 +56,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 RpcSession session = request.getRpcSession();
                 KeyValue<String, Boolean> keyValue = null;
                 if (request.isSessionStart()) {
-                    RpcResponse response = request.toResponse();
+                    RpcReaction reaction = request.toReaction();
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
                         String errorMsg = "{requestId:" + request.getRequestId() + "} build session id repeat";
                         keyValue = new KeyValue<>(errorMsg, false);
@@ -66,9 +66,9 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
                         keyValue = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.sessionStart(ctx, contextWrapper)), e -> new KeyValue<>(e.getMessage(), false));
                     }
-                    response.setSuccess(keyValue.getValue());
-                    response.setMsg(keyValue.getKey());
-                    RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                    reaction.setSuccess(keyValue.getValue());
+                    reaction.setMsg(keyValue.getKey());
+                    RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     if (!keyValue.getValue()) {
                         RpcSessionTransManger.release(session.getSessionId());
                     }
@@ -78,10 +78,10 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
                         rpcSessionRequestMsgHandler.channelRead(ctx, contextWrapper, request);
                     } else {
-                        RpcResponse response = request.toResponse();
-                        response.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
-                        response.setSuccess(false);
-                        RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                        RpcReaction reaction = request.toReaction();
+                        reaction.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
+                        reaction.setSuccess(false);
+                        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     }
                 } else if (request.isSessionFinish()) {
                     try {

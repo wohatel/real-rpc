@@ -5,7 +5,7 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
@@ -53,7 +53,7 @@ public class RpcFutureTransManager {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist or has ended, and there is no need to end the session");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
-                rpcFuture.setRequestId(rpcSession.getSessionId());
+                rpcFuture.setFutureId(rpcSession.getSessionId());
                 RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
                 return rpcFuture;
             }
@@ -65,42 +65,42 @@ public class RpcFutureTransManager {
         return (RpcSessionFuture) RPC_FUTURE_SESSION_MANAGER.getSession(sessionId);
     }
 
-    public static void addResponse(RpcResponse rpcResponse) {
-        if (rpcResponse == null) {
+    public static void addReaction(RpcReaction rpcReaction) {
+        if (rpcReaction == null) {
             return;
         }
-        if (rpcResponse.getResponseId() == null) {
+        if (rpcReaction.getReactionId() == null) {
             return;
         }
-        RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcResponse.getResponseId());
+        RpcFuture rpcFuture = RPC_FUTURE_SESSION_MANAGER.getSession(rpcReaction.getReactionId());
         if (rpcFuture == null) {
             return;
         }
         // complete only call once
-        rpcFuture.complete(rpcResponse);
-        rpcFuture.setResponseTime(System.currentTimeMillis());
+        rpcFuture.complete(rpcReaction);
+        rpcFuture.setReactionTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             if (rpcSessionFuture.isSessionFinish()) {
-                remove(rpcResponse.getResponseId());
+                remove(rpcReaction.getReactionId());
             } else {
                 // auto add time
-                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcResponse.getResponseId(), rpcSessionFuture.getTimeOut());
+                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcReaction.getReactionId(), rpcSessionFuture.getTimeOut());
                 if (rpcSessionFuture.isSessionRunning()) {
-                    executeOnResponse(rpcFuture, rpcResponse);
+                    executeOnReaction(rpcFuture, rpcReaction);
                 }
             }
         } else {
             // 清掉
-            remove(rpcResponse.getResponseId());
-            executeOnResponse(rpcFuture, rpcResponse);
+            remove(rpcReaction.getReactionId());
+            executeOnReaction(rpcFuture, rpcReaction);
         }
     }
 
-    private static void executeOnResponse(RpcFuture rpcFuture, RpcResponse rpcResponse) {
-        List<RpcResponseMsgListener> listeners = rpcFuture.getListeners();
+    private static void executeOnReaction(RpcFuture rpcFuture, RpcReaction rpcReaction) {
+        List<RpcReactionMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
-            for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(() -> rpcResponseMsgListener.onResponse(rpcResponse));
+            for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
+                VirtualThreadPool.execute(() -> rpcReactionMsgListener.onReaction(rpcReaction));
             }
         }
     }
@@ -114,7 +114,7 @@ public class RpcFutureTransManager {
         }
         if (timeOut > 0) {
             RpcFuture rpcFuture = new RpcFuture(timeOut);
-            rpcFuture.setRequestId(rpcRequest.getRequestId());
+            rpcFuture.setFutureId(rpcRequest.getRequestId());
             RPC_FUTURE_SESSION_MANAGER.initSession(rpcRequest.getRequestId(), rpcFuture, System.currentTimeMillis() + timeOut);
             return rpcFuture;
         } else {
@@ -146,10 +146,10 @@ public class RpcFutureTransManager {
                 return;
             }
         }
-        List<RpcResponseMsgListener> listeners = future.getListeners();
+        List<RpcReactionMsgListener> listeners = future.getListeners();
         if (listeners != null) {
-            for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(rpcResponseMsgListener::onTimeout);
+            for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
+                VirtualThreadPool.execute(rpcReactionMsgListener::onTimeout);
             }
         }
     }
@@ -162,10 +162,10 @@ public class RpcFutureTransManager {
         if (rpcSessionFuture.isSessionFinish()) {
             return;
         }
-        List<RpcResponseMsgListener> listeners = rpcSessionFuture.getListeners();
+        List<RpcReactionMsgListener> listeners = rpcSessionFuture.getListeners();
         if (listeners != null) {
-            for (RpcResponseMsgListener rpcResponseMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(rpcResponseMsgListener::onSessionInterrupt);
+            for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
+                VirtualThreadPool.execute(rpcReactionMsgListener::onSessionInterrupt);
             }
         }
     }

@@ -2,7 +2,7 @@ package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
@@ -63,16 +63,16 @@ public class TestSendMsg {
             String body = req.getBody();
             System.out.println("服务端收到消息体:" + body);
             // 返回消息体
-            if (req.isNeedResponse()) {
-                RpcResponse response = req.toResponse();
-                response.setBody("thanks, got it");
-                RpcMsgTransManager.sendResponse(ctx.channel(), response);
+            if (req.isNeedReaction()) {
+                RpcReaction reaction = req.toReaction();
+                reaction.setBody("thanks, got it");
+                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
             }
         });
         // 客户度发送消息
         RpcFuture sendFuture = client.sendSynRequest(RpcRequest.withBody("hello ketty"));
-        RpcResponse rpcResponse = sendFuture.get();
-        String body = rpcResponse.getBody();
+        RpcReaction rpcReaction = sendFuture.get();
+        String body = rpcReaction.getBody();
 
         System.out.println("客户端收到服务端的应答:" + body);
         // 防止线程退出
@@ -99,7 +99,7 @@ public class TestSendMsg {
 
 
             // 此处只是做了简单问候,也可发送后等待客户端回应()
-            // rpcRequest.setNeedResponse(true); 客户端也需要判断该字段,进行返回结果
+            // rpcRequest.setNeedReaction(true); 客户端也需要判断该字段,进行返回结果
             // RpcMsgTransManager.sendSynMsg(ctx.channel(), rpcRequest);
         });
 

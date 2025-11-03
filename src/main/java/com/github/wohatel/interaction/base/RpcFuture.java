@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.base;
 
 
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
-import com.github.wohatel.interaction.common.RpcResponseMsgListener;
+import com.github.wohatel.interaction.common.RpcReactionMsgListener;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Accessors(chain = true)
 public class RpcFuture {
 
-    private final CompletableFuture<RpcResponse> completableFuture;
+    private final CompletableFuture<RpcReaction> completableFuture;
     @Getter
     @Setter
     private long timeOut;
@@ -25,16 +25,16 @@ public class RpcFuture {
     @Setter
     private long requestTime = System.currentTimeMillis();
     @Getter
-    private long responseTime;
+    private long reactionTime;
     @Getter
     @Setter
-    private String requestId;
+    private String futureId;
     @Getter
     @Setter
-    private RpcResponse response;
+    private RpcReaction reaction;
 
     @Getter
-    private List<RpcResponseMsgListener> listeners;
+    private List<RpcReactionMsgListener> listeners;
 
     public RpcFuture(long timeOut) {
         this.timeOut = timeOut;
@@ -46,45 +46,45 @@ public class RpcFuture {
     }
 
     /**
-     * listen response to this future
+     * listen reaction to this future
      * if this future instanceOf RpcSessionFuture: then when RpcSessionProcess.RUNNING
      */
-    public synchronized RpcFuture addListener(RpcResponseMsgListener rpcResponseMsgListener) {
-        if (rpcResponseMsgListener != null) {
+    public synchronized RpcFuture addListener(RpcReactionMsgListener rpcReactionMsgListener) {
+        if (rpcReactionMsgListener != null) {
             if (listeners == null) {
                 listeners = new ArrayList<>();
             }
-            listeners.add(rpcResponseMsgListener);
+            listeners.add(rpcReactionMsgListener);
         }
         return this;
     }
 
     public void flushRequestTime() {
-        RpcFutureTransManager.flushTime(requestId, timeOut);
+        RpcFutureTransManager.flushTime(futureId, timeOut);
     }
 
-    public void setResponseTime(long responseTime) {
-        this.responseTime = responseTime;
-        RpcFutureTransManager.flushTime(requestId, timeOut);
+    public void setReactionTime(long reactionTime) {
+        this.reactionTime = reactionTime;
+        RpcFutureTransManager.flushTime(futureId, timeOut);
     }
 
     @SneakyThrows
-    public RpcResponse get() {
+    public RpcReaction get() {
         return this.get(timeOut, TimeUnit.MILLISECONDS);
     }
 
     @SneakyThrows
-    public RpcResponse get(long timeMills, TimeUnit timeUnit) {
+    public RpcReaction get(long timeMills, TimeUnit timeUnit) {
         return this.completableFuture.get(timeMills, timeUnit);
     }
 
     /**     
-     * Tell CompletableFuture that the response is over,
+     * Tell CompletableFuture that the reaction is over,
      * and process it when RpcFuture.get is done
      */
-    public void complete(RpcResponse response) {
-        this.response = response;
-        completableFuture.complete(response);
+    public void complete(RpcReaction reaction) {
+        this.reaction = reaction;
+        completableFuture.complete(reaction);
     }
 
     public boolean isDone() {
@@ -92,7 +92,7 @@ public class RpcFuture {
     }
 
     public void release() {
-        RpcFutureTransManager.remove(this.getRequestId());
+        RpcFutureTransManager.remove(this.getFutureId());
         completableFuture.cancel(true);
     }
 }

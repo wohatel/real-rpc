@@ -117,7 +117,7 @@ public class RpcServer extends RpcDataReceiver {
     }
 
     /**
-     * send request and wait for response in future
+     * send request and wait for reaction in future
      *
      * @param channel    channel
      * @param rpcRequest rpcRequest
@@ -128,11 +128,11 @@ public class RpcServer extends RpcDataReceiver {
     }
 
     /**
-     * send request and wait for response in future
+     * send request and wait for reaction in future
      *
      * @param channel    channel
      * @param rpcRequest rpcRequest
-     * @param timeOut    called handle timeout event when no response in certain millis
+     * @param timeOut    called handle timeout event when no reaction in certain millis
      * @return RpcFuture
      */
     public RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest, long timeOut) {

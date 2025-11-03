@@ -1,6 +1,6 @@
 package com.github.wohatel;
 
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
@@ -65,9 +65,9 @@ public class TestExecShell {
                     bashSession.onPrintOut(str -> {
                         // 此处以response的方式返回,接收方需要以future.addListener 方式监听
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
-                        RpcResponse response = rpcSession.toResponse();
-                        response.setBody(str);
-                        RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                        RpcReaction reaction = rpcSession.toReaction();
+                        reaction.setBody(str);
+                        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
@@ -104,12 +104,12 @@ public class TestExecShell {
         rpcSessionContext.setTopic("开启shell");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
         if (rpcSessionFuture.get().isSuccess()) {
-            System.out.println("服务端已开启session" + rpcSessionFuture.get().getOrigRequestId());
+            System.out.println("服务端已开启session" + rpcSessionFuture.get().getOrigin());
         }
         // 此处接收response的数据
-        rpcSessionFuture.addListener(response -> {
-            if (response.isSuccess()) {
-                String body = response.getBody();
+        rpcSessionFuture.addListener(reaction -> {
+            if (reaction.isSuccess()) {
+                String body = reaction.getBody();
                 System.out.println(body);
             }
         });

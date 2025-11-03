@@ -10,10 +10,10 @@ import io.netty.channel.ChannelHandlerContext;
  */
 public interface RpcSimpleRequestMsgHandler {
     /**
-     * If the request request requires a response,
-     * the response can be set to body and perform the RpcMsgTransUtil.write operation
-     * if request.isNeedResponse()
-     * RpcMsgTransManager.write(ctx.channel(), response);
+     * If the request request requires a reaction,
+     * the reaction can be set to body and perform the RpcMsgTransUtil.write operation
+     * if request.isNeedReaction()
+     * RpcMsgTransManager.write(ctx.channel(), reaction);
      * Note that if the operation is particularly time-consuming--- it needs to be handled asynchronously to avoid thread blocking and affect the consumption of other messages
      *
      */

@@ -1,6 +1,6 @@
 package com.github.wohatel;
 
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
@@ -63,9 +63,9 @@ public class TestSendSessionMsg {
                 System.out.println(request.getBody());
                 // 打印归打印,什么时候发消息看我心情看我心情
 
-                RpcResponse response = request.getRpcSession().toResponse();
-                response.setBody("不想理你!!!");
-                RpcMsgTransManager.sendResponse(ctx.channel(), response);
+                RpcReaction reaction = request.getRpcSession().toReaction();
+                reaction.setBody("不想理你!!!");
+                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
 
 
             }

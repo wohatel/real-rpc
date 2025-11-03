@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 @AllArgsConstructor
 public enum RpcCommandType {
-    request(1), session(2), response(4),
+    request(1), session(2), reaction(4),
 
     file(3),
     ;

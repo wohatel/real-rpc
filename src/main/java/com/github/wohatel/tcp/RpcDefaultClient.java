@@ -5,7 +5,7 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.base.RpcResponse;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
@@ -164,8 +164,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
         rpcFuture.setUniqueId(this.uniqueId);
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
-        RpcResponse rpcResponse = rpcFuture.get();
-        if (rpcResponse.isSuccess()) {
+        RpcReaction rpcReaction = rpcFuture.get();
+        if (rpcReaction.isSuccess()) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);
         }
         return rpcFuture;
@@ -184,7 +184,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
-        rpcRequest.setNeedResponse(false);
+        rpcRequest.setNeedReaction(false);
         RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
     }

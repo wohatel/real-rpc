@@ -7,8 +7,8 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcMsg;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.base.RpcResponse;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
@@ -51,11 +51,11 @@ import java.util.concurrent.TimeUnit;
 public class RpcMsgTransManager {
 
 
-    public static void sendResponse(Channel channel, RpcResponse rpcResponse) {
-        if (rpcResponse == null) {
+    public static void sendReaction(Channel channel, RpcReaction rpcReaction) {
+        if (rpcReaction == null) {
             return;
         }
-        channel.writeAndFlush(RpcMsg.fromResponse(rpcResponse));
+        channel.writeAndFlush(RpcMsg.fromReaction(rpcReaction));
     }
 
     public static void sendRequest(Channel channel, RpcRequest rpcRequest) {
@@ -106,7 +106,7 @@ public class RpcMsgTransManager {
 
 
     public static RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest, long timeOutMillis) {
-        rpcRequest.setNeedResponse(true);
+        rpcRequest.setNeedReaction(true);
         RpcFuture rpcFuture = RpcFutureTransManager.addRequest(rpcRequest, timeOutMillis);
         sendRequest(channel, rpcRequest);
         return rpcFuture;
@@ -141,7 +141,7 @@ public class RpcMsgTransManager {
         if (context != null) {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));
         }
-        rpcFileRequest.setNeedResponse(true);
+        rpcFileRequest.setNeedReaction(true);
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
         sendRequest(channel, rpcFileRequest);
         return rpcFuture;
@@ -153,7 +153,7 @@ public class RpcMsgTransManager {
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
-            rpcFileRequest.setNeedResponse(false);
+            rpcFileRequest.setNeedReaction(false);
             sendRequest(channel, rpcFileRequest);
         }
         ByteBufPoolManager.destroy(rpcSession.getSessionId());
@@ -195,13 +195,13 @@ public class RpcMsgTransManager {
         rpcFileTransProcess.setSendSize(0L);
         rpcFileTransProcess.setRemoteHandleSize(0L);
         RpcSessionFuture rpcFuture = sendFileOfStartSession(channel, file, finalConfig, rpcSession, context);
-        RpcResponse startResponse = rpcFuture.get();
-        if (!startResponse.isSuccess()) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "remote execution of file transfer failed:" + startResponse.getMsg());
+        RpcReaction startReaction = rpcFuture.get();
+        if (!startReaction.isSuccess()) {
+            throw new RpcException(RpcErrorEnum.RUNTIME, "remote execution of file transfer failed:" + startReaction.getMsg());
         }
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);
-        String responseBody = startResponse.getBody();
-        JSONArray array = JSONArray.parseArray(responseBody);
+        String reactionBody = startReaction.getBody();
+        JSONArray array = JSONArray.parseArray(reactionBody);
         Boolean needTrans = array.getBoolean(0);
         RpcFileTransModel transModel = RpcFileTransModel.nameOf(array.getString(1));
         Long writeIndex = array.getLong(2);
@@ -215,8 +215,8 @@ public class RpcMsgTransManager {
             sendFileBody(channel, file, rpcFileSenderWrapper, rpcFuture, rpcFileTransProcess, finalConfig, listener);
             return;
         }
-        if (StringUtils.isNotBlank(startResponse.getMsg())) {
-            listener.onFailure(rpcFileSenderWrapper, startResponse.getMsg());
+        if (StringUtils.isNotBlank(startReaction.getMsg())) {
+            listener.onFailure(rpcFileSenderWrapper, startReaction.getMsg());
         } else {
             listener.onSuccess(rpcFileSenderWrapper);
         }
@@ -227,11 +227,11 @@ public class RpcMsgTransManager {
      * Listen to file sending
      */
     private static void listenSendFileBody(RpcFileSenderWrapper rpcFileSenderWrapper, RpcSessionFuture rpcFuture, RpcFileTransProcess rpcFileTransProcess, RpcFileSenderListenerProxy listener) {
-        RpcResponseMsgListener rpcResponseMsgListener = new RpcResponseMsgListener() {
+        RpcReactionMsgListener rpcReactionMsgListener = new RpcReactionMsgListener() {
             @Override
-            public void onResponse(RpcResponse response) {
-                if (response.isSuccess()) {
-                    String body = response.getBody();
+            public void onReaction(RpcReaction reaction) {
+                if (reaction.isSuccess()) {
+                    String body = reaction.getBody();
                     long handleSize = Long.parseLong(body);
                     rpcFileTransProcess.setRemoteHandleSize(handleSize);
                     listener.onProcess(rpcFileSenderWrapper, rpcFileTransProcess.copy());
@@ -241,9 +241,9 @@ public class RpcMsgTransManager {
                         ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
                     }
                 } else {
-                    log.error("The sender receives an exception message from the receiver:{}", response.getMsg() + JsonUtil.toJson(response));
+                    log.error("The sender receives an exception message from the receiver:{}", reaction.getMsg() + JsonUtil.toJson(reaction));
                     rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED); // 标记结束
-                    listener.onFailure(rpcFileSenderWrapper, response.getMsg());
+                    listener.onFailure(rpcFileSenderWrapper, reaction.getMsg());
                     rpcFuture.release();
                     ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
                 }
@@ -263,7 +263,7 @@ public class RpcMsgTransManager {
                 ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
         };
-        VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcResponseMsgListener));
+        VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcReactionMsgListener));
     }
 
     @SuppressWarnings("UnstableApiUsage")
