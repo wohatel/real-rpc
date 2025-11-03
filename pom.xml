@@ -183,6 +183,15 @@
             </activation>
             <build>
                 <plugins>
+                    <!-- 编译兼容配置 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.11.0</version>
+                        <configuration>
+                            <release>${java.version}</release>
+                        </configuration>
+                    </plugin>
                     <!--要生成Javadoc和Source jar文件，您必须配置javadoc和源Maven插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -203,8 +212,8 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
                         <configuration>
-                            <javadocExecutable>/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/javadoc
-                            </javadocExecutable>
+                            <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+                            <additionalparam>-Xdoclint:none</additionalparam>
                         </configuration>
                         <executions>
                             <execution>
@@ -218,13 +227,13 @@
                             </execution>
                         </executions>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.2.8</version>
                         <executions>
                             <execution>
+                                <id>sign-artifacts</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
