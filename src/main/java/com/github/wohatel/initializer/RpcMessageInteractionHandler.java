@@ -1,8 +1,8 @@
 package com.github.wohatel.initializer;
 
 import com.github.wohatel.interaction.base.RpcMsg;
-import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcReaction;
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcFileChannelDataTransManager;
@@ -11,7 +11,7 @@ import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
+import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.util.JsonUtil;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
-    private RpcFileReceiverHandler rpcFileReceiverHandler;
+    private RpcFileRequestMsgHandler rpcFileRequestMsgHandler;
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
 
@@ -95,7 +95,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
-            case file -> RpcFileChannelDataTransManager.channelRead(ctx, rpcMsg, rpcFileReceiverHandler);
+            case file -> RpcFileChannelDataTransManager.channelRead(ctx, rpcMsg, rpcFileRequestMsgHandler);
 
             default -> {
             }

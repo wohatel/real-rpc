@@ -3,7 +3,7 @@ package com.github.wohatel.initializer;
 import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
 import com.github.wohatel.interaction.constant.NumberConstant;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
+import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.ChannelInitializer;
@@ -29,8 +29,8 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
 
     private Consumer<SocketChannel> initChannelConsumer;
 
-    public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
-        rpcMessageInteractionHandler.setRpcFileReceiverHandler(rpcFileReceiverHandler);
+    public void onFileReceive(RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
+        rpcMessageInteractionHandler.setRpcFileRequestMsgHandler(rpcFileRequestMsgHandler);
     }
 
     public void onRequestReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {

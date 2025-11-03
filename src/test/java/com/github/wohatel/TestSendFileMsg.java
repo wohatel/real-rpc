@@ -10,7 +10,7 @@ import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.file.RpcFileSenderListener;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
+import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -48,7 +48,7 @@ public class TestSendFileMsg {
     @Test
     void clientSendFile() throws InterruptedException {
 
-        server.onFileReceive(new RpcFileReceiverHandler() {
+        server.onFileReceive(new RpcFileRequestMsgHandler() {
 
             /**
              * 收文件的一方,根据发送发发来的文件元数据信息,以及上下文信息决定如何处理文件

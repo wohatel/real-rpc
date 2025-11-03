@@ -11,7 +11,7 @@ import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
  *
  * @author yaochuang 2025/03/28 09:44
  */
-public interface RpcFileReceiverHandler {
+public interface RpcFileRequestMsgHandler {
 
     /**
      * Determine the file storage location (called before the file transfer starts)

@@ -9,7 +9,7 @@ import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileLocal;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
+import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcAutoReconnectClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -49,7 +49,7 @@ public class TestServerSendFile {
     void clientSendFile() throws InterruptedException {
 
         Thread.sleep(2000);
-        client.onFileReceive(new RpcFileReceiverHandler() {
+        client.onFileReceive(new RpcFileRequestMsgHandler() {
 
             /**
              * 收文件的一方,根据发送发发来的文件元数据信息,以及上下文信息决定如何处理文件

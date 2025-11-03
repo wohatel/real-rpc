@@ -2,7 +2,7 @@ package com.github.wohatel.tcp;
 
 import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
-import com.github.wohatel.interaction.handler.RpcFileReceiverHandler;
+import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import io.netty.channel.Channel;
@@ -13,7 +13,7 @@ import lombok.Getter;
 
 @Data
 public class RpcDataReceiver {
-    
+
     protected final String uniqueId;
 
     protected final String host;
@@ -36,8 +36,8 @@ public class RpcDataReceiver {
     }
 
 
-    public void onFileReceive(RpcFileReceiverHandler rpcFileReceiverHandler) {
-        rpcMsgChannelInitializer.onFileReceive(rpcFileReceiverHandler);
+    public void onFileReceive(RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
+        rpcMsgChannelInitializer.onFileReceive(rpcFileRequestMsgHandler);
     }
 
     public void onRequestReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
