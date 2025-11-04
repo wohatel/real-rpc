@@ -16,6 +16,8 @@ public enum RpcErrorEnum {
     SEND_MSG(300, "send msg exception"),
 
     HANDLE_MSG(400, "receive msg exception"),
+
+    SESSION_LOSE(9, "session is lose"),
     ;
 
     final int code;

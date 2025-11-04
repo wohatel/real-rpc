@@ -88,7 +88,7 @@ public class TestSendSessionMsg {
          * 监听服务端小消息
          */
         rpcSessionFuture.addListener((future) -> {
-            System.out.println("收到灰心");
+            System.out.println("收到响应消息");
             if (future.isSuccess()) {
                 System.out.println(future.getBody());
             }

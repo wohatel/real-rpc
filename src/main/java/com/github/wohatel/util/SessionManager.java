@@ -31,7 +31,6 @@ public class SessionManager<T> {
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
     private final Thread cleanerThread;
     private final BiConsumer<String, T> sessionClose;
-    private BiPredicate<String, T> autoFlushPredicate;
 
     /**     
      * Refresh factor (if 0.4)
@@ -209,11 +208,6 @@ public class SessionManager<T> {
                 if (resource == null) {// 说明已经被移除
                     continue;
                 }
-                // 自动控制测试是否需要
-                if (autoTest(item.sessionId, resource)) {
-                    flushTime(item.sessionId, sessionTime, true);
-                    continue;
-                }
                 AtomicLong expireAt = timeFlushMap.get(item.sessionId);
                 long now = System.currentTimeMillis();
                 if (now >= expireAt.get()) {
@@ -240,22 +234,6 @@ public class SessionManager<T> {
             }
         }
     }
-
-    /**     
-     * 校验验证是否成功
-     */
-    private boolean autoTest(String sessionId, T resource) {
-        if (this.autoFlushPredicate == null) {
-            return false;
-        }
-        try {
-            return autoFlushPredicate.test(sessionId, resource);
-        } catch (Exception e) {
-            log.error("autoTest autoTest failed:", e);
-        }
-        return false;
-    }
-
 
     private static class DelayItem implements Delayed {
         private final String sessionId;

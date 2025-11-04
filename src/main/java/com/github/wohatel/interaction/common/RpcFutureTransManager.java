@@ -4,8 +4,8 @@ package com.github.wohatel.interaction.common;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
-import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcReaction;
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
@@ -81,6 +81,7 @@ public class RpcFutureTransManager {
         rpcFuture.setReactionTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             if (rpcSessionFuture.isSessionFinish()) {
+                // 已经结束的情况下,不再接收消息
                 remove(rpcReaction.getReactionId());
             } else {
                 // auto add time

@@ -1,6 +1,7 @@
 package com.github.wohatel.interaction.base;
 
 
+import com.github.wohatel.initializer.RpcMessageInteractionHandler;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcReactionMsgListener;
 import com.github.wohatel.interaction.constant.NumberConstant;
@@ -95,4 +96,5 @@ public class RpcFuture {
         RpcFutureTransManager.remove(this.getFutureId());
         completableFuture.cancel(true);
     }
+
 }

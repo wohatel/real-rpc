@@ -71,7 +71,15 @@ public class RpcFileChannelDataTransManager {
             }
             RpcSessionTransManger.release(rpcSession.getSessionId());
         } else {
-            readBodyFile(ctx, rpcFileRequest, rpcMsg.getByteBuffer());
+            if (!RpcSessionTransManger.isRunning(rpcFileRequest.getRpcSession().getSessionId())) {
+                RpcReaction reaction = rpcFileRequest.toReaction();
+                reaction.setMsg("{requestId:" + rpcFileRequest.getRequestId() + "} the sending session file message is abnormal and the session does not exist");
+                reaction.setSuccess(false);
+                reaction.setCode(RpcErrorEnum.SESSION_LOSE.getCode());
+                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+            } else {
+                readBodyFile(ctx, rpcFileRequest, rpcMsg.getByteBuffer());
+            }
         }
     }
 

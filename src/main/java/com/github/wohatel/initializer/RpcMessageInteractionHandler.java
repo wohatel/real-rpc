@@ -1,5 +1,6 @@
 package com.github.wohatel.initializer;
 
+import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
@@ -81,6 +82,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcReaction reaction = request.toReaction();
                         reaction.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
                         reaction.setSuccess(false);
+                        reaction.setCode(RpcErrorEnum.SESSION_LOSE.getCode());
                         RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     }
                 } else if (request.isSessionFinish()) {
