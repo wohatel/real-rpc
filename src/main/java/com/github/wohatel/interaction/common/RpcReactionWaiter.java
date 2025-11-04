@@ -6,6 +6,7 @@ import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.io.File;
 @Slf4j
 public class RpcReactionWaiter {
 
+    @Getter
     private final ChannelHandlerContext ctx;
 
     public RpcReactionWaiter(ChannelHandlerContext ctx) {

@@ -11,7 +11,7 @@ public interface RpcSessionRequestMsgHandler {
      * so it is recommended to use asynchronous threads to process the read logic
      *
      */
-    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper) {
+    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
         return true;
     }
 
@@ -26,7 +26,7 @@ public interface RpcSessionRequestMsgHandler {
      * client tell server: "session will be close",then server handle this service
      * only can exec once
      */
-    default void onSessionStop(final RpcSessionContextWrapper contextWrapper) {
+    default void onSessionStop(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
 
     }
 
@@ -35,7 +35,7 @@ public interface RpcSessionRequestMsgHandler {
      *
      * @param contextWrapper contextWrapper
      */
-    default void onFinally(final RpcSessionContextWrapper contextWrapper) {
+    default void onFinally(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
 
     }
 

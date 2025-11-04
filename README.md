@@ -63,12 +63,12 @@
     /**
      * ::: 文件接收的进度
      * rpcFileWrapper: 文件参数的封装,包含rpcSession,context,fileInfo,总共需要传输的大小
-     *                 rpcFileWrapper.forceInterruptSession(): 表示接收端单方面停止接收文件
+     *                 interrupter.forceInterruptSession(): 表示接收端单方面停止接收文件
      *                 不会触发onFailure -- 不认为是失败了,只是传输被中止
      *
      * receiveSize: 表示已经接收文件的大小 
      */
-    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize);
+    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize,RpcFileInterrupter interrupter);
     
     /**
      * ::: 文件接收时,本地出现错误后调用逻辑
@@ -80,6 +80,11 @@
      */
     default void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper);
 
+    /**
+     * 如果 getTargetFile 方法返回结果不为null,那么onFinally 最后会被执行
+     */
+    default void onFinally(final RpcFileReceiveWrapper rpcFileWrapper);
+
 ```
 
 - RpcSessionRequestMsgHandler
@@ -88,10 +93,12 @@
         /**
      * ::: client端发来的开启一个会话的请求
      * contextWrapper 回话的上下文
-     *   rpcFileWrapper.forceInterruptSession(): 单方面强制终止回话
-     * @return 返回false,表示不同意开启会话
+     *   
+     *   RpcSessionReactionWaiter waiter: 会话服务员
+     *   waiter.forceInterruptSession(): 单方面强制终止回话
+     *   @return 返回false,表示不同意开启会话
      */
-    default boolean sessionStart(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper);
+    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter);
     
     /**
      * ::: 会话期间,接收到客户端的请求,如何处理
@@ -103,6 +110,12 @@
      * ::: 客户端发送请求,结束会话,服务端的逻辑处理
      */
     default void sessionStop(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper);
+
+    /**
+     * 如果 onSessionStart 会议开启(也就是返回值为true),那么onFinally 最后会被执行
+     * ::: 客户端发送请求,结束会话,服务端的逻辑处理
+     */
+    default onFinally(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter);
 ```
 
 - RpcSimpleRequestMsgHandler

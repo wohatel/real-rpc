@@ -55,12 +55,19 @@ public class TestExecShell {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper) {
+            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 RpcSessionContext context = contextWrapper.getRpcSessionContext();
                 RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession();
+                    bashSession.onPrintOut(str -> {
+                        // 此处以response的方式返回,接收方需要以future.addListener 方式监听
+                        // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
+                        RpcReaction reaction = contextWrapper.getRpcSession().toReaction();
+                        reaction.setBody(str);
+                        waiter.sendReaction(reaction);
+                    });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
                     // 服务端判断不满足条件,直接关闭
@@ -74,20 +81,13 @@ public class TestExecShell {
                 // 假如客户端把命令写到body字段
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
-                session.onPrintOut(str -> {
-                    // 此处以response的方式返回,接收方需要以future.addListener 方式监听
-                    // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
-                    RpcReaction reaction = request.toReaction();
-                    reaction.setBody(str);
-                    waiter.sendReaction(reaction);
-                });
                 // 将command也放入输出
                 session.sendCommand(command);
                 session.getOutputQueue().offer(command);
             }
 
             @Override
-            public void onSessionStop(RpcSessionContextWrapper contextWrapper) {
+            public void onSessionStop(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 System.out.println("关闭session");
                 // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
                 sessionManager.release(contextWrapper.getRpcSession().getSessionId());

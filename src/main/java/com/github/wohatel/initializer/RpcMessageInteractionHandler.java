@@ -58,18 +58,20 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case session -> {
                 RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
                 RpcSession session = request.getRpcSession();
-                KeyValue<String, Boolean> keyValue = null;
                 if (request.isSessionStart()) {
                     RpcReaction reaction = request.toReaction();
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
                         String errorMsg = "{requestId:" + request.getRequestId() + "} build session id repeat";
-                        keyValue = new KeyValue<>(errorMsg, false);
-                    } else {
-                        RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-                        RpcSessionTransManger.initSession(context, session, ctx);
-                        RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                        keyValue = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.onSessionStart(contextWrapper)), e -> new KeyValue<>(e.getMessage(), false));
+                        reaction.setMsg(errorMsg);
+                        reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
+                        reaction.setSuccess(false);
+                        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     }
+                    RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
+                    RpcSessionTransManger.initSession(context, session, ctx);
+                    RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
+                    RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+                    KeyValue<String, Boolean> keyValue = RunnerUtil.execSilentException(() -> new KeyValue<>(null, rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter)), e -> new KeyValue<>(e.getMessage(), false));
                     reaction.setSuccess(keyValue.getValue());
                     reaction.setMsg(keyValue.getKey());
                     RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
@@ -77,14 +79,14 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                         RpcSessionTransManger.release(session.getSessionId());
                     } else {
                         // 注册最终release事件
-                        RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                        RpcSessionTransManger.registOnRelease(session.getSessionId(), t -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper));
+                        RpcSessionTransManger.registOnRelease(session.getSessionId(), t -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter));
                     }
                 } else if (request.isSessionRequest()) {
                     if (RpcSessionTransManger.isRunning(session.getSessionId())) {
                         RpcSessionTransManger.flush(session.getSessionId());
                         RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                        rpcSessionRequestMsgHandler.onReceiveRequest(contextWrapper, request, new RpcSessionReactionWaiter(ctx));
+                        RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+                        rpcSessionRequestMsgHandler.onReceiveRequest(contextWrapper, request, waiter);
                     } else {
                         RpcReaction reaction = request.toReaction();
                         reaction.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
@@ -96,7 +98,8 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
                     try {
                         if (RpcSessionTransManger.isRunning(request.getRpcSession().getSessionId())) {
                             RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-                            RpcSessionRequestMsgHandlerExecProxy.sessionStop(rpcSessionRequestMsgHandler, contextWrapper);
+                            RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+                            RpcSessionRequestMsgHandlerExecProxy.sessionStop(rpcSessionRequestMsgHandler, contextWrapper, waiter);
                         }
                     } finally {
                         RpcSessionTransManger.release(session.getSessionId());

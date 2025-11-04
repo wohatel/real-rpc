@@ -1,6 +1,7 @@
 package com.github.wohatel.interaction.proxy;
 
 import com.github.wohatel.constant.RpcSysEnum;
+import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.util.OneTimeLock;
@@ -19,8 +20,8 @@ public class RpcFileRequestMsgHandlerExecProxy {
      * Note: If the logic is processed for a long time, it is recommended to operate asynchronously
      *
      */
-    public static void onProcess(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
-        VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onProcess(rpcFileWrapper, receiveSize));
+    public static void onProcess(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileReceiveWrapper rpcFileWrapper, long receiveSize, RpcFileInterrupter interrupter) {
+        VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onProcess(rpcFileWrapper, receiveSize, interrupter));
     }
 
     /**

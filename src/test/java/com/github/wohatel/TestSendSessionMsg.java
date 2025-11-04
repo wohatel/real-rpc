@@ -11,7 +11,6 @@ import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,7 +49,7 @@ public class TestSendSessionMsg {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper) {
+            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + contextWrapper.getRpcSessionContext().getTopic());
                 // 同一开启会话
@@ -68,12 +67,18 @@ public class TestSendSessionMsg {
                 waiter.sendReaction(reaction);
 
                 // 服务端直接中断会话
-                contextWrapper.forceInterruptSession();
+                System.out.println("服务端直接中断会话-----会话中断不会触发onSessionStop");
+//                waiter.forceInterruptSession();
             }
 
             @Override
-            public void onSessionStop(RpcSessionContextWrapper contextWrapper) {
+            public void onSessionStop(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 System.out.println("服务端-------电话被挂断-----------");
+            }
+
+            @Override
+            public void onFinally(final RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+                System.out.println("此次会话结束后,需要清理会场");
             }
         };
 

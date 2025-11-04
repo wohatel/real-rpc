@@ -151,6 +151,7 @@ public class RpcFileChannelDataTransManager {
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestMsgHandler.getClass(), "onProcess");
         try {
             AtomicInteger handleChunks = new AtomicInteger();
+            RpcFileInterrupter rpcFileInterrupter = new RpcFileInterrupter(rpcSession.getSessionId());
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
                     RpcSessionTransManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> RpcSessionTransManger.isRunning(rpcSession.getSessionId()), 3, () -> RpcSessionTransManger.poll(rpcSession.getSessionId(), rpcSession.getTimeOutMillis() / 3));
@@ -174,7 +175,7 @@ public class RpcFileChannelDataTransManager {
                     RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     if (isProcessOverride) {
                         // 同步执行
-                        RpcFileRequestMsgHandlerExecProxy.onProcess(rpcFileRequestMsgHandler, impl, receiveSize);
+                        RpcFileRequestMsgHandlerExecProxy.onProcess(rpcFileRequestMsgHandler, impl, receiveSize, rpcFileInterrupter);
                     }
                     handleChunks.incrementAndGet();
                 }

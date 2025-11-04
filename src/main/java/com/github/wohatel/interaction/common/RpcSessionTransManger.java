@@ -2,7 +2,6 @@ package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
-import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
@@ -30,8 +29,9 @@ import java.util.function.Consumer;
 @Slf4j
 public class RpcSessionTransManger {
 
-    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.K_TEN, (sessionId, wrapper) -> closeQueue(sessionId));
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.K_TEN, (sessionId, wrapper) -> removeDataMap(sessionId));
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
+    private static final Map<String, RpcSessionReactionWaiter> SESSION_REACTION_WAITER_MAP = new ConcurrentHashMap<>();
 
     @Data
     @AllArgsConstructor
@@ -47,6 +47,11 @@ public class RpcSessionTransManger {
         }
         SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, new RpcSessionContextWrapper(rpcSession, context));
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
+        SESSION_REACTION_WAITER_MAP.putIfAbsent(sessionId, new RpcSessionReactionWaiter(ctx, sessionId));
+    }
+
+    public static RpcSessionReactionWaiter getWaiter(String sessionId) {
+        return SESSION_REACTION_WAITER_MAP.get(sessionId);
     }
 
     /**
@@ -116,11 +121,12 @@ public class RpcSessionTransManger {
 
     public static void release(String sessionId) {
         SESSION_MANAGER.release(sessionId);
-        closeQueue(sessionId);
+        removeDataMap(sessionId);
     }
-    
-    public static void closeQueue(String sessionId) {
+
+    public static void removeDataMap(String sessionId) {
         FILE_ITEM_MAP.remove(sessionId);
+        SESSION_REACTION_WAITER_MAP.remove(sessionId);
     }
 
     @Data

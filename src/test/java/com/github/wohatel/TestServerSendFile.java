@@ -3,6 +3,7 @@ package com.github.wohatel;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcReactionWaiter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
@@ -61,10 +62,10 @@ public class TestServerSendFile {
                 return local;
             }
 
-            public void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
+            public void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize, RpcFileInterrupter interrupter) {
                 if (receiveSize > 1000) {
                     System.out.println("被中断");
-                    rpcFileWrapper.forceInterruptSession();
+                    interrupter.forceInterruptSession();
                 }
             }
 

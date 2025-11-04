@@ -1,6 +1,7 @@
 package com.github.wohatel.interaction.handler;
 
 import com.github.wohatel.interaction.base.RpcSession;
+import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileLocal;
@@ -21,7 +22,7 @@ public interface RpcFileRequestMsgHandler {
     /**
      * Remotely receive the progress of the file, which is triggered every time there is a change
      */
-    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
+    default void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize, RpcFileInterrupter interrupter) {
 
     }
 
