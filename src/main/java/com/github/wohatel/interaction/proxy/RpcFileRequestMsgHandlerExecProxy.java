@@ -1,4 +1,4 @@
-package com.github.wohatel.interaction.common;
+package com.github.wohatel.interaction.proxy;
 
 import com.github.wohatel.constant.RpcSysEnum;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
@@ -11,7 +11,7 @@ import com.github.wohatel.util.VirtualThreadPool;
  *
  * @author yaochuang 2025/03/28 09:44
  */
-public class RpcFileReceiverHandlerExecProxy {
+public class RpcFileRequestMsgHandlerExecProxy {
 
     /**
      * Remotely receive the progress of the file, which is triggered every time there is a change
@@ -36,5 +36,13 @@ public class RpcFileReceiverHandlerExecProxy {
      */
     public static void onSuccess(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, final RpcFileReceiveWrapper rpcFileWrapper) {
         OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.SUCCESS + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onSuccess(rpcFileWrapper)));
+    }
+
+    /**
+     * The file is transferred finished
+     *
+     */
+    public static void onFinally(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, final RpcFileReceiveWrapper rpcFileWrapper) {
+        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FINALLY + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFinally(rpcFileWrapper)));
     }
 }

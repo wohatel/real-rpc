@@ -3,6 +3,7 @@ package com.github.wohatel;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -41,7 +42,7 @@ public class TestUdpTcpBindOnePort {
         RpcServer rpcServer = new RpcServer(8765, eventLoopManager);
         rpcServer.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
+            public void onReceiveRequest(RpcRequest request, RpcReactionWaiter waiter) {
                 System.out.println("tcp服务端收到:" + request.getBody());
             }
         });

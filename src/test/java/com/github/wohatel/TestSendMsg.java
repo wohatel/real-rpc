@@ -40,7 +40,7 @@ public class TestSendMsg {
     @Test
     void clientSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onRequestReceive((ctx, req) -> {
+        server.onRequestReceive((req, waiter) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("获取到消息体" + body);
@@ -58,7 +58,7 @@ public class TestSendMsg {
     @Test
     void clientSendAndReceiveMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onRequestReceive((ctx, req) -> {
+        server.onRequestReceive((req, waiter) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("服务端收到消息体:" + body);
@@ -66,7 +66,7 @@ public class TestSendMsg {
             if (req.isNeedReaction()) {
                 RpcReaction reaction = req.toReaction();
                 reaction.setBody("thanks, got it");
-                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+                waiter.sendReaction(reaction);
             }
         });
         // 客户度发送消息
@@ -86,7 +86,7 @@ public class TestSendMsg {
     @Test
     void serverSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onRequestReceive((ctx, req) -> {
+        server.onRequestReceive((req, waiter) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("服务端收到-客户端招呼:" + body);
@@ -95,12 +95,12 @@ public class TestSendMsg {
             System.out.println("服务端开始向客户端发送请求:--------");
             // 服务端向客户端发消息
             RpcRequest rpcRequest = RpcRequest.withBody("近来你还好吧?");
-            RpcMsgTransManager.sendRequest(ctx.channel(), rpcRequest);
+            waiter.sendRequest(rpcRequest);
 
         });
 
         // 客户端收到消息后如何处理
-        client.onRequestReceive((ctx, req) -> {
+        client.onRequestReceive((req, waiter) -> {
             // 客户端收到消息
             String body = req.getBody();
             System.out.println("客户端收到服务端消息:" + body);

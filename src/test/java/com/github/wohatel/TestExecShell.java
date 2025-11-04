@@ -6,14 +6,13 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.BashSession;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
-import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
+import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import com.github.wohatel.util.SessionManager;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -56,19 +55,12 @@ public class TestExecShell {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean sessionStart(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
+            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper) {
                 RpcSessionContext context = contextWrapper.getRpcSessionContext();
                 RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession();
-                    bashSession.onPrintOut(str -> {
-                        // 此处以response的方式返回,接收方需要以future.addListener 方式监听
-                        // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
-                        RpcReaction reaction = rpcSession.toReaction();
-                        reaction.setBody(str);
-                        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
-                    });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
                     // 服务端判断不满足条件,直接关闭
@@ -78,17 +70,24 @@ public class TestExecShell {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper, RpcSessionRequest request) {
+            public void onReceiveRequest(RpcSessionContextWrapper contextWrapper, RpcSessionRequest request, RpcSessionReactionWaiter waiter) {
                 // 假如客户端把命令写到body字段
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
+                session.onPrintOut(str -> {
+                    // 此处以response的方式返回,接收方需要以future.addListener 方式监听
+                    // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
+                    RpcReaction reaction = request.toReaction();
+                    reaction.setBody(str);
+                    waiter.sendReaction(reaction);
+                });
                 // 将command也放入输出
                 session.sendCommand(command);
                 session.getOutputQueue().offer(command);
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
+            public void onSessionStop(RpcSessionContextWrapper contextWrapper) {
                 System.out.println("关闭session");
                 // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
                 sessionManager.release(contextWrapper.getRpcSession().getSessionId());

@@ -36,4 +36,11 @@ public interface RpcFileRequestMsgHandler {
     default void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
 
     }
+
+    /**
+     * while session started, this method will be exec in last
+     */
+    default void onFinally(final RpcFileReceiveWrapper rpcFileWrapper) {
+
+    }
 }

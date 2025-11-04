@@ -2,11 +2,13 @@ package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.constant.NumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -18,6 +20,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
 
@@ -32,19 +35,28 @@ public class RpcSessionTransManger {
 
     @Data
     @AllArgsConstructor
-    private static class SessionDataWrapper {
+    public static class SessionDataWrapper {
         private boolean isFile;
         private RpcSessionContextWrapper contextWrapper;
-        private String channelId;
     }
 
-    public static void initSession(RpcSessionContext context, RpcSession rpcSession, String channelId) {
+    public static void initSession(RpcSessionContext context, RpcSession rpcSession, ChannelHandlerContext ctx) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.CONNECT, "session exists");
         }
-        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, new RpcSessionContextWrapper(rpcSession, context), channelId);
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(false, new RpcSessionContextWrapper(rpcSession, context));
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
+    }
+
+    /**
+     * 注册销毁事件
+     *
+     * @param sessionId sessionId
+     * @param consumer  消费者
+     */
+    public static void registOnRelease(String sessionId, Consumer<SessionDataWrapper> consumer) {
+        SESSION_MANAGER.registOnRelease(sessionId, consumer);
     }
 
     public static boolean flush(String sessionId, long sessionTime) {
@@ -78,12 +90,12 @@ public class RpcSessionTransManger {
         return SESSION_MANAGER.contains(sessionId);
     }
 
-    public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data, String channelId) {
+    public static void initFile(RpcSession rpcSession, int cacheBlock, RpcFileReceiveWrapper data) {
         String sessionId = rpcSession.getSessionId();
         if (isRunning(sessionId)) {
             throw new RpcException(RpcErrorEnum.HANDLE_MSG, "the file session already exists");
         }
-        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, data, channelId);
+        SessionDataWrapper sessionDataWrapper = new SessionDataWrapper(true, data);
         PriorityBlockingQueue<FileChunkItem> queue = new PriorityBlockingQueue<>(cacheBlock + 1, Comparator.comparingLong(FileChunkItem::getSerial));
         SESSION_MANAGER.initSession(sessionId, sessionDataWrapper, rpcSession.getTimeOutMillis() + System.currentTimeMillis());
         FILE_ITEM_MAP.put(sessionId, queue);
@@ -108,30 +120,7 @@ public class RpcSessionTransManger {
     }
     
     public static void closeQueue(String sessionId) {
-        BlockingQueue<FileChunkItem> queue = FILE_ITEM_MAP.remove(sessionId);
-        if (queue == null) {
-            return;
-        }
-        FileChunkItem poll;
-        while (true) {
-            try {
-                // 先无等待poll
-                poll = queue.poll();
-                if (poll != null) {
-                    continue;
-                }
-                // 再等待1秒
-                poll = queue.poll(1, TimeUnit.SECONDS);
-                if (poll != null) {
-                    continue;
-                }
-                // Two polls in a row are null, confirming that no one writes anymore
-                break;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
+        FILE_ITEM_MAP.remove(sessionId);
     }
 
     @Data

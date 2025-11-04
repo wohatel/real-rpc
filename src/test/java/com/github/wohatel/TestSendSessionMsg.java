@@ -5,9 +5,9 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
-import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
+import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -50,7 +50,7 @@ public class TestSendSessionMsg {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean sessionStart(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
+            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + contextWrapper.getRpcSessionContext().getTopic());
                 // 同一开启会话
@@ -58,21 +58,21 @@ public class TestSendSessionMsg {
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper, RpcSessionRequest request) {
+            public void onReceiveRequest(RpcSessionContextWrapper contextWrapper, RpcSessionRequest request, RpcSessionReactionWaiter waiter) {
                 // 服务端收到客户端消息后,直接打印
                 System.out.println(request.getBody());
                 // 打印归打印,什么时候发消息看我心情看我心情
 
                 RpcReaction reaction = request.getRpcSession().toReaction();
                 reaction.setBody("不想理你!!!");
-                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+                waiter.sendReaction(reaction);
 
                 // 服务端直接中断会话
                 contextWrapper.forceInterruptSession();
             }
 
             @Override
-            public void sessionStop(ChannelHandlerContext ctx, RpcSessionContextWrapper contextWrapper) {
+            public void onSessionStop(RpcSessionContextWrapper contextWrapper) {
                 System.out.println("服务端-------电话被挂断-----------");
             }
         };

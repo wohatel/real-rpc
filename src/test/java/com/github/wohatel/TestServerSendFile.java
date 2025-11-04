@@ -3,7 +3,7 @@ package com.github.wohatel;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
-import com.github.wohatel.interaction.common.RpcMsgTransManager;
+import com.github.wohatel.interaction.common.RpcReactionWaiter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileLocal;
@@ -13,7 +13,6 @@ import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcAutoReconnectClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.ChannelHandlerContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -82,10 +81,10 @@ public class TestServerSendFile {
 
         server.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
-            public void channelRead(ChannelHandlerContext ctx, RpcRequest request) {
+            public void onReceiveRequest(RpcRequest request, RpcReactionWaiter waiter) {
                 System.out.println("收到消息: 传输文件是个同步操作,占用同一个channel会造成线程卡死");
                 Thread.ofVirtual().start(() -> {
-                    RpcMsgTransManager.sendFile(ctx.channel(), new File("/Users/yaochuang/tag-web/tag-webapp/pnpm-lock.yaml"), null);
+                    waiter.sendFile(new File("/Users/yaochuang/tag-web/tag-webapp/pnpm-lock.yaml"), null);
                 });
             }
         });

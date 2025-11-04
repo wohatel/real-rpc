@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.handler;
 
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
-import io.netty.channel.ChannelHandlerContext;
+import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 
 public interface RpcSessionRequestMsgHandler {
     /**
@@ -11,7 +11,7 @@ public interface RpcSessionRequestMsgHandler {
      * so it is recommended to use asynchronous threads to process the read logic
      *
      */
-    default boolean sessionStart(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
+    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper) {
         return true;
     }
 
@@ -20,13 +20,22 @@ public interface RpcSessionRequestMsgHandler {
      * it will affect the consumption of other messages,
      * so it is recommended to use asynchronous threads to process the read logic
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
+    void onReceiveRequest(final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request, RpcSessionReactionWaiter waiter);
 
     /**
      * client tell server: "session will be close",then server handle this service
      * only can exec once
      */
-    default void sessionStop(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper) {
+    default void onSessionStop(final RpcSessionContextWrapper contextWrapper) {
+
+    }
+
+    /**
+     * 最终执行
+     *
+     * @param contextWrapper contextWrapper
+     */
+    default void onFinally(final RpcSessionContextWrapper contextWrapper) {
 
     }
 

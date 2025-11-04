@@ -48,7 +48,7 @@ public class TestSendFileMsg {
     @Test
     void clientSendFile() throws InterruptedException {
         // 需要
-        File sourceFile = new File("/tmp/user.keytab");
+        File sourceFile = new File("/tmp/abc.log");
         File targetRile = new File("/tmp/user.keytab.bak");
 
         server.onFileReceive(new RpcFileRequestMsgHandler() {
@@ -71,6 +71,10 @@ public class TestSendFileMsg {
             @Override
             public void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println("服务端发话:传完了");
+            }
+
+            public void onFinally(RpcFileReceiveWrapper rpcFileReceiveWrapper) {
+                System.out.println("无论如何处理啦");
             }
         });
         RpcSessionContext rpcSessionContext = new RpcSessionContext();

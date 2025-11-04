@@ -8,5 +8,5 @@ public enum RpcSysEnum {
 
     SENDER, RECEIVER,
 
-    SUCCESS, FAIL, STOP
+    SUCCESS, FAIL, STOP, FINALLY
 }

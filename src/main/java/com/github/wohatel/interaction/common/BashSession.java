@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 public class BashSession {
     private final Process process;
     private long bashSessionId;
+    private volatile Consumer<String> consumer;
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<String> outputQueue;
     private volatile boolean stop;
@@ -124,6 +125,10 @@ public class BashSession {
      * @param consumer 消费每一行输出信息
      */
     public void onPrintOut(Consumer<String> consumer) {
+        if (this.consumer != null) {
+            return;
+        }
+        this.consumer = consumer;
         VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
             while (!stop) {

@@ -36,7 +36,7 @@ public class TestCompress {
     @Test
     void clientSendMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-        server.onRequestReceive((ctx, req) -> {
+        server.onRequestReceive((req, waiter) -> {
             // 打印消息体
             String body = req.getBody();
             System.out.println("获取到消息体" + body);

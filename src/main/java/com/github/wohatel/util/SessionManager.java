@@ -15,7 +15,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
 /**
  *
@@ -27,6 +27,7 @@ public class SessionManager<T> {
     private final Long sessionTime;
     private volatile boolean stop;
     private final Map<String, T> container = new ConcurrentHashMap<>();
+    private final Map<String, Consumer<T>> onRelease = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
     private final Thread cleanerThread;
@@ -88,10 +89,27 @@ public class SessionManager<T> {
         }
     }
 
+    /**
+     * 注册销毁事件
+     *
+     * @param sessionId sessionId
+     * @param consumer  消费者
+     */
+    public void registOnRelease(String sessionId, Consumer<T> consumer) {
+        if (consumer != null && container.containsKey(sessionId)) {
+            onRelease.put(sessionId, consumer);
+        }
+    }
+
     @SneakyThrows
     public T release(String sessionId) {
         timeFlushMap.remove(sessionId);
-        return container.remove(sessionId);
+        T remove = container.remove(sessionId);
+        Consumer<T> consumer = onRelease.remove(sessionId);
+        if (remove != null && consumer != null) {
+            VirtualThreadPool.execute(() -> consumer.accept(remove));
+        }
+        return remove;
     }
 
     @SneakyThrows

@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.handler;
 
 import com.github.wohatel.interaction.base.RpcRequest;
-import io.netty.channel.ChannelHandlerContext;
+import com.github.wohatel.interaction.common.RpcReactionWaiter;
 
 /**
  * 普通消息接收事件
@@ -13,9 +13,9 @@ public interface RpcSimpleRequestMsgHandler {
      * If the request request requires a reaction,
      * the reaction can be set to body and perform the RpcMsgTransUtil.write operation
      * if request.isNeedReaction()
-     * RpcMsgTransManager.write(ctx.channel(), reaction);
+     * waiter.sendReaction(ctx.channel(), reaction);
      * Note that if the operation is particularly time-consuming--- it needs to be handled asynchronously to avoid thread blocking and affect the consumption of other messages
      *
      */
-    void channelRead(ChannelHandlerContext ctx, final RpcRequest request);
+    void onReceiveRequest(final RpcRequest request, RpcReactionWaiter waiter);
 }
