@@ -62,6 +62,17 @@ public class TestServerSendFile {
                 return local;
             }
 
+            public void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize) {
+                if (receiveSize > 1000) {
+                    System.out.println("被中断");
+                    rpcFileWrapper.forceInterruptSession();
+                }
+            }
+
+            public void onFailure(final RpcFileReceiveWrapper rpcFileWrapper, final Exception e) {
+                System.out.println("失败了");
+            }
+
             @Override
             public void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println("服务端发话:传完了");

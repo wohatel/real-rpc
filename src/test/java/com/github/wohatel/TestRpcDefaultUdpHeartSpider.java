@@ -53,14 +53,12 @@ public class TestRpcDefaultUdpHeartSpider {
 
         // 15s后关闭 spider2 主机,关闭后,上个线程在又等了10s后,改变状态,认为其已经超时或连接中断
         Thread.ofVirtual().start(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(15_000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                spider2.close();
+            try {
+                Thread.sleep(15_000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
+            spider2.close();
         });
 
         Thread.currentThread().join();

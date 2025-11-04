@@ -16,6 +16,7 @@ public class RpcSessionContextWrapper {
 
     /**
      * stop receive request session msg or file
+     * 不会触发失败事件
      */
     public void forceInterruptSession() {
         VirtualThreadPool.execute(() -> RpcSessionTransManger.release(this.rpcSession.getSessionId()));

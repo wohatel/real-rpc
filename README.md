@@ -64,6 +64,7 @@
      * ::: 文件接收的进度
      * rpcFileWrapper: 文件参数的封装,包含rpcSession,context,fileInfo,总共需要传输的大小
      *                 rpcFileWrapper.forceInterruptSession(): 表示接收端单方面停止接收文件
+     *                 不会触发onFailure -- 不认为是失败了,只是传输被中止
      *
      * receiveSize: 表示已经接收文件的大小 
      */
@@ -94,6 +95,7 @@
     
     /**
      * ::: 会话期间,接收到客户端的请求,如何处理
+     * *               contextWrapper.forceInterruptSession(): 中断此次会话
      */
     void channelRead(ChannelHandlerContext ctx, final RpcSessionContextWrapper contextWrapper, final RpcSessionRequest request);
     

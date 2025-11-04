@@ -67,7 +67,8 @@ public class TestSendSessionMsg {
                 reaction.setBody("不想理你!!!");
                 RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
 
-
+                // 服务端直接中断会话
+                contextWrapper.forceInterruptSession();
             }
 
             @Override
@@ -91,6 +92,8 @@ public class TestSendSessionMsg {
             System.out.println("收到响应消息");
             if (future.isSuccess()) {
                 System.out.println(future.getBody());
+            }else {
+                System.out.println(future.getMsg());
             }
         });
 

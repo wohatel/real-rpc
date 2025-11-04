@@ -47,6 +47,9 @@ public class TestSendFileMsg {
      */
     @Test
     void clientSendFile() throws InterruptedException {
+        // 需要
+        File sourceFile = new File("/tmp/user.keytab");
+        File targetRile = new File("/tmp/user.keytab.bak");
 
         server.onFileReceive(new RpcFileRequestMsgHandler() {
 
@@ -59,9 +62,9 @@ public class TestSendFileMsg {
                 System.out.println("这个是啥文件:" + topic);
                 long length = fileInfo.getLength();
                 System.out.println("文件总大小为:" + length);
-                File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
+//                File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
                 // 我要求客户端断点续传的方式,如果该文件有了,就继续传
-                RpcFileLocal local = new RpcFileLocal(file, RpcFileTransModel.RESUME);
+                RpcFileLocal local = new RpcFileLocal(targetRile, RpcFileTransModel.RESUME);
                 return local;
             }
 
@@ -86,7 +89,7 @@ public class TestSendFileMsg {
 
             }
         }).build();
-        client.sendFile(new File("/tmp/user.keytab"), build);
+        client.sendFile(sourceFile, build);
 
         // 防止线程退出
         Thread.currentThread().join();

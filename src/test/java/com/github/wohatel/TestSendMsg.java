@@ -1,8 +1,8 @@
 package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcFuture;
-import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcReaction;
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
@@ -97,10 +97,6 @@ public class TestSendMsg {
             RpcRequest rpcRequest = RpcRequest.withBody("近来你还好吧?");
             RpcMsgTransManager.sendRequest(ctx.channel(), rpcRequest);
 
-
-            // 此处只是做了简单问候,也可发送后等待客户端回应()
-            // rpcRequest.setNeedReaction(true); 客户端也需要判断该字段,进行返回结果
-            // RpcMsgTransManager.sendSynMsg(ctx.channel(), rpcRequest);
         });
 
         // 客户端收到消息后如何处理
@@ -112,7 +108,6 @@ public class TestSendMsg {
 
         // 客户端先问候
         client.sendRequest(RpcRequest.withBody("hello ketty"));
-
 
         // 防止线程退出
         Thread.currentThread().join();
