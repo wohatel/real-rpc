@@ -189,6 +189,7 @@ public class RpcFileChannelDataTransManager {
     private static void sendStartError(RpcReaction rpcReaction, Channel channel, String message) {
         rpcReaction.setMsg(message);
         rpcReaction.setSuccess(false);
+        rpcReaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
         RpcMsgTransManager.sendReaction(channel, rpcReaction);
     }
 }
