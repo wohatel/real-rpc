@@ -95,6 +95,7 @@ public class RpcFileChannelDataTransManager {
             RpcReaction reaction = rpcFileRequest.toReaction();
             reaction.setSuccess(false);
             reaction.setMsg("stop receiving file blocks");
+            reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
             RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
         }
     }
@@ -179,6 +180,7 @@ public class RpcFileChannelDataTransManager {
             log.error("file Block - Merge - Print Exception Information", e);
             reaction.setMsg(e.getMessage());
             reaction.setSuccess(false);
+            reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
             RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
             RpcFileReceiverHandlerExecProxy.onFailure(rpcFileRequestMsgHandler, impl, e);
         } finally {
