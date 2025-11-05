@@ -44,7 +44,6 @@ public class TestCompress {
         Thread.sleep(1000);
         // 客户度发送消息
         String body = """
-                东方金信综合管理系统
                 首页 客户管理 合同管理 项目管理 人事管理 培训管理 审批信息
                 姚创
                 修改密码个人信息 登出
