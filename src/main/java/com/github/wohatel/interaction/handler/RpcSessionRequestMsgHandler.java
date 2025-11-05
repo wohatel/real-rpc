@@ -11,7 +11,7 @@ public interface RpcSessionRequestMsgHandler {
      * so it is recommended to use asynchronous threads to process the read logic
      *
      */
-    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
         return true;
     }
 

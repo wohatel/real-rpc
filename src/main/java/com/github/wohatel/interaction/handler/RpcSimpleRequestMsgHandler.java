@@ -17,5 +17,5 @@ public interface RpcSimpleRequestMsgHandler {
      * Note that if the operation is particularly time-consuming--- it needs to be handled asynchronously to avoid thread blocking and affect the consumption of other messages
      *
      */
-    void onReceiveRequest(final RpcRequest request, RpcReactionWaiter waiter);
+    void onReceiveRequest(final RpcRequest request, final RpcReactionWaiter waiter);
 }

@@ -77,7 +77,7 @@ public class TestSendSessionMsg {
             }
 
             @Override
-            public void onFinally(final RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+            public void onFinally(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
                 System.out.println("此次会话结束后,需要清理会场");
             }
         };
