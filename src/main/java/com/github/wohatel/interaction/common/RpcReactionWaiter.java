@@ -45,4 +45,8 @@ public class RpcReactionWaiter {
     public void sendFile(File file, RpcFileSenderInput input) {
         RpcMsgTransManager.sendFile(ctx.channel(), file, input);
     }
+
+    public boolean isActive() {
+        return ctx != null && ctx.channel().isActive();
+    }
 }
