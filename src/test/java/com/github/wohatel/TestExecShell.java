@@ -14,6 +14,7 @@ import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import com.github.wohatel.util.SessionManager;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -66,7 +67,9 @@ public class TestExecShell {
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcReaction reaction = contextWrapper.getRpcSession().toReaction();
                         reaction.setBody(str);
-                        waiter.sendReaction(reaction);
+                        if (!StringUtils.isBlank(str)) {
+                            waiter.sendReaction(reaction);
+                        }
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
@@ -83,7 +86,6 @@ public class TestExecShell {
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
                 // 将command也放入输出
                 session.sendCommand(command);
-                session.getOutputQueue().offer(command);
             }
 
             @Override
@@ -103,7 +105,7 @@ public class TestExecShell {
         rpcSessionContext.setTopic("开启shell");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
         if (rpcSessionFuture.get().isSuccess()) {
-            System.out.println("服务端已开启session" + rpcSessionFuture.get().getOrigin());
+            System.out.println("服务端已开启session" + rpcSessionFuture.get().getReactionId());
         }
         // 此处接收response的数据
         rpcSessionFuture.addListener(reaction -> {
@@ -112,6 +114,7 @@ public class TestExecShell {
                 System.out.println(body);
             }
         });
+
 
 //         打印工作目录下的文件列表
         client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));

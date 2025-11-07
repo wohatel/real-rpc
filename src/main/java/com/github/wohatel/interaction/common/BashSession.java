@@ -64,15 +64,23 @@ public class BashSession {
         }
     }
 
-    @SneakyThrows
     public void sendCommand(String cmd) {
+        this.sendCommand(cmd, false);
+    }
+
+    @SneakyThrows
+    public void sendCommand(String cmd, boolean addToOutputQueue) {
         if (!stop) {
             lastOperateTime.set(System.currentTimeMillis());
             BufferedWriter inputWriter = process.outputWriter();
             inputWriter.write(cmd);
             inputWriter.write("\n");
             inputWriter.flush();
+            if (addToOutputQueue) {
+                outputQueue.offer(cmd);
+            }
             // 默认存500个,如果超出就删除10%
+            commandQueue.offer(cmd);
             if (commandQueue.size() > 500) {
                 commandQueue.drainTo(new ArrayList<>(50), 50);
             }

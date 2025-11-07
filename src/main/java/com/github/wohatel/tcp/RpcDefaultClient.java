@@ -4,8 +4,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcFuture;
-import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcReaction;
+import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
@@ -122,7 +122,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
-        if (sessionFuture.isSessionFinish()) {
+        if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.RUNNING);
@@ -163,6 +163,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         }
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
         rpcFuture.setUniqueId(this.uniqueId);
+        rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcReaction rpcReaction = rpcFuture.get();
         if (rpcReaction.isSuccess()) {
@@ -176,26 +177,16 @@ public class RpcDefaultClient extends RpcDataReceiver {
      */
     public void stopSession(RpcSession rpcSession) {
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
-        if (sessionFuture == null || sessionFuture.isSessionFinish()) {
+        if (sessionFuture == null || sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
             return;
         }
         if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
-        rpcRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
+        rpcRequest.setSessionProcess(RpcSessionProcess.FINISHED);
         rpcRequest.setNeedReaction(false);
         RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
-    }
-
-    /**     
-     * get session future
-     *
-     * @param rpcSession session
-     * @return RpcSessionFuture
-     */
-    public RpcSessionFuture getSessionFuture(RpcSession rpcSession) {
-        return RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
     }
 }

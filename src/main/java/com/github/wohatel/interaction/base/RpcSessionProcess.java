@@ -21,5 +21,5 @@ public enum RpcSessionProcess {
     /**
      * session is finished
      */
-    FiNISHED
+    FINISHED
 }

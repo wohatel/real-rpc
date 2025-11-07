@@ -3,6 +3,7 @@ package com.github.wohatel;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
+import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
@@ -112,7 +113,7 @@ public class TestSendSessionMsg {
         Thread.sleep(10000);
         client.stopSession(session);
 
-        boolean sessionFinish = rpcSessionFuture.isSessionFinish();
+        boolean sessionFinish = rpcSessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED;
         System.out.println("打印当前会话是否结束:" + sessionFinish);
 
 

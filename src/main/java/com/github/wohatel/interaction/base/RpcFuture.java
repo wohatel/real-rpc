@@ -1,7 +1,5 @@
 package com.github.wohatel.interaction.base;
 
-
-import com.github.wohatel.initializer.RpcMessageInteractionHandler;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcReactionMsgListener;
 import com.github.wohatel.interaction.constant.NumberConstant;
@@ -30,9 +28,6 @@ public class RpcFuture {
     @Getter
     @Setter
     private String futureId;
-    @Getter
-    @Setter
-    private RpcReaction reaction;
 
     @Getter
     private List<RpcReactionMsgListener> listeners;
@@ -84,7 +79,6 @@ public class RpcFuture {
      * and process it when RpcFuture.get is done
      */
     public void complete(RpcReaction reaction) {
-        this.reaction = reaction;
         completableFuture.complete(reaction);
     }
 

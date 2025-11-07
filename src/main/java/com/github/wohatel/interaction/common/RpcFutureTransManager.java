@@ -40,7 +40,8 @@ public class RpcFutureTransManager {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "sessions cannot be opened repeatedly");
             }
             RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
-            if (!rpcFuture.isSessionFinish()) {
+            RpcSessionProcess rpcSessionProcess = rpcFuture.getRpcSessionProcess();
+            if (rpcSessionProcess != RpcSessionProcess.FINISHED) {
                 rpcFuture.setRequestTime(System.currentTimeMillis());
                 // 刷新时间
                 RPC_FUTURE_SESSION_MANAGER.flushTime(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
@@ -49,7 +50,7 @@ public class RpcFutureTransManager {
         } else {
             if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.RUNNING) {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "session does not exist or has ended, and session messages cannot be sent");
-            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FiNISHED) {
+            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FINISHED) {
                 throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist or has ended, and there is no need to end the session");
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
@@ -77,16 +78,18 @@ public class RpcFutureTransManager {
             return;
         }
         // complete only call once
-        rpcFuture.complete(rpcReaction);
         rpcFuture.setReactionTime(System.currentTimeMillis());
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
-            if (rpcSessionFuture.isSessionFinish()) {
-                // 已经结束的情况下,不再接收消息
-                remove(rpcReaction.getReactionId());
-            } else {
-                // auto add time
-                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcReaction.getReactionId(), rpcSessionFuture.getTimeOut());
-                if (rpcSessionFuture.isSessionRunning()) {
+            RpcSessionProcess rpcSessionProcess = rpcSessionFuture.getRpcSessionProcess();
+            switch (rpcSessionProcess) {
+                case TOSTART -> {
+                    rpcFuture.complete(rpcReaction);
+                }
+                case FINISHED -> {
+                    remove(rpcReaction.getReactionId());
+                }
+                case RUNNING -> {
+                    RPC_FUTURE_SESSION_MANAGER.flushTime(rpcReaction.getReactionId(), rpcSessionFuture.getTimeOut());
                     executeOnReaction(rpcFuture, rpcReaction);
                 }
             }
@@ -143,7 +146,7 @@ public class RpcFutureTransManager {
             return;
         }
         if (future instanceof RpcSessionFuture sessionFuture) {
-            if (sessionFuture.isSessionFinish()) {
+            if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
                 return;
             }
         }
@@ -164,11 +167,10 @@ public class RpcFutureTransManager {
         if (future == null) {
             return null;
         }
-        if (!future.isSessionFinish()) {
-            future.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
+        if (future.getRpcSessionProcess() != RpcSessionProcess.FINISHED) {
+            future.setRpcSessionProcess(RpcSessionProcess.FINISHED);
             RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
         }
-
         return future;
     }
 }

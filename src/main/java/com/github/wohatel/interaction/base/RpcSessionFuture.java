@@ -17,18 +17,6 @@ public class RpcSessionFuture extends RpcFuture {
 
     private String uniqueId;
 
-    public boolean isSessionFinish() {
-        return rpcSessionProcess == RpcSessionProcess.FiNISHED;
-    }
-
-    public boolean isSessionRunning() {
-        return rpcSessionProcess == RpcSessionProcess.RUNNING;
-    }
-
-    public boolean isSessionFailed() {
-        return rpcSessionProcess == null;
-    }
-
     public RpcSessionFuture() {
     }
 

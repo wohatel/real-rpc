@@ -152,7 +152,7 @@ public class RpcMsgTransManager {
         RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
         if (rpcSessionFuture != null) {
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
-            rpcFileRequest.setSessionProcess(RpcSessionProcess.FiNISHED);
+            rpcFileRequest.setSessionProcess(RpcSessionProcess.FINISHED);
             rpcFileRequest.setNeedReaction(false);
             sendRequest(channel, rpcFileRequest);
         }
@@ -242,7 +242,7 @@ public class RpcMsgTransManager {
                     }
                 } else {
                     log.error("The sender receives an exception message from the receiver:{}", reaction.getMsg() + JsonUtil.toJson(reaction));
-                    rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED); // 标记结束
+                    rpcFuture.setRpcSessionProcess(RpcSessionProcess.FINISHED); // 标记结束
                     listener.onFailure(rpcFileSenderWrapper, reaction.getMsg());
                     rpcFuture.release();
                     ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
@@ -277,7 +277,7 @@ public class RpcMsgTransManager {
             fileChannel.position(position);
             while (position < fileSize) {
                 log.info("the file transfer position:{} size:", fileSize);
-                if (rpcFuture.isSessionFinish()) {
+                if (rpcFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
                     break;
                 }
                 if (!RpcFutureTransManager.contains(rpcSession.getSessionId())) {
@@ -316,7 +316,7 @@ public class RpcMsgTransManager {
                 serial++;
             }
         } catch (Exception e) {
-            rpcFuture.setRpcSessionProcess(RpcSessionProcess.FiNISHED);
+            rpcFuture.setRpcSessionProcess(RpcSessionProcess.FINISHED);
             log.error("file block - send - print abnormal information:", e);
             listener.onFailure(rpcFileSenderWrapper, e.getMessage());
             ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
