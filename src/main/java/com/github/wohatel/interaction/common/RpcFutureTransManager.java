@@ -55,6 +55,7 @@ public class RpcFutureTransManager {
             } else {
                 RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
                 rpcFuture.setFutureId(rpcSession.getSessionId());
+                rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
                 RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
                 return rpcFuture;
             }
