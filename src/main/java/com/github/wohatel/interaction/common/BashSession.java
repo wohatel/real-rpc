@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.VirtualThreadPool;
-import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,23 +14,29 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 
-@Data
 @Slf4j
 public class BashSession {
+    @Getter
     private final Process process;
-    private long bashSessionId;
+    @Getter
+    private final long bashSessionId;
     private volatile Consumer<String> consumer;
+    @Getter
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
+    @Getter
     private final BlockingQueue<String> outputQueue;
-    private volatile boolean stop;
+    @Getter
+    private AtomicBoolean stoped = new AtomicBoolean(false);
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
 
+
     public BashSession() {
-        this(10000);
+        this(50000);
     }
 
     public BashSession(int outlineLimit) {
@@ -59,7 +65,7 @@ public class BashSession {
     @SneakyThrows
     private void readStream(BufferedReader reader) {
         String line;
-        while (!stop && (line = reader.readLine()) != null) {
+        while (!stoped.get() && (line = reader.readLine()) != null) {
             outputQueue.offer(line); // 有界队列自己限制大小
         }
     }
@@ -70,7 +76,7 @@ public class BashSession {
 
     @SneakyThrows
     public void sendCommand(String cmd, boolean addToOutputQueue) {
-        if (!stop) {
+        if (!stoped.get()) {
             lastOperateTime.set(System.currentTimeMillis());
             BufferedWriter inputWriter = process.outputWriter();
             inputWriter.write(cmd);
@@ -139,7 +145,7 @@ public class BashSession {
         this.consumer = consumer;
         VirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
-            while (!stop) {
+            while (!stoped.get()) {
                 try {
                     batch.clear();
                     outputQueue.drainTo(batch, 99);
@@ -186,21 +192,29 @@ public class BashSession {
     }
 
     public void close(int timeoutSeconds) {
-        try {
-            this.setStop(true);
-            this.sendCommand("exit"); // 请求shell自行退出
-            RunnerUtil.execSilent(() -> process.inputReader().close());
-            RunnerUtil.execSilent(() -> process.errorReader().close());
-            RunnerUtil.execSilent(() -> process.outputWriter().close());
-            if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-                process.destroy(); // 软杀
+        if (stoped.compareAndSet(false, true)) {
+            try {
+                this.sendCommand("exit"); // 请求shell自行退出
+                RunnerUtil.execSilent(() -> process.inputReader().close());
+                RunnerUtil.execSilent(() -> process.errorReader().close());
+                RunnerUtil.execSilent(() -> process.outputWriter().close());
                 if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-                    process.destroyForcibly(); // 强杀
+                    process.destroy(); // 软杀
+                    if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+                        process.destroyForcibly(); // 强杀
+                    }
                 }
+            } catch (Exception e) {
+                process.destroyForcibly(); // 保底强杀
             }
-        } catch (Exception e) {
-            process.destroyForcibly(); // 保底强杀
         }
+    }
+
+    /**
+     * 是否停止
+     */
+    public boolean isStoped() {
+        return stoped.get();
     }
 
 }
