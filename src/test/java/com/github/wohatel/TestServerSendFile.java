@@ -62,8 +62,8 @@ public class TestServerSendFile {
                 return local;
             }
 
-            public void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receiveSize, RpcFileInterrupter interrupter) {
-                if (receiveSize > 1000) {
+            public void onProcess(final RpcFileReceiveWrapper rpcFileWrapper, long receivedSize, RpcFileInterrupter interrupter) {
+                if (receivedSize > 1000) {
                     System.out.println("被中断");
                     interrupter.forceInterruptSession();
                 }

@@ -36,8 +36,6 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     @Getter
     private final Map<InetSocketAddress, TimingHandler> timingHandlerMap = new ConcurrentHashMap<>();
     @Getter
-    private final BroadCaster broadCaster = new BroadCaster();
-    @Getter
     private final UdpHeartConfig udpHeartConfig;
 
 
@@ -86,29 +84,6 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     }
 
     /**     
-     * set broadcast address
-     *
-     * @param broadcastAddress broadcast address
-     */
-    public void setBroadcastAddress(InetSocketAddress broadcastAddress) {
-        this.broadCaster.setBroadcastAddress(broadcastAddress);
-    }
-
-    /**     
-     * Turn off the broadcast
-     */
-    public void stopBroadcast() {
-        this.broadCaster.setEnable(false);
-    }
-
-    /**     
-     * Turn on the broadcast
-     */
-    public void enableBroadcast() {
-        this.broadCaster.setEnable(true);
-    }
-
-    /**     
      * Bind the port that the UDP service starts
      */
     @Override
@@ -120,14 +95,10 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
             if (connectFuture.isSuccess()) {
                 // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
                 ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
-                    // 在启用广播的情况下,采用广播协议
                     RpcRequest rpcRequest = new RpcRequest();
                     rpcRequest.setContentType(RpcUdpAction.PING.name());
-                    if (this.broadCaster.isReady()) {
-                        // 广播发送ping
-                        RunnerUtil.execSilent(() -> this.rpcUdpSpider.sendMsg(rpcRequest, broadCaster.broadcastAddress));
-                    } else {
-                        Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
+
+                    Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
                         for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
                             RunnerUtil.execSilent(() -> {
                                 TimingHandler value = entry.getValue();
@@ -135,7 +106,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
                                 this.rpcUdpSpider.sendMsg(rpcRequest, entry.getKey());
                             });
                         }
-                    }
+
                 }, 0, this.udpHeartConfig.pingInterval, TimeUnit.MILLISECONDS);
 
                 // 如果检测到channel关闭了,就注销掉pingFuture的任务
@@ -217,15 +188,4 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
             return System.currentTimeMillis() - lastPongTime < thresholdTimeMillis;
         }
     }
-
-    @Data
-    public static class BroadCaster {
-        private InetSocketAddress broadcastAddress;
-        private boolean enable;
-
-        public boolean isReady() {
-            return broadcastAddress != null && enable;
-        }
-    }
-
 }

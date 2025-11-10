@@ -62,7 +62,7 @@ public class TestExecShell {
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession();
-                    bashSession.onPrintOut(str -> {
+                    bashSession.onOutPut(str -> {
                         // 此处以response的方式返回,接收方需要以future.addListener 方式监听
                         // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcReaction reaction = contextWrapper.getRpcSession().toReaction();
@@ -90,7 +90,16 @@ public class TestExecShell {
 
             @Override
             public void onSessionStop(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+                // 客户端要求停止session
                 System.out.println("关闭session");
+            }
+
+            /**
+             * 最终执行
+             *
+             * @param contextWrapper contextWrapper
+             */
+            public void onFinally(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
                 // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
                 sessionManager.release(contextWrapper.getRpcSession().getSessionId());
             }

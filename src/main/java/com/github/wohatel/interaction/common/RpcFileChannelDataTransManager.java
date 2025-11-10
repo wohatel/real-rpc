@@ -170,12 +170,12 @@ public class RpcFileChannelDataTransManager {
                     int readableBytes = byteBuf.readableBytes();
                     // 无需释放,前边解析使用的是unpooled堆内存
                     byteBuf.getBytes(byteBuf.readerIndex(), fileChannel, readableBytes);
-                    long receiveSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
-                    reaction.setBody(String.valueOf(receiveSize));
+                    long receivedSize = i != chunks - 1 ? (i + 1) * chunkSize : length;
+                    reaction.setBody(String.valueOf(receivedSize));
                     RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                     if (isProcessOverride) {
                         // 同步执行
-                        RpcFileRequestMsgHandlerExecProxy.onProcess(rpcFileRequestMsgHandler, impl, receiveSize, rpcFileInterrupter);
+                        RpcFileRequestMsgHandlerExecProxy.onProcess(rpcFileRequestMsgHandler, impl, receivedSize, rpcFileInterrupter);
                     }
                     handleChunks.incrementAndGet();
                 }

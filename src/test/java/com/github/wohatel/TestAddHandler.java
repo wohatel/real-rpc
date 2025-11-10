@@ -69,8 +69,9 @@ public class TestAddHandler {
             pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
             pipeline.addLast("decoder", new RpcMsgBodyDecoder());
             pipeline.addLast("encoder", new RpcMsgBodyEncoder());
-
+            // 此处为新添加的handler ------------
             pipeline.addLast("actived", adapter);
+            // ---------------
             pipeline.addLast("msgHandler", rpcMsgChannelInitializer.getRpcMessageInteractionHandler());
         });
 

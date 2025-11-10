@@ -138,7 +138,7 @@ public class BashSession {
      *
      * @param consumer 消费每一行输出信息
      */
-    public void onPrintOut(Consumer<String> consumer) {
+    public void onOutPut(Consumer<String> consumer) {
         if (this.consumer != null) {
             return;
         }
