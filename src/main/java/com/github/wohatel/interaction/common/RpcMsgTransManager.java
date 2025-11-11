@@ -276,6 +276,7 @@ public class RpcMsgTransManager {
             int serial = 0;
             long position = writeIndex;
             fileChannel.position(position);
+            long waitPer = Math.round(rpcSession.getTimeOutMillis() / 100.0);
             while (position < fileSize) {
                 log.info("the file transfer position:{} size:", fileSize);
                 if (rpcFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
@@ -288,7 +289,7 @@ public class RpcMsgTransManager {
                 if (!channel.isActive()) {
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "the link is not available");
                 }
-                boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, rpcSession.getTimeOutMillis() / 100);
+                boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, waitPer);
                 if (!isWritable) {
                     log.error("the link is not available");
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file sending timeout");
