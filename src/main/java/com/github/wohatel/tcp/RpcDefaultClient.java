@@ -36,7 +36,9 @@ import java.util.List;
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
 
+    @Getter
     protected final RpcEventLoopManager rpcEventLoopManager;
+    @Getter
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
     // If you need to bind a local NIC to connect to remote services, you need to set it
     @Getter
