@@ -59,10 +59,10 @@ public class RpcFileTransConfig {
     /**     
      * Compression is attempted only when the compression efficiency is at that value
      * (0-100), the smaller the compression ratio, the better the compression effect
-     * Default is 70
+     * Default is 75
      */
     @Builder.Default
-    private int compressRatePercent = 70;
+    private int compressRatePercent = 75;
 
     /**     
      * Whether to calculate file Md5

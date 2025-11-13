@@ -11,7 +11,7 @@ public class RpcSessionFlushStrategy {
      * Refresh starts when the remaining time is less than the session time
      */
     @Getter
-    private static double flushSeed = 0.5;
+    private static double flushSeed = 0.618;
 
     /**
      * Determine if a refresh is required

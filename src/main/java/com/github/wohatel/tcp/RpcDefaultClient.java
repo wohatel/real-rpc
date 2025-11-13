@@ -16,7 +16,7 @@ import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.EmptyVerifyUtil;
@@ -106,7 +106,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     }
 
     public RpcFuture sendSynRequest(RpcRequest rpcRequest) {
-        return this.sendSynRequest(rpcRequest, NumberConstant.OVER_TIME);
+        return this.sendSynRequest(rpcRequest, RpcNumberConstant.OVER_TIME);
     }
 
     public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {

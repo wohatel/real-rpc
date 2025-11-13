@@ -12,7 +12,7 @@ import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
@@ -101,7 +101,7 @@ public class RpcMsgTransManager {
 
 
     public static RpcFuture sendSynRequest(Channel channel, RpcRequest rpcRequest) {
-        return sendSynRequest(channel, rpcRequest, NumberConstant.OVER_TIME);
+        return sendSynRequest(channel, rpcRequest, RpcNumberConstant.OVER_TIME);
     }
 
 
@@ -269,7 +269,7 @@ public class RpcMsgTransManager {
         RateLimiter rateLimiter = RateLimiter.create(finalConfig.getSpeedLimit());
         Long writeIndex = rpcFileTransProcess.getStartIndex();
         int poolSize = finalConfig.getCacheBlock();
-        int applyMemory = Math.min(poolSize, NumberConstant.EIGHT);
+        int applyMemory = Math.min(poolSize, RpcNumberConstant.EIGHT);
         ByteBufPoolManager.init(rpcSession.getSessionId(), applyMemory, (int) finalConfig.getChunkSize());
         try (FileInputStream fis = new FileInputStream(file); FileChannel fileChannel = fis.getChannel()) {
             long fileSize = fileChannel.size();

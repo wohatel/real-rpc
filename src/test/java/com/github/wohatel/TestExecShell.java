@@ -64,8 +64,6 @@ public class TestExecShell {
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession();
                     bashSession.onOutPut(str -> {
-                        // 此处以response的方式返回,接收方需要以future.addListener 方式监听
-                        // 也可以用request的方式返回,但是另外一端需要以处理请求的方式
                         RpcReaction reaction = contextWrapper.getRpcSession().toReaction();
                         reaction.setBody(str);
                         if (!StringUtils.isBlank(str)) {

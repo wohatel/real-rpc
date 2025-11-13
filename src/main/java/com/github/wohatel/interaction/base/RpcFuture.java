@@ -2,7 +2,6 @@ package com.github.wohatel.interaction.base;
 
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcReactionMsgListener;
-import com.github.wohatel.interaction.constant.NumberConstant;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -35,10 +34,6 @@ public class RpcFuture {
     public RpcFuture(long timeOut) {
         this.timeOut = timeOut;
         this.completableFuture = new CompletableFuture<>();
-    }
-
-    public RpcFuture() {
-        this(NumberConstant.OVER_TIME);
     }
 
     /**

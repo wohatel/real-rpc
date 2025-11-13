@@ -3,7 +3,7 @@ package com.github.wohatel.interaction.common;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcSession;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class RpcSessionTransManger {
 
-    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(NumberConstant.K_TEN, (sessionId, wrapper) -> removeDataMap(sessionId));
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN, (sessionId, wrapper) -> removeDataMap(sessionId));
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
     private static final Map<String, RpcSessionReactionWaiter> SESSION_REACTION_WAITER_MAP = new ConcurrentHashMap<>();
 

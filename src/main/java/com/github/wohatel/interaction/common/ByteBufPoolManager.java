@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ByteBufPoolManager {
 
-    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(NumberConstant.TEN_EIGHT_K, (sessionId, bytePoll) -> {
+    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN_EIGHT, (sessionId, bytePoll) -> {
         bytePoll.destroy();
     });
 
@@ -66,7 +66,7 @@ public class ByteBufPoolManager {
 
         public ByteBufPool(int poolSize, int chunkSize) {
             this.pool = new ArrayBlockingQueue<>(poolSize);
-            this.byteBufMap = new ConcurrentHashMap<>(NumberConstant.TEN);
+            this.byteBufMap = new ConcurrentHashMap<>(RpcNumberConstant.TEN);
             this.chunkSize = chunkSize;
             for (int i = 0; i < poolSize; i++) {
                 ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize);

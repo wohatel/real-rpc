@@ -10,7 +10,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.util.SessionManager;
 import com.github.wohatel.util.VirtualThreadPool;
 import lombok.Getter;
@@ -21,7 +21,7 @@ import java.util.List;
 public class RpcFutureTransManager {
 
     @Getter
-    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(NumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut);
+    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut);
 
     /**
      * Validates and refreshes the session request duration
@@ -170,7 +170,7 @@ public class RpcFutureTransManager {
         }
         if (future.getRpcSessionProcess() != RpcSessionProcess.FINISHED) {
             future.setRpcSessionProcess(RpcSessionProcess.FINISHED);
-            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, NumberConstant.ONE_POINT_FILE_K);
+            RPC_FUTURE_SESSION_MANAGER.flushTime(sessionId, RpcNumberConstant.ONE_POINT_FILE_K);
         }
         return future;
     }

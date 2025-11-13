@@ -4,7 +4,7 @@ import com.github.wohatel.constant.RpcUdpAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -56,7 +56,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
      */
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super(rpcEventLoopManager, channelOptions, null);
-        this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(NumberConstant.OVER_TIME, NumberConstant.TEN_EIGHT_K));
+        this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(RpcNumberConstant.OVER_TIME, RpcNumberConstant.K_TEN_EIGHT));
         this.onMsgReceive(msgConsumer);
     }
 

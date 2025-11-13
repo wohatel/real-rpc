@@ -11,7 +11,7 @@ import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
-import com.github.wohatel.interaction.constant.NumberConstant;
+import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSignature;
@@ -124,7 +124,7 @@ public class RpcFileChannelDataTransProxy {
             } else {
                 long length = rpcFileRequest.getFileInfo().getLength() - rotaryResult.getWriteIndex();
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), rpcFileRequest.getFileInfo(), length);
-                RpcSessionTransManger.initFile(rpcSession, NumberConstant.SEVENTY_FIVE, impl);
+                RpcSessionTransManger.initFile(rpcSession, RpcNumberConstant.SEVENTY_FIVE, impl);
                 RpcSessionTransManger.registOnRelease(rpcSession.getSessionId(), t -> RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl));
                 VirtualThreadPool.execute(() -> handleAsynReceiveFile(ctx, rpcFileRequest, rpcFileRequestMsgHandler));
             }

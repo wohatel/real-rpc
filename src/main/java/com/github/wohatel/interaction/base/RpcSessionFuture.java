@@ -3,6 +3,8 @@ package com.github.wohatel.interaction.base;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
@@ -10,18 +12,18 @@ import lombok.experimental.Accessors;
  */
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Data
 public class RpcSessionFuture extends RpcFuture {
 
+    @Getter
+    @Setter
     private volatile RpcSessionProcess rpcSessionProcess;
 
+    @Getter
+    @Setter
     private String uniqueId;
 
-    public RpcSessionFuture() {
-    }
-
     public RpcSessionFuture(long timeOut) {
-        this.setTimeOut(timeOut);
+        super(timeOut);
     }
 
 }
