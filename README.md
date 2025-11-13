@@ -10,7 +10,7 @@
 # 关键类使用
 
 - RpcDefaultClient:
-    - rpcEventLoopManager: 连接池,可以选择nio,epoll等模式
+    - rpcEventLoopManager: 连接池,可以选择nio,epoll等模式,一般使用默认即可(nio)
     - channelOptions: 连接参数
     - localAddress: 本地网卡连接一般为空
     - connect(): 连接到服务端,构造里面已经设置了服务端的端口和地址
@@ -40,13 +40,17 @@
 
 // 对方请求发送文件,本地服务是否同意接收,接收的位置是否是续传等操作
 RpcFileSignature getTargetFile();
+
 // 文件接收进度
 void onProcess();
-//
+
+// 失败了如何处理(接收端主动中断接收文件不会触发失败)
 void onFailure(final RpcFileReceiveWrapper rpcFileWrapper, final Exception e);
 
+// 成功如何处理(接收端主动中断接收文件不会触发onSuccess)
 void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper);
 
+// 一旦getTargetFile返回值不为null,就会最终触发(onFinally内部使用异步执行,所以并不保证onSuccess或者onFailure的逻辑执行完毕后才调用onFinally)
 void onFinally(final RpcFileReceiveWrapper rpcFileWrapper);
 
 ```
@@ -60,7 +64,7 @@ RpcSessionSignature onSessionStart();
 void channelRead();
 
 void sessionStop();
-
+// 一旦onSessionStart返回值不为null,就会最终触发(onFinally内部使用异步执行)
 void onFinally();
 ```
 
