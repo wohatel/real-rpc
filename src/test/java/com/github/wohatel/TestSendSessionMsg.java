@@ -67,10 +67,6 @@ public class TestSendSessionMsg {
                 RpcReaction reaction = request.getRpcSession().toReaction();
                 reaction.setBody("不想理你!!!");
                 waiter.sendReaction(reaction);
-
-                // 服务端直接中断会话
-                System.out.println("服务端直接中断会话-----会话中断不会触发onSessionStop");
-//                waiter.forceInterruptSession();
             }
 
             @Override

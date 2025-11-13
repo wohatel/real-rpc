@@ -38,10 +38,11 @@
 - RpcFileReceiverHandler
 ```java
 
-RpcFileLocal getTargetFile();
-
+// 对方请求发送文件,本地服务是否同意接收,接收的位置是否是续传等操作
+RpcFileSignature getTargetFile();
+// 文件接收进度
 void onProcess();
-
+//
 void onFailure(final RpcFileReceiveWrapper rpcFileWrapper, final Exception e);
 
 void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper);
@@ -54,7 +55,7 @@ void onFinally(final RpcFileReceiveWrapper rpcFileWrapper);
 
 ```java
 // 对方请求开启会话,本地服务是否同意开启
-boolean onSessionStart();
+RpcSessionSignature onSessionStart();
 
 void channelRead();
 
