@@ -4,7 +4,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
-import com.github.wohatel.interaction.file.RpcFileLocal;
+import com.github.wohatel.interaction.file.RpcFileSignature;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.file.RpcFileSenderListener;
@@ -57,14 +57,14 @@ public class TestSendFileMsg {
              * 收文件的一方,根据发送发发来的文件元数据信息,以及上下文信息决定如何处理文件
              */
             @Override
-            public RpcFileLocal getTargetFile(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
+            public RpcFileSignature getTargetFile(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 String topic = context.getTopic();
                 System.out.println("这个是啥文件:" + topic);
                 long length = fileInfo.getLength();
                 System.out.println("文件总大小为:" + length);
 //                File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
                 // 我要求客户端断点续传的方式,如果该文件有了,就继续传
-                RpcFileLocal local = new RpcFileLocal(targetRile, RpcFileTransModel.RESUME);
+                RpcFileSignature local = RpcFileSignature.agree(targetRile, RpcFileTransModel.RESUME);
                 return local;
             }
 

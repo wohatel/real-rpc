@@ -9,6 +9,7 @@ import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
+import com.github.wohatel.interaction.file.RpcSessionSignature;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -56,7 +57,7 @@ public class TestExecShell {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+            public RpcSessionSignature onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 RpcSessionContext context = contextWrapper.getRpcSessionContext();
                 RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());
@@ -74,9 +75,9 @@ public class TestExecShell {
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
                     // 服务端判断不满足条件,直接关闭
-                    return false;
+                    return RpcSessionSignature.agree();
                 }
-                return true;
+                return RpcSessionSignature.agree();
             }
 
             @Override

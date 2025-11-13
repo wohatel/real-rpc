@@ -4,7 +4,7 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
-import com.github.wohatel.interaction.file.RpcFileLocal;
+import com.github.wohatel.interaction.file.RpcFileSignature;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 
 /**
@@ -17,7 +17,7 @@ public interface RpcFileRequestMsgHandler {
     /**
      * Determine the file storage location (called before the file transfer starts)
      */
-    RpcFileLocal getTargetFile(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
+    RpcFileSignature getTargetFile(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
 
     /**
      * Remotely receive the progress of the file, which is triggered every time there is a change

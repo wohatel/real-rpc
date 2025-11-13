@@ -9,6 +9,7 @@ import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
+import com.github.wohatel.interaction.file.RpcSessionSignature;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
@@ -50,11 +51,11 @@ public class TestSendSessionMsg {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public boolean onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+            public RpcSessionSignature onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + contextWrapper.getRpcSessionContext().getTopic());
-                // 同一开启会话
-                return true;
+                // 同意开启会话
+                return RpcSessionSignature.agree();
             }
 
             @Override
@@ -91,6 +92,14 @@ public class TestSendSessionMsg {
         RpcSessionContext rpcSessionContext = new RpcSessionContext();
         rpcSessionContext.setTopic("还钱的事");
         RpcSessionFuture rpcSessionFuture = client.startSession(session, rpcSessionContext);
+        RpcReaction rpcReaction = rpcSessionFuture.get();
+        boolean success = rpcReaction.isSuccess();
+        if (success) {
+            System.out.println("服务端已同意开启会话");
+        } else {
+            System.out.println("服务端不同意开启:" + rpcReaction.getMsg());
+        }
+
         /**
          * 监听服务端小消息
          */
@@ -115,8 +124,6 @@ public class TestSendSessionMsg {
 
         boolean sessionFinish = rpcSessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED;
         System.out.println("打印当前会话是否结束:" + sessionFinish);
-
-
 
         // 防止线程退出
         Thread.currentThread().join();

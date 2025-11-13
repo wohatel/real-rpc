@@ -168,6 +168,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcReaction rpcReaction = rpcFuture.get();
         if (rpcReaction.isSuccess()) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);
+        } else {
+            RpcFutureTransManager.remove(rpcSession.getSessionId());
         }
         return rpcFuture;
     }

@@ -3,6 +3,7 @@ package com.github.wohatel.interaction.handler;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
+import com.github.wohatel.interaction.file.RpcSessionSignature;
 
 public interface RpcSessionRequestMsgHandler {
     /**
@@ -11,8 +12,8 @@ public interface RpcSessionRequestMsgHandler {
      * so it is recommended to use asynchronous threads to process the read logic
      *
      */
-    default boolean onSessionStart(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
-        return true;
+    default RpcSessionSignature onSessionStart(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
+        return RpcSessionSignature.agree();
     }
 
     /**

@@ -22,17 +22,4 @@ public class RpcSessionRequest extends RpcRequest {
         this.rpcSession = rpcSession;
         this.setBody(body);
     }
-    
-    public boolean isSessionRequest() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.RUNNING;
-    }
-
-    public boolean isSessionStart() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.TOSTART;
-    }
-
-    public boolean isSessionFinish() {
-        return this.sessionProcess != null && sessionProcess == RpcSessionProcess.FINISHED;
-    }
-
 }
