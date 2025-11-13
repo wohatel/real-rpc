@@ -40,9 +40,6 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case request -> RpcRequestChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcSimpleRequestMsgHandler);
             case session -> RpcSessionChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcSessionRequestMsgHandler);
             case file -> RpcFileChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcFileRequestMsgHandler);
-
-            default -> {
-            }
         }
     }
 }

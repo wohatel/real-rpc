@@ -39,16 +39,14 @@ public class RpcSessionChannelDataTransProxy {
             RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
             return;
         }
-        if (request.getSessionProcess() == RpcSessionProcess.TOSTART) {
-            handleToStart(ctx, request, rpcSessionRequestMsgHandler);
-        } else if (request.getSessionProcess() == RpcSessionProcess.RUNNING) {
-            handleRunning(ctx, request, rpcSessionRequestMsgHandler);
-        } else if (request.getSessionProcess() == RpcSessionProcess.FINISHED) {
-            handleFinished(ctx, request, rpcSessionRequestMsgHandler);
+        RpcSessionProcess sessionProcess = request.getSessionProcess();
+        switch (sessionProcess) {
+            case TOSTART -> handleToStart(ctx, request, rpcSessionRequestMsgHandler);
+            case RUNNING -> handleRunning(ctx, request, rpcSessionRequestMsgHandler);
+            case FINISHED -> handleFinished(ctx, request, rpcSessionRequestMsgHandler);
         }
     }
-
-
+    
     public static void handleToStart(ChannelHandlerContext ctx, RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         RpcSession session = request.getRpcSession();
         RpcReaction reaction = request.toReaction();
