@@ -84,7 +84,7 @@ public class TestExecShell {
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
                 // 将command也放入输出
-                session.sendCommand(command);
+                session.sendCommand(command,true);
             }
 
             @Override
