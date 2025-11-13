@@ -131,9 +131,6 @@ public class RpcMsgTransManager {
         RpcFileInfo rpcFileInfo = new RpcFileInfo();
         rpcFileInfo.setFileName(file.getName());
         rpcFileInfo.setLength(file.length());
-        if (fileTransConfig.isSendFileMd5()) {
-            rpcFileInfo.setFileMd5(FileUtil.md5(file));
-        }
         rpcFileRequest.setFileInfo(rpcFileInfo);
         rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
         rpcFileRequest.setCacheBlock(fileTransConfig.getCacheBlock());

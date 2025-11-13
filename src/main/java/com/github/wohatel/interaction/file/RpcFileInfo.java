@@ -9,8 +9,6 @@ import lombok.Data;
 @Data
 public class RpcFileInfo {
 
-    private String fileMd5;
-
     private String fileName;
 
     private long length;

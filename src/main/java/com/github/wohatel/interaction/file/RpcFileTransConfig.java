@@ -12,7 +12,7 @@ import lombok.Data;
 @Builder
 public class RpcFileTransConfig {
 
-    private RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent, boolean sendFileMd5) {
+    private RpcFileTransConfig(long speedLimit, long chunkSize, int cacheBlock, boolean tryCompress, int compressRatePercent) {
         if (speedLimit <= 0) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the speed limit cannot be <=0");
         }
@@ -30,7 +30,6 @@ public class RpcFileTransConfig {
         this.cacheBlock = cacheBlock;
         this.tryCompress = tryCompress;
         this.compressRatePercent = compressRatePercent;
-        this.sendFileMd5 = sendFileMd5;
     }
 
     /**     
@@ -63,12 +62,4 @@ public class RpcFileTransConfig {
      */
     @Builder.Default
     private int compressRatePercent = 75;
-
-    /**     
-     * Whether to calculate file Md5
-     */
-    @Builder.Default
-    private boolean sendFileMd5 = false;
-
-
 }
