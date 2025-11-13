@@ -61,7 +61,7 @@ void onFinally(final RpcFileReceiveWrapper rpcFileWrapper);
 // 对方请求开启会话,本地服务是否同意开启
 RpcSessionSignature onSessionStart();
 
-void channelRead();
+void onReceiveRequest();
 
 void sessionStop();
 // 一旦onSessionStart返回值不为null,就会最终触发(onFinally内部使用异步执行)
