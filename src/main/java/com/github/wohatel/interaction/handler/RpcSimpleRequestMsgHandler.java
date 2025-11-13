@@ -11,9 +11,9 @@ import com.github.wohatel.interaction.common.RpcReactionWaiter;
 public interface RpcSimpleRequestMsgHandler {
     /**
      * If the request request requires a reaction,
-     * the reaction can be set to body and perform the RpcMsgTransUtil.write operation
+     * the reaction can be set to body and perform the RpcReactionWaiter.write operation
      * if request.isNeedReaction()
-     * waiter.sendReaction(ctx.channel(), reaction);
+     * waiter.sendReaction(reaction);
      * Note that if the operation is particularly time-consuming--- it needs to be handled asynchronously to avoid thread blocking and affect the consumption of other messages
      *
      */
