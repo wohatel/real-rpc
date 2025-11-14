@@ -62,7 +62,7 @@ public class TestAddHandler {
         // 等待服务端开启成功
         RpcMsgChannelInitializer rpcMsgChannelInitializer = server.getRpcMsgChannelInitializer();
 
-        rpcMsgChannelInitializer.setInitChannelConsumer(socketChannel -> {
+        rpcMsgChannelInitializer.initChannel(socketChannel -> {
             socketChannel.config().setAllocator(PooledByteBufAllocator.DEFAULT);
             ChannelPipeline pipeline = socketChannel.pipeline();
             pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));

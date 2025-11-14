@@ -5,7 +5,7 @@
 
     <groupId>io.github.wohatel</groupId>
     <artifactId>real-rpc</artifactId>
-    <version>3.0.0</version>
+    <version>3.6.0</version>
     <name>real-rpc</name>
     <packaging>jar</packaging>
     <description>
