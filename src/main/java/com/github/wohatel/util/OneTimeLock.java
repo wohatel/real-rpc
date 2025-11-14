@@ -14,7 +14,7 @@ public class OneTimeLock {
 
     public static Cache<@NonNull String, AtomicBoolean> getExecutedInstance() {
         if (executed == null) {
-            synchronized (VirtualThreadPool.class) {
+            synchronized (DefaultVirtualThreadPool.class) {
                 if (executed == null) {
                     executed = Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
                 }

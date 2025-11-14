@@ -12,7 +12,7 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.util.SessionManager;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -83,12 +83,10 @@ public class RpcFutureTransManager {
         if (rpcFuture instanceof RpcSessionFuture rpcSessionFuture) {
             RpcSessionProcess rpcSessionProcess = rpcSessionFuture.getRpcSessionProcess();
             switch (rpcSessionProcess) {
-                case TOSTART -> {
-                    rpcFuture.complete(rpcReaction);
-                }
-                case FINISHED -> {
-                    remove(rpcReaction.getReactionId());
-                }
+                case TOSTART -> rpcFuture.complete(rpcReaction);
+
+                case FINISHED -> remove(rpcReaction.getReactionId());
+
                 case RUNNING -> {
                     RPC_FUTURE_SESSION_MANAGER.flushTime(rpcReaction.getReactionId(), rpcSessionFuture.getTimeOut());
                     executeOnReaction(rpcFuture, rpcReaction);
@@ -105,7 +103,7 @@ public class RpcFutureTransManager {
         List<RpcReactionMsgListener> listeners = rpcFuture.getListeners();
         if (listeners != null) {
             for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(() -> rpcReactionMsgListener.onReaction(rpcReaction));
+                DefaultVirtualThreadPool.execute(() -> rpcReactionMsgListener.onReaction(rpcReaction));
             }
         }
     }
@@ -154,7 +152,7 @@ public class RpcFutureTransManager {
         List<RpcReactionMsgListener> listeners = future.getListeners();
         if (listeners != null) {
             for (RpcReactionMsgListener rpcReactionMsgListener : new ArrayList<>(listeners)) {
-                VirtualThreadPool.execute(rpcReactionMsgListener::onTimeout);
+                DefaultVirtualThreadPool.execute(rpcReactionMsgListener::onTimeout);
             }
         }
     }

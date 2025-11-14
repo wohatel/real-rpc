@@ -2,7 +2,7 @@ package com.github.wohatel.interaction.file;
 
 import com.github.wohatel.constant.RpcSysEnum;
 import com.github.wohatel.util.OneTimeLock;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 
 import static com.github.wohatel.util.ReflectUtil.isOverridingInterfaceDefaultMethodByImplObj;
 
@@ -23,21 +23,21 @@ public class RpcFileSenderListenerProxy {
 
     public void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper) {
         if (rpcFileSenderListener != null) {
-            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.SUCCESS + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileSenderListener.onSuccess(rpcFileSenderWrapper)));
+            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.SUCCESS + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onSuccess(rpcFileSenderWrapper)));
         }
     }
 
 
     public void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
         if (rpcFileSenderListener != null) {
-            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.FAIL + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileSenderListener.onFailure(rpcFileSenderWrapper, errorMsg)));
+            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.FAIL + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onFailure(rpcFileSenderWrapper, errorMsg)));
         }
     }
 
 
     public void onProcess(RpcFileSenderWrapper rpcFileSenderWrapper, RpcFileTransProcess process) {
         if (rpcFileSenderListener != null) {
-            VirtualThreadPool.execute(isProcessOverride, () -> rpcFileSenderListener.onProcess(rpcFileSenderWrapper, process));
+            DefaultVirtualThreadPool.execute(isProcessOverride, () -> rpcFileSenderListener.onProcess(rpcFileSenderWrapper, process));
         }
     }
 

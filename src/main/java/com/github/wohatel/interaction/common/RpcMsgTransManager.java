@@ -21,10 +21,9 @@ import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransConfig;
 import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
-import com.github.wohatel.util.FileUtil;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.RunnerUtil;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -36,7 +35,10 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.xerial.snappy.Snappy;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetSocketAddress;
@@ -49,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcMsgTransManager {
-
 
     public static void sendReaction(Channel channel, RpcReaction rpcReaction) {
         if (rpcReaction == null) {
@@ -254,7 +255,36 @@ public class RpcMsgTransManager {
                 ByteBufPoolManager.destroy(rpcFileSenderWrapper.getRpcSession().getSessionId());
             }
         };
-        VirtualThreadPool.execute(() -> rpcFuture.addListener(rpcReactionMsgListener));
+        DefaultVirtualThreadPool.execute(() -> rpcFuture.addListener(rpcReactionMsgListener));
+    }
+
+    /**
+     * 判断是否适合压缩
+     *
+     * @param file     文件
+     * @param headSize 前多少个字节
+     * @param rate     压缩率
+     * @return 是否适合压缩
+     */
+    private static boolean tryCompress(File file, int headSize, int rate) {
+        try {
+            if (rate < 0 || rate > 100) {
+                throw new IllegalArgumentException("rate should in 0-100");
+            }
+            if (file.length() < headSize) {
+                return false; // 文件太小，不处理
+            }
+            byte[] inputBytes = new byte[headSize];
+            try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+                dis.readFully(inputBytes);
+            }
+            byte[] compressed = Snappy.compress(inputBytes);
+            double compressRate = compressed.length * 100.0 / headSize;
+            log.info("file:" + file.getName() + " compressRate is " + compressRate + "%");
+            return compressRate < rate;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -262,7 +292,7 @@ public class RpcMsgTransManager {
         log.info("the file transfer begins:{}", file.getAbsolutePath());
         RpcSession rpcSession = rpcFileSenderWrapper.getRpcSession();
         // Determine if a file is trying to compress and is suitable for compression
-        boolean isCompressSuitable = finalConfig.isTryCompress() && FileUtil.tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
+        boolean isCompressSuitable = finalConfig.isTryCompress() && tryCompress(file, (int) finalConfig.getChunkSize(), finalConfig.getCompressRatePercent());
         RateLimiter rateLimiter = RateLimiter.create(finalConfig.getSpeedLimit());
         Long writeIndex = rpcFileTransProcess.getStartIndex();
         int poolSize = finalConfig.getCacheBlock();

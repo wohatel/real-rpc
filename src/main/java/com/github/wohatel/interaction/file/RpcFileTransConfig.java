@@ -62,4 +62,5 @@ public class RpcFileTransConfig {
      */
     @Builder.Default
     private int compressRatePercent = 75;
+
 }

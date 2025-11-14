@@ -7,11 +7,13 @@ import com.github.wohatel.interaction.common.ByteBufPoolManager;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.util.ByteBufUtil;
-import com.github.wohatel.util.SnappyDirectByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
+import org.xerial.snappy.Snappy;
+
+import java.io.IOException;
 
 /**
  * @author yaochuang
@@ -30,11 +32,11 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         }
     }
 
-    public void tryCompressPayload(RpcMsg msg, ByteBuf out) {
+    public void tryCompressPayload(RpcMsg msg, ByteBuf out) throws IOException {
         // 只有当不是file,并且需要压缩的时候才予以压缩
         byte[] payloadBytes = JSON.toJSONBytes(msg.getPayload());
         if (msg.getRpcCommandType() != RpcCommandType.file && msg.isNeedCompress()) {
-            byte[] compress = SnappyDirectByteBufUtil.compress(payloadBytes);
+            byte[] compress = Snappy.compress(payloadBytes);
             out.writeInt(compress.length);
             out.writeBytes(compress);
         } else {
@@ -49,7 +51,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
             out.writeInt(0);
         } else {
             if (msg.isNeedCompress()) {
-                byte[] bytes = SnappyDirectByteBufUtil.compress(ByteBufUtil.readBytes(fileBuffer));
+                byte[] bytes = Snappy.compress(ByteBufUtil.readBytes(fileBuffer));
                 out.writeInt(bytes.length);
                 out.writeBytes(bytes);
             } else {

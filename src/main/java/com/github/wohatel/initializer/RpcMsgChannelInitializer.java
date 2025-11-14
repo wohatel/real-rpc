@@ -11,8 +11,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.util.function.Consumer;
@@ -21,10 +21,10 @@ import java.util.function.Consumer;
  * @author yaochuang
  */
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Accessors(chain = true)
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+    @Getter
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
     private Consumer<SocketChannel> initChannelConsumer;
@@ -48,6 +48,13 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         } else {
             initChannel0(socketChannel);
         }
+    }
+
+    /**
+     * 初始化修正
+     */
+    public void initChannel(Consumer<SocketChannel> initChannelConsumer) {
+        this.initChannelConsumer = initChannelConsumer;
     }
 
     private void initChannel0(SocketChannel socketChannel) {

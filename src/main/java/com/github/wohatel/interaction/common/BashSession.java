@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.util.RunnerUtil;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +58,7 @@ public class BashSession {
         builder.redirectErrorStream(true); // stderr 合并到 stdout
         process = builder.start();
         this.bashSessionId = process.pid();
-        VirtualThreadPool.execute(() -> readStream(process.inputReader()));
+        DefaultVirtualThreadPool.execute(() -> readStream(process.inputReader()));
         this.outputQueue = new LinkedBlockingQueue<>(outlineLimit);
     }
 
@@ -143,7 +143,7 @@ public class BashSession {
             return;
         }
         this.consumer = consumer;
-        VirtualThreadPool.execute(() -> {
+        DefaultVirtualThreadPool.execute(() -> {
             List<String> batch = new ArrayList<>(100);
             while (!stoped.get()) {
                 try {

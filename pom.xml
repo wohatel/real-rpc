@@ -18,7 +18,7 @@
     </description>
     <properties>
         <java.version>21</java.version>
-        <serverId>central</serverId><!-- 服务id 也就是setting.xml中的servers.server.id -->
+        <serverId>central</serverId>
     </properties>
 
     <dependencies>
@@ -78,7 +78,6 @@
         </dependency>
     </dependencies>
 
-    <!--参考依赖版本,如果下游服务有自己的版本,则会自动替换为下游声明的版本-->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -193,7 +192,7 @@
                             <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
-                    <!--要生成Javadoc和Source jar文件，您必须配置javadoc和源Maven插件-->
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>

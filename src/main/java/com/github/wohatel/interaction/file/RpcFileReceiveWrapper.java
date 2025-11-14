@@ -3,8 +3,6 @@ package com.github.wohatel.interaction.file;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
-import com.github.wohatel.interaction.common.RpcSessionTransManger;
-import com.github.wohatel.util.VirtualThreadPool;
 import lombok.Getter;
 
 import java.io.File;

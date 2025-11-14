@@ -107,7 +107,7 @@ public class SessionManager<T> {
         T remove = container.remove(sessionId);
         Consumer<T> consumer = onRelease.remove(sessionId);
         if (remove != null && consumer != null) {
-            VirtualThreadPool.execute(() -> consumer.accept(remove));
+            DefaultVirtualThreadPool.execute(() -> consumer.accept(remove));
         }
         return remove;
     }
@@ -178,7 +178,7 @@ public class SessionManager<T> {
      * 刷新时间
      *
      * @param sessionId sessionId
-     * @return 刷新下sesssion的最近交互时间
+     * @return 刷新下session 的最近交互时间
      */
     public boolean flushTime(String sessionId, long sessionTime, boolean force) {
         if (!stop) {
@@ -233,7 +233,7 @@ public class SessionManager<T> {
                     this.release(item.sessionId);
                     if (sessionClose != null) {
                         // 如果使用线程池关闭任务
-                        VirtualThreadPool.execute(() -> {
+                        DefaultVirtualThreadPool.execute(() -> {
                             try {
                                 sessionClose.accept(item.sessionId, resource);
                             } catch (Exception e) {

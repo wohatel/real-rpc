@@ -20,7 +20,7 @@ import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.ReflectUtil;
 import com.github.wohatel.util.RunnerUtil;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.SneakyThrows;
@@ -126,7 +126,7 @@ public class RpcFileChannelDataTransProxy {
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), rpcFileRequest.getFileInfo(), length);
                 RpcSessionTransManger.initFile(rpcSession, RpcNumberConstant.SEVENTY_FIVE, impl);
                 RpcSessionTransManger.registOnRelease(rpcSession.getSessionId(), t -> RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl));
-                VirtualThreadPool.execute(() -> handleAsynReceiveFile(ctx, rpcFileRequest, rpcFileRequestMsgHandler));
+                DefaultVirtualThreadPool.execute(() -> handleAsynReceiveFile(ctx, rpcFileRequest, rpcFileRequestMsgHandler));
             }
         } else {
             log.error("recipient file receipt ends: {}", rotaryResult.getMsg());
@@ -156,9 +156,10 @@ public class RpcFileChannelDataTransProxy {
         try {
             AtomicInteger handleChunks = new AtomicInteger();
             RpcFileInterrupter rpcFileInterrupter = new RpcFileInterrupter(rpcSession.getSessionId());
+            long waitTime = Math.round(rpcSession.getTimeOutMillis() / 4.0);
             try (FileOutputStream fos = new FileOutputStream(targetFile, true); FileChannel fileChannel = fos.getChannel()) {
                 for (int i = 0; i < chunks; i++) {
-                    RpcSessionTransManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> RpcSessionTransManger.isRunning(rpcSession.getSessionId()), 3, () -> RpcSessionTransManger.poll(rpcSession.getSessionId(), rpcSession.getTimeOutMillis() / 3));
+                    RpcSessionTransManger.FileChunkItem poll = RunnerUtil.tryTimesUntilNotNull(() -> RpcSessionTransManger.isRunning(rpcSession.getSessionId()), 3, () -> RpcSessionTransManger.poll(rpcSession.getSessionId(), waitTime));
                     // After pulling, you should also judge whether it is normal
                     if (poll == null) {
                         if (!RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {

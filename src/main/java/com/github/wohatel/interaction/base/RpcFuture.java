@@ -22,6 +22,7 @@ public class RpcFuture {
     @Getter
     @Setter
     private long requestTime = System.currentTimeMillis();
+    @Setter
     @Getter
     private long reactionTime;
     @Getter
@@ -49,16 +50,7 @@ public class RpcFuture {
         }
         return this;
     }
-
-    public void flushRequestTime() {
-        RpcFutureTransManager.flushTime(futureId, timeOut);
-    }
-
-    public void setReactionTime(long reactionTime) {
-        this.reactionTime = reactionTime;
-        RpcFutureTransManager.flushTime(futureId, timeOut);
-    }
-
+    
     @SneakyThrows
     public RpcReaction get() {
         return this.get(timeOut, TimeUnit.MILLISECONDS);

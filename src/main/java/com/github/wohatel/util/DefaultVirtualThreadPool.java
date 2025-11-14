@@ -7,13 +7,13 @@ import java.util.concurrent.Executors;
 /**
  * @author yaochuang 2025/05/08 14:52
  */
-public class VirtualThreadPool {
+public class DefaultVirtualThreadPool {
 
     private static volatile ExecutorService executor;
 
-    public static ExecutorService getExecutorInstance() {
+    public static ExecutorService getExecutor() {
         if (executor == null) {
-            synchronized (VirtualThreadPool.class) {
+            synchronized (DefaultVirtualThreadPool.class) {
                 if (executor == null) {
                     executor = Executors.newVirtualThreadPerTaskExecutor();
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -29,7 +29,7 @@ public class VirtualThreadPool {
 
     public static void execute(boolean ack, Runnable task) {
         if (ack) {
-            getExecutorInstance().execute(task);
+            getExecutor().execute(task);
         }
     }
 

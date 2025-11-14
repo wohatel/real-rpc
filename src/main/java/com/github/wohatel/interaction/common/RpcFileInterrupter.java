@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author yaochuang 2025/04/10 09:25
  */
 @Slf4j
-public class RpcFileInterrupter extends RpcSessionTransManger {
+public class RpcFileInterrupter {
 
     @Getter
     private final String sessionId;

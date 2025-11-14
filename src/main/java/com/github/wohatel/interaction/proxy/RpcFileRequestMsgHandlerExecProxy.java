@@ -5,7 +5,7 @@ import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.util.OneTimeLock;
-import com.github.wohatel.util.VirtualThreadPool;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 
 /**
  * The file receiver handles the event interface
@@ -21,14 +21,14 @@ public class RpcFileRequestMsgHandlerExecProxy {
      *
      */
     public static void onProcess(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileReceiveWrapper rpcFileWrapper, long receivedSize, RpcFileInterrupter interrupter) {
-        VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onProcess(rpcFileWrapper, receivedSize, interrupter));
+        DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onProcess(rpcFileWrapper, receivedSize, interrupter));
     }
 
     /**
      * File Receiving Exception Execution
      */
     public static void onFailure(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, final RpcFileReceiveWrapper rpcFileWrapper, final Exception e) {
-        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FAIL + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFailure(rpcFileWrapper, e)));
+        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FAIL + rpcFileWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFailure(rpcFileWrapper, e)));
     }
 
     /**
@@ -36,7 +36,7 @@ public class RpcFileRequestMsgHandlerExecProxy {
      *
      */
     public static void onSuccess(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, final RpcFileReceiveWrapper rpcFileWrapper) {
-        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.SUCCESS + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onSuccess(rpcFileWrapper)));
+        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.SUCCESS + rpcFileWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onSuccess(rpcFileWrapper)));
     }
 
     /**
@@ -44,6 +44,6 @@ public class RpcFileRequestMsgHandlerExecProxy {
      *
      */
     public static void onFinally(RpcFileRequestMsgHandler rpcFileRequestMsgHandler, final RpcFileReceiveWrapper rpcFileWrapper) {
-        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FINALLY + rpcFileWrapper.getRpcSession().getSessionId(), () -> VirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFinally(rpcFileWrapper)));
+        OneTimeLock.runOnce(RpcSysEnum.RECEIVER.name() + RpcSysEnum.FINALLY + rpcFileWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFinally(rpcFileWrapper)));
     }
 }
