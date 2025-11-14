@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class SessionManager<T> {
     private final Long sessionTime;
-    private volatile boolean stop;
+    private final AtomicBoolean stop = new AtomicBoolean(false);
     private final Map<String, T> container = new ConcurrentHashMap<>();
     private final Map<String, Consumer<T>> onRelease = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
@@ -77,7 +78,7 @@ public class SessionManager<T> {
      * @param resource  资源
      */
     public void initSession(String sessionId, T resource, Long expiredAt) {
-        if (!stop) {
+        if (!stop.get()) {
             T old = container.putIfAbsent(sessionId, resource);
             if (old == null) {
                 long finalExpiredAt = expiredAt == null ? System.currentTimeMillis() + sessionTime : expiredAt;
@@ -157,7 +158,7 @@ public class SessionManager<T> {
      * 关闭管理器
      */
     public void destroy() {
-        this.setStop(true);
+        this.stop.set(true);
         cleanerThread.interrupt();
         try {
             cleanerThread.join();  // 等线程真的退出，保证干净关闭
@@ -181,7 +182,7 @@ public class SessionManager<T> {
      * @return 刷新下session 的最近交互时间
      */
     public boolean flushTime(String sessionId, long sessionTime, boolean force) {
-        if (!stop) {
+        if (!stop.get()) {
             return false;
         }
         if (container.containsKey(sessionId)) {
@@ -220,7 +221,7 @@ public class SessionManager<T> {
      * 循环清理
      */
     private void cleanerLoop() {
-        while (!stop) {
+        while (!stop.get()) {
             try {
                 DelayItem item = delayQueue.take();
                 T resource = container.get(item.sessionId);
