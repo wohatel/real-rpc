@@ -118,10 +118,10 @@ public class RpcMsgTransManager {
     private static void sendFileOfSendBody(Channel channel, long serial, ByteBuf buffer, long chunkSize, RpcSession rpcSession, boolean needCompress, boolean finished) {
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
         rpcFileRequest.setSessionProcess(RpcSessionProcess.RUNNING);
-        rpcFileRequest.setBuffer(chunkSize);
+        rpcFileRequest.setBlockSize(chunkSize);
         rpcFileRequest.setSerial(serial);
         rpcFileRequest.setEnableCompress(needCompress);
-        rpcFileRequest.setFinished(finished);
+        rpcFileRequest.setLastBlock(finished);
         RpcMsgTransManager.sendFileTrunk(channel, rpcFileRequest, buffer);
     }
 
@@ -132,9 +132,8 @@ public class RpcMsgTransManager {
         RpcFileInfo rpcFileInfo = new RpcFileInfo();
         rpcFileInfo.setFileName(file.getName());
         rpcFileInfo.setLength(file.length());
-        rpcFileRequest.setFileInfo(rpcFileInfo);
-        rpcFileRequest.setBuffer(fileTransConfig.getChunkSize());
-        rpcFileRequest.setCacheBlock(fileTransConfig.getCacheBlock());
+        rpcFileRequest.setHeader(JsonUtil.toJson(rpcFileInfo));
+        rpcFileRequest.setBlockSize(fileTransConfig.getChunkSize());
         rpcFileRequest.setSessionProcess(RpcSessionProcess.TOSTART);
         if (context != null) {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));

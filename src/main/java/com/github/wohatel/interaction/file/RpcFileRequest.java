@@ -12,11 +12,9 @@ import lombok.experimental.Accessors;
 @ToString(callSuper = true)
 @Accessors(chain = true)
 public class RpcFileRequest extends RpcSessionRequest {
-    private boolean finished;
-    private long buffer;  //trans length every time
+    private boolean lastBlock; // 是否是最后一块
+    private long blockSize;  //trans length every time
     private long serial;
-    private int cacheBlock;
-    private RpcFileInfo fileInfo;
 
     public RpcFileRequest(RpcSession rpcSession) {
         super(rpcSession);

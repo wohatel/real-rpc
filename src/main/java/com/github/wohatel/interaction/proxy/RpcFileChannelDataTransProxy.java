@@ -12,6 +12,7 @@ import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
+import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSignature;
@@ -68,7 +69,7 @@ public class RpcFileChannelDataTransProxy {
     private static void readBodyFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, ByteBuf byteBuf) {
         RpcSessionTransManger.FileChunkItem item = new RpcSessionTransManger.FileChunkItem();
         item.setByteBuf(byteBuf);
-        item.setBuffer(rpcFileRequest.getBuffer());
+        item.setBuffer(rpcFileRequest.getBlockSize());
         item.setSerial(rpcFileRequest.getSerial());
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         boolean addStatus = RpcSessionTransManger.addFileChunk(rpcSession.getSessionId(), item);
@@ -89,9 +90,9 @@ public class RpcFileChannelDataTransProxy {
      * @param signature      协议
      * @return RpcFileSignatureRotaryResult 判决
      */
-    private static RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryAndReaction(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcFileSignature signature) {
+    private static RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryAndReaction(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcFileSignature signature, RpcFileInfo fileInfo) {
         RpcFileSignatureRotary fileWrapper = RpcFileSignatureRotary.fromLocalWrapper(signature);
-        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = fileWrapper.rotary(rpcFileRequest.getFileInfo().getLength());
+        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = fileWrapper.rotary(fileInfo.getLength());
         List<String> body = new ArrayList<>();
         body.add(String.valueOf(rotaryResult.isNeedTrans()));
         body.add(signature.getTransModel().name());
@@ -115,25 +116,25 @@ public class RpcFileChannelDataTransProxy {
      * @param signature                协议
      * @param rpcFileRequestMsgHandler 文件请求handler
      */
-    private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileSignature signature, RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
-        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, rpcFileRequest, signature);
+    private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileSignature signature, RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileInfo fileInfo) {
+        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, rpcFileRequest, signature, fileInfo);
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         if (rotaryResult.isAgreed()) {
             if (!rotaryResult.isNeedTrans()) {
-                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), rpcFileRequest.getFileInfo(), 0L);
+                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), fileInfo, 0L);
                 RpcFileRequestMsgHandlerExecProxy.onSuccess(rpcFileRequestMsgHandler, impl);
                 RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl);
                 log.info("receiver file reception ends: No transfer required");
             } else {
-                long length = rpcFileRequest.getFileInfo().getLength() - rotaryResult.getWriteIndex();
-                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), rpcFileRequest.getFileInfo(), length);
+                long length = fileInfo.getLength() - rotaryResult.getWriteIndex();
+                RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), fileInfo, length);
                 RpcSessionTransManger.initFile(rpcSession, RpcNumberConstant.SEVENTY_FIVE, impl);
                 RpcSessionTransManger.registOnRelease(rpcSession.getSessionId(), t -> RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl));
                 DefaultVirtualThreadPool.execute(() -> handleAsynReceiveFile(ctx, rpcFileRequest, rpcFileRequestMsgHandler));
             }
         } else {
             log.error("recipient file receipt ends: {}", rotaryResult.getMsg());
-            RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), rpcFileRequest.getFileInfo(), 0L);
+            RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), fileInfo, 0L);
             RpcFileRequestMsgHandlerExecProxy.onFailure(rpcFileRequestMsgHandler, impl, new RpcException(rotaryResult.getMsg()));
             RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl);
         }
@@ -152,7 +153,7 @@ public class RpcFileChannelDataTransProxy {
         File targetFile = impl.getFile();
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         long length = impl.getNeedTransLength();
-        long chunkSize = rpcFileRequest.getBuffer();
+        long chunkSize = rpcFileRequest.getBlockSize();
         long chunks = (length + chunkSize - 1) / chunkSize;
         RpcReaction reaction = rpcFileRequest.toReaction();
         boolean isProcessOverride = ReflectUtil.isOverridingInterfaceDefaultMethod(rpcFileRequestMsgHandler.getClass(), "onProcess");
@@ -214,8 +215,9 @@ public class RpcFileChannelDataTransProxy {
             return;
         }
         RpcSessionContext sessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
+        RpcFileInfo rpcFileInfo = JsonUtil.fromJson(request.getHeader(), RpcFileInfo.class);
         try {
-            RpcFileSignature signature = rpcFileRequestMsgHandler.getTargetFile(request.getRpcSession(), sessionContext, request.getFileInfo());
+            RpcFileSignature signature = rpcFileRequestMsgHandler.getTargetFile(request.getRpcSession(), sessionContext, rpcFileInfo);
             if (signature == null) {
                 reaction.setSuccess(false);
                 reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
@@ -230,7 +232,7 @@ public class RpcFileChannelDataTransProxy {
                 RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                 return;
             }
-            readInitFile(ctx, request, sessionContext, signature, rpcFileRequestMsgHandler);
+            readInitFile(ctx, request, sessionContext, signature, rpcFileRequestMsgHandler, rpcFileInfo);
         } catch (Exception e) {
             reaction.setSuccess(false);
             reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
