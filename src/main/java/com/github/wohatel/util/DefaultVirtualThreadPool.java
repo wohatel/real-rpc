@@ -13,21 +13,21 @@ import java.util.concurrent.Executors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DefaultVirtualThreadPool {
 
-    private static volatile ExecutorService executor;
+    private static class Holder {
+        private static final ExecutorService EXECUTOR = createExecutor();
+    }
 
     public static ExecutorService getExecutor() {
-        if (executor == null) {
-            synchronized (DefaultVirtualThreadPool.class) {
-                if (executor == null) {
-                    executor = Executors.newVirtualThreadPerTaskExecutor();
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                        if (!executor.isShutdown()) {
-                            executor.shutdown();
-                        }
-                    }));
-                }
+        return Holder.EXECUTOR;
+    }
+
+    private static ExecutorService createExecutor() {
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (!executor.isShutdown()) {
+                executor.shutdown();
             }
-        }
+        }));
         return executor;
     }
 

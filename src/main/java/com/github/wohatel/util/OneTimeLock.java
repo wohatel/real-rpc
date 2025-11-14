@@ -12,20 +12,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OneTimeLock {
 
-    private static volatile Cache<@NonNull String, AtomicBoolean> executed;
-
-
-    public static Cache<@NonNull String, AtomicBoolean> getExecutedInstance() {
-        if (executed == null) {
-            synchronized (DefaultVirtualThreadPool.class) {
-                if (executed == null) {
-                    executed = Caffeine.newBuilder().expireAfterWrite(30, TimeUnit.MINUTES).build();
-                }
-            }
-        }
-        return executed;
+    private static class ExecutedHolder {
+        static final Cache<String, AtomicBoolean> INSTANCE =
+                Caffeine.newBuilder()
+                        .expireAfterWrite(20, TimeUnit.MINUTES)
+                        .build();
     }
 
+    public static Cache<String, AtomicBoolean> getExecutedInstance() {
+        return ExecutedHolder.INSTANCE;
+    }
 
     /**
      * A key is executed only once

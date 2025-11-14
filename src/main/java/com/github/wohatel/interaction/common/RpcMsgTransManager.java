@@ -204,7 +204,6 @@ public class RpcMsgTransManager {
         boolean needTrans = array.getBooleanValue(0);
         RpcFileTransModel transModel = RpcFileTransModel.nameOf(array.getString(1));
         Long writeIndex = array.getLong(2);
-        String filePath = array.getString(3);
         rpcFileTransProcess.setStartIndex(writeIndex);
         RpcFileSenderWrapper rpcFileSenderWrapper = new RpcFileSenderWrapper(rpcSession, file, transModel);
         if (needTrans) {

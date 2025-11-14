@@ -115,8 +115,10 @@ public class BashSession {
             p.getInputStream().close();
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             log.error("exec kill -2", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -128,8 +130,10 @@ public class BashSession {
             p.getInputStream().close();
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             log.error("exec kill -9 exception", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

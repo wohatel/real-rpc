@@ -247,7 +247,6 @@ public class SessionManager<T> {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                break;
             } catch (Exception ex) {
                 log.error("cleanerLoop exception:", ex);
             }

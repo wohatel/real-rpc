@@ -62,13 +62,11 @@ public class ByteBufPoolManager {
     private static class ByteBufPool {
         private final BlockingQueue<ByteBuf> pool;
         private final Map<Integer, ByteBuf> byteBufMap;
-        private final int chunkSize;
         private final AtomicBoolean released = new AtomicBoolean(false);
 
         public ByteBufPool(int poolSize, int chunkSize) {
             this.pool = new ArrayBlockingQueue<>(poolSize);
             this.byteBufMap = new ConcurrentHashMap<>(RpcNumberConstant.TEN);
-            this.chunkSize = chunkSize;
             for (int i = 0; i < poolSize; i++) {
                 ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.directBuffer(chunkSize);
                 pool.add(buf);
