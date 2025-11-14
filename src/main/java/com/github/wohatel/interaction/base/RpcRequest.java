@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.base;
 
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
+import com.github.wohatel.util.RandomUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -12,11 +12,15 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class RpcRequest extends RpcRelay {
-    private String requestId = NanoIdUtils.randomNanoId();
+    private String requestId;
     private boolean needReaction; // 请求到达服务端后,要求服务端给予响应
     private String command; // 命令
     private String website; //  站点
     private String version; //  版本信息
+
+    public RpcRequest() {
+        this.requestId = RandomUtil.randomUUID();
+    }
 
     public static RpcRequest withBody(String body) {
         RpcRequest request = new RpcRequest();

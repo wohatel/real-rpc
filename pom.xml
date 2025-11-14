@@ -39,10 +39,6 @@
             <artifactId>netty-all</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.aventrix.jnanoid</groupId>
-            <artifactId>jnanoid</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
         </dependency>
@@ -138,11 +134,6 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>2.0.17</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aventrix.jnanoid</groupId>
-                <artifactId>jnanoid</artifactId>
-                <version>2.0.0</version>
             </dependency>
         </dependencies>
 

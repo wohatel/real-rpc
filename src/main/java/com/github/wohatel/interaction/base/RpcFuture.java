@@ -21,7 +21,7 @@ public class RpcFuture {
     private long timeOut;
     @Getter
     @Setter
-    private long requestTime = System.currentTimeMillis();
+    private long requestTime;
     @Setter
     @Getter
     private long reactionTime;
@@ -34,6 +34,7 @@ public class RpcFuture {
 
     public RpcFuture(long timeOut) {
         this.timeOut = timeOut;
+        this.requestTime = System.currentTimeMillis();
         this.completableFuture = new CompletableFuture<>();
     }
 

@@ -1,10 +1,10 @@
 package com.github.wohatel.tcp;
 
-import com.aventrix.jnanoid.jnanoid.NanoIdUtils;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
+import com.github.wohatel.util.RandomUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import lombok.Data;
@@ -26,7 +26,7 @@ public class RpcDataReceiver {
     protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
 
     protected RpcDataReceiver(String host, int port) {
-        this.uniqueId = NanoIdUtils.randomNanoId();
+        this.uniqueId = RandomUtil.randomUUIDWithTime();
         this.host = host;
         this.port = port;
     }
