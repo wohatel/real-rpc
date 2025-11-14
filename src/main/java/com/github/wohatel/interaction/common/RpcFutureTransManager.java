@@ -97,6 +97,7 @@ public class RpcFutureTransManager {
             }
         } else {
             // 清掉
+            rpcFuture.complete(rpcReaction);
             remove(rpcReaction.getReactionId());
             executeOnReaction(rpcFuture, rpcReaction);
         }
