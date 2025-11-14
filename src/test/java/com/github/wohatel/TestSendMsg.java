@@ -4,7 +4,6 @@ import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
-import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.nio.NioEventLoopGroup;

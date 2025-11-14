@@ -2,19 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>io.github.wohatel</groupId>
     <artifactId>real-rpc</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.1</version>
     <name>real-rpc</name>
     <packaging>jar</packaging>
     <description>
-        real rpc it is really suitable for every one use in there prj.
-        it useful for send file, request ,or build session in server and client.
-        it support asyn and sync reqeust for response;
-        it also support duplex in client and server ,so you can send msg from server to client or conversely
-        it based netty tcp, so we can build too many channel in one machine
-        for exm: you can run bash in server ,and send bash command to server get output and keep session
+        a useful tool for server rpc,support tcp and udp model, we can use it send request and receive reaction
+        (simple,session,and file or reaction) from one endpoint to anther endpoint;
+        NOTICE:
+        3.0.0 AND BEFORE VERSION ARE DEPRECATED
+        PLEASE USE 4.*.* OR EVEN NEWER VERSION
     </description>
     <properties>
         <java.version>21</java.version>

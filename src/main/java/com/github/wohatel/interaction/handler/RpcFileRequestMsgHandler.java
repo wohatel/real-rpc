@@ -4,8 +4,8 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.file.RpcFileInfo;
-import com.github.wohatel.interaction.file.RpcFileSignature;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
+import com.github.wohatel.interaction.file.RpcFileSignature;
 
 /**
  * 文件接收端处理事件接口
