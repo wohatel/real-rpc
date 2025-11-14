@@ -23,7 +23,7 @@ public enum RpcErrorEnum {
     final int code;
 
     final String msg;
-    
+
     RpcErrorEnum(int code, String msg) {
         this.code = code;
         this.msg = msg;

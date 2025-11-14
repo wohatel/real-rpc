@@ -163,6 +163,8 @@ public class BashSession {
                     }
                     // 注意消费线程
                     consumer.accept(String.join("\n", batch));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
                     log.error("abnormal consumption", e);
                 }
@@ -209,6 +211,7 @@ public class BashSession {
                     }
                 }
             } catch (Exception e) {
+                log.error("abnormal consumption", e);
                 process.destroyForcibly(); // 保底强杀
             }
         }

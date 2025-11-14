@@ -15,20 +15,20 @@ public class DefaultVirtualThreadPool {
 
     private static class Holder {
         private static final ExecutorService EXECUTOR = createExecutor();
+
+        private static ExecutorService createExecutor() {
+            ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (!executor.isShutdown()) {
+                    executor.shutdown();
+                }
+            }));
+            return executor;
+        }
     }
 
     public static ExecutorService getExecutor() {
         return Holder.EXECUTOR;
-    }
-
-    private static ExecutorService createExecutor() {
-        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (!executor.isShutdown()) {
-                executor.shutdown();
-            }
-        }));
-        return executor;
     }
 
     public static void execute(boolean ack, Runnable task) {
