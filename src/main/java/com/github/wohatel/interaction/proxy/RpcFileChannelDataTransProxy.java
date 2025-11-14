@@ -23,6 +23,8 @@ import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author yaochuang
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class RpcFileChannelDataTransProxy {
 

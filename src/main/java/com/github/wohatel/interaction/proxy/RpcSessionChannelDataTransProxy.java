@@ -16,6 +16,8 @@ import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * @author yaochuang
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class RpcSessionChannelDataTransProxy {
 

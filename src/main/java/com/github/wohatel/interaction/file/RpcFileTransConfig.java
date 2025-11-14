@@ -36,14 +36,14 @@ public class RpcFileTransConfig {
      * Speed limit value, default speed limit 5M
      */
     @Builder.Default
-    private long speedLimit = 5 * 1024 * 1024;
+    private long speedLimit = 5 * 1024 * 1024L;
 
     /**     
      * The transfer size per block (512K)
      * should not be set too large
      */
     @Builder.Default
-    private long chunkSize = 512 * 1024;
+    private long chunkSize = 512 * 1024L;
 
     /**     
      * Limit: The number of blocks cached locally and remotely,

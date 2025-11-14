@@ -1,12 +1,15 @@
 package com.github.wohatel.interaction.constant;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
 
  *
  * @author yaochuang 2025/04/10 19:16
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcNumberConstant {
-
     public static final long OVER_TIME = 3000L;
     public static final int K_TEN = 10_000;
     public static final int TEN = 10;

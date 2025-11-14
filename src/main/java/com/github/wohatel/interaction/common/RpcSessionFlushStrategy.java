@@ -1,10 +1,13 @@
 package com.github.wohatel.interaction.common;
 
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcSessionFlushStrategy {
 
     /**
@@ -39,7 +42,7 @@ public class RpcSessionFlushStrategy {
     }
 
 
-    public void reSetFlushSeed(double flushSeed) {
+    public static void reSetFlushSeed(double flushSeed) {
         if (flushSeed < 0.0 || flushSeed > 1.0) {
             throw new IllegalArgumentException("flushSeed must be between 0 and 1: " + flushSeed);
         }

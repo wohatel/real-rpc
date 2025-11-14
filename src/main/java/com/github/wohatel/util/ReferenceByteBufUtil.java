@@ -2,11 +2,14 @@ package com.github.wohatel.util;
 
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author yaochuang 2025/09/25 17:43
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class ReferenceByteBufUtil {
 

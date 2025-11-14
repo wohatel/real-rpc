@@ -45,7 +45,7 @@ public class RpcMsgBodyEncoder extends MessageToByteEncoder<RpcMsg> {
         }
     }
 
-    public void tryCompressFileBuffer(RpcMsg msg, ByteBuf out) throws Exception {
+    public void tryCompressFileBuffer(RpcMsg msg, ByteBuf out) throws IOException {
         ByteBuf fileBuffer = msg.getByteBuffer();
         if (fileBuffer == null) {
             out.writeInt(0);

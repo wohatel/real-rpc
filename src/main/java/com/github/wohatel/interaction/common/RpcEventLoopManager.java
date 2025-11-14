@@ -133,15 +133,13 @@ public class RpcEventLoopManager {
     }
 
     public void shutdownGracefully() {
-        if (eventLoopGroup != null) {
-            if (!eventLoopGroup.isShutdown() && !eventLoopGroup.isShuttingDown()) {
+        if (eventLoopGroup != null && (!eventLoopGroup.isShutdown() && !eventLoopGroup.isShuttingDown())) {
                 eventLoopGroup.shutdownGracefully();
-            }
+
         }
-        if (workerEventLoopGroup != null) {
-            if (!workerEventLoopGroup.isShutdown() && !workerEventLoopGroup.isShuttingDown()) {
+        if (workerEventLoopGroup != null && (!workerEventLoopGroup.isShutdown() && !workerEventLoopGroup.isShuttingDown())) {
                 workerEventLoopGroup.shutdownGracefully();
-            }
+
         }
     }
 }

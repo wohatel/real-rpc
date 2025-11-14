@@ -2,11 +2,14 @@ package com.github.wohatel.util;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OneTimeLock {
 
     private static volatile Cache<@NonNull String, AtomicBoolean> executed;

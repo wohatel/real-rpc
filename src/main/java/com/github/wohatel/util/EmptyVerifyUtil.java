@@ -1,5 +1,8 @@
 package com.github.wohatel.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -7,6 +10,7 @@ import java.util.Map;
  *
  * @author yaochuang 2025/09/17 18:00
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmptyVerifyUtil {
 
     public static boolean isEmpty(Collection<?> collection) {

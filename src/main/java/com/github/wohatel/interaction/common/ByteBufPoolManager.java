@@ -7,6 +7,8 @@ import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -19,11 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ByteBufPoolManager {
 
-    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN_EIGHT, (sessionId, bytePoll) -> {
-        bytePoll.destroy();
-    });
+    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN_EIGHT, (sessionId, bytePoll) -> bytePoll.destroy());
 
     public static void init(String sessionId, int poolSize, int chunkSize) {
         if (SESSION_MANAGER.contains(sessionId)) {

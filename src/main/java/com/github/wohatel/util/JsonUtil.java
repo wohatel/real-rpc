@@ -4,10 +4,13 @@ package com.github.wohatel.util;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.TypeReference;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.Collection;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonUtil {
 
     public static <T> T parseObject(Object obj, Class<T> clazz) {

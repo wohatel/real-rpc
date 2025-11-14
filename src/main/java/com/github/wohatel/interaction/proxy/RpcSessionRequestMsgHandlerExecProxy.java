@@ -6,12 +6,15 @@ import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.OneTimeLock;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * The file receiver handles the event interface
  *
  * @author yaochuang 2025/03/28 09:44
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcSessionRequestMsgHandlerExecProxy {
 
     /**

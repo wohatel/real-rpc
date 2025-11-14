@@ -1,5 +1,7 @@
 package com.github.wohatel.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,6 +11,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RunnerUtil {
     public static <T> T execSilent(Supplier<T> supplier) {
         try {
@@ -78,24 +81,13 @@ public final class RunnerUtil {
     /**     
      * Try n times until the test is OK
      */
-    public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries) {
+    public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries) throws InterruptedException {
         for (int i = 0; i < maxTries; i++) {
             if (condition.getAsBoolean()) {
                 return true;
             }
-            RunnerUtil.sleep(stepMillis);
+            Thread.sleep(stepMillis);
         }
         return condition.getAsBoolean();
     }
-
-    /**     
-     * Wrapping thread sleep
-     */
-    public static void sleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-        }
-    }
-
 }

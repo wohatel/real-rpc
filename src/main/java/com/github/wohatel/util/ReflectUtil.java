@@ -1,10 +1,14 @@
 package com.github.wohatel.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.lang.reflect.Method;
 
 /** *
  * @author yaochuang 2025/05/13 11:54
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ReflectUtil {
 
     /**     

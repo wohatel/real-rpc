@@ -1,7 +1,7 @@
 package com.github.wohatel.interaction.common;
 
-import com.github.wohatel.util.RunnerUtil;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
+import com.github.wohatel.util.RunnerUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class BashSession {
     private final Process process;
     @Getter
     private final long bashSessionId;
-    private volatile Consumer<String> consumer;
+    private Consumer<String> consumer;
     @Getter
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
     @Getter
@@ -138,7 +138,7 @@ public class BashSession {
      *
      * @param consumer 消费每一行输出信息
      */
-    public void onOutPut(Consumer<String> consumer) {
+    public synchronized void onOutPut(Consumer<String> consumer) {
         if (this.consumer != null) {
             return;
         }

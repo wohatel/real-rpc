@@ -60,6 +60,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
         this.onMsgReceive(msgConsumer);
     }
 
+    @Override
     public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super.onMsgReceive((ctx, packet) -> {
             RpcRequest request = packet.getMsg();
@@ -110,9 +111,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
                 }, 0, this.udpHeartConfig.pingInterval, TimeUnit.MILLISECONDS);
 
                 // 如果检测到channel关闭了,就注销掉pingFuture的任务
-                newChannel.closeFuture().addListener(f -> {
-                    pingFuture.cancel(false);
-                });
+                newChannel.closeFuture().addListener(f -> pingFuture.cancel(false));
             } else {
                 Throwable cause = connectFuture.cause();
                 log.error("connection bind failed: port:{}", port, cause);

@@ -24,11 +24,11 @@ public enum RpcErrorEnum {
 
     final String msg;
 
-    RpcErrorEnum(int code) {
+    private RpcErrorEnum(int code) {
         this(code, null);
     }
 
-    RpcErrorEnum(int code, String msg) {
+    private RpcErrorEnum(int code, String msg) {
         this.code = code;
         this.msg = msg;
     }

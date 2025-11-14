@@ -3,6 +3,8 @@ package com.github.wohatel.util;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import io.netty.buffer.ByteBuf;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +13,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author yaochuang 2025/09/17 17:06
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ByteBufUtil {
     @SuppressWarnings("unchecked")
     public static <T> T decode(ByteBuf buf, TypeReference<T> typeRef) {

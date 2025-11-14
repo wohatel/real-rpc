@@ -182,15 +182,16 @@ public class SessionManager<T> {
      */
     public boolean flushTime(String sessionId, long sessionTime, boolean force) {
         if (!stop) {
-            if (container.containsKey(sessionId)) {
-                AtomicLong atomicLong = timeFlushMap.get(sessionId);
-                if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
-                    long expiredAt = System.currentTimeMillis() + sessionTime;
-                    delayQueue.add(new DelayItem(sessionId, expiredAt));
-                    timeFlushMap.get(sessionId).set(expiredAt);
-                }
-                return true;
+            return false;
+        }
+        if (container.containsKey(sessionId)) {
+            AtomicLong atomicLong = timeFlushMap.get(sessionId);
+            if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
+                long expiredAt = System.currentTimeMillis() + sessionTime;
+                delayQueue.add(new DelayItem(sessionId, expiredAt));
+                timeFlushMap.get(sessionId).set(expiredAt);
             }
+            return true;
         }
         return false;
     }

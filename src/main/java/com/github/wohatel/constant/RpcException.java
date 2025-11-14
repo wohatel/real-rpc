@@ -26,19 +26,4 @@ public class RpcException extends RuntimeException {
         this(message);
         this.code = rpcError.getCode();
     }
-
-    public static void printLineNumber(Throwable throwable) {
-        printLineNumber(throwable, 2);
-    }
-
-    public static void printLineNumber(Throwable throwable, int level) {
-        StackTraceElement[] stack = throwable.getStackTrace();
-        // stack[0] current method
-        // stack[1] the place call current
-        int length = stack.length;
-        if (level < length) {
-            StackTraceElement caller = stack[level];
-            log.error("Called from: {}.{} at line {}", caller.getClassName(), caller.getMethodName(), caller.getLineNumber());
-        }
-    }
 }

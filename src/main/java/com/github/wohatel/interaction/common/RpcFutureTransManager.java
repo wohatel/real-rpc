@@ -11,13 +11,16 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
-import com.github.wohatel.util.SessionManager;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
+import com.github.wohatel.util.SessionManager;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcFutureTransManager {
 
     @Getter
@@ -144,10 +147,8 @@ public class RpcFutureTransManager {
         if (future == null) {
             return;
         }
-        if (future instanceof RpcSessionFuture sessionFuture) {
-            if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
+        if (future instanceof RpcSessionFuture sessionFuture && sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
                 return;
-            }
         }
         List<RpcReactionMsgListener> listeners = future.getListeners();
         if (listeners != null) {
