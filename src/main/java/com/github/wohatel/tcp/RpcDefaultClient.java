@@ -33,11 +33,21 @@ import java.net.SocketAddress;
 import java.util.List;
 
 
+/**
+ * Default implementation of RPC client that extends RpcDataReceiver.
+ * Provides functionality for connecting to RPC servers, sending requests, and managing sessions.
+ */
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
 
+    /**
+     * Manager for handling RPC event loops
+     */
     @Getter
     protected final RpcEventLoopManager rpcEventLoopManager;
+    /**
+     * List of channel options and their values for configuring the connection
+     */
     @Getter
     protected final List<ChannelOptionAndValue<Object>> channelOptions;
     // If you need to bind a local NIC to connect to remote services, you need to set it
@@ -96,9 +106,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendFile(channel, file, input);
     }
 
-    /**     
-     * Force interrupt file transfer
-     */
+
     public void interruptSendFile(RpcSession rpcSession) {
         RpcMsgTransManager.interruptSendFile(this.channel, rpcSession);
     }
@@ -114,7 +122,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
         return RpcMsgTransManager.sendSynRequest(channel, rpcRequest, timeOut);
     }
-
+    
     public void sendSessionRequest(RpcSessionRequest rpcSessionRequest) {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());

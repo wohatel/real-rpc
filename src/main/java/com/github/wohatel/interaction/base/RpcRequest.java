@@ -7,12 +7,17 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+/**
+ * This class represents a RPC (Remote Procedure Call) request that extends RpcRelay.
+ * It includes annotations for Lombok to generate getters, setters, toString, equals, and hashCode methods.
+ * The @Accessors(chain = true) annotation allows for method chaining.
+ */
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class RpcRequest extends RpcRelay {
-    private String requestId;
+    private String requestId; // Unique identifier for the request
     private boolean needReaction; // 请求到达服务端后,要求服务端给予响应
     private String command; // 命令
     private String website; //  站点

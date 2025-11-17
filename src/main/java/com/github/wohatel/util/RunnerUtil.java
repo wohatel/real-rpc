@@ -10,9 +10,20 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * A utility class for executing code with various error handling and retry mechanisms.
+ * Provides static methods for silent execution, exception handling, and retry logic.
+ */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RunnerUtil {
+    /**
+     * Executes a supplier function silently, catching and logging any Throwable.
+     *
+     * @param supplier The supplier function to execute
+     * @param <T>      The return type of the supplier
+     * @return The result of the supplier, or null if an exception occurs
+     */
     public static <T> T execSilent(Supplier<T> supplier) {
         try {
             return supplier.get();
@@ -22,6 +33,11 @@ public final class RunnerUtil {
         }
     }
 
+    /**
+     * Executes a runnable function silently, catching and logging any Throwable.
+     *
+     * @param runnable The runnable function to execute
+     */
     public static void execSilent(ThrowingRunnable runnable) {
         try {
             runnable.run();
@@ -30,11 +46,22 @@ public final class RunnerUtil {
         }
     }
 
+    /**
+     * Functional interface for a runnable that can throw an Exception.
+     */
     @FunctionalInterface
     public interface ThrowingRunnable {
         void run() throws Exception;
     }
 
+    /**
+     * Executes a supplier function silently, returning a default result if an exception occurs.
+     *
+     * @param supplier The supplier function to execute
+     * @param result   The default result to return if an exception occurs
+     * @param <T>      The return type of the supplier
+     * @return The result of the supplier, or the default result if an exception occurs
+     */
     public static <T> T execSilentExceptionTo(Supplier<T> supplier, T result) {
         try {
             return supplier.get();
@@ -44,6 +71,13 @@ public final class RunnerUtil {
         }
     }
 
+    /**
+     * Executes a supplier function silently, applying a function to the exception to determine the result.
+     * @param supplier The supplier function to execute
+     * @param result The function to apply to the exception
+     * @param <T> The return type of the supplier
+     * @return The result of the supplier, or the result of applying the exception function
+     */
     public static <T> T execSilentException(Supplier<T> supplier, Function<Exception, T> result) {
         try {
             return supplier.get();
@@ -53,6 +87,14 @@ public final class RunnerUtil {
         }
     }
 
+    /**
+     * Waits for a condition to be true for a specified number of times, with a given interval.
+     * Executes a runnable after the waiting period.
+     * @param supplier The condition to check
+     * @param times The number of times to check the condition
+     * @param intervalTime The time to wait between checks
+     * @param runnable The runnable to execute after waiting
+     */
     @SneakyThrows
     public static void waitTimesFor(BooleanSupplier supplier, int times, long intervalTime, Runnable runnable) {
         for (int i = 0; i < times; i++) {
@@ -65,6 +107,14 @@ public final class RunnerUtil {
         runnable.run();
     }
 
+    /**
+     * Tries to execute a callable multiple times until it returns a non-null value.
+     * @param supplier The condition to check before each attempt
+     * @param times The number of times to attempt the callable
+     * @param callable The callable to execute
+     * @param <T> The return type of the callable
+     * @return The result of the callable, or null if all attempts return null
+     */
     @SneakyThrows
     public static <T> T tryTimesUntilNotNull(BooleanSupplier supplier, int times, Callable<T> callable) {
         for (int i = 0; i < times; i++) {
@@ -80,6 +130,11 @@ public final class RunnerUtil {
 
     /**     
      * Try n times until the test is OK
+     * @param condition The condition to check
+     * @param stepMillis The time to wait between checks
+     * @param maxTries The maximum number of attempts
+     * @return true if the condition becomes true within maxTries, false otherwise
+     * @throws InterruptedException if the thread is interrupted while sleeping
      */
     public static boolean waitUntil(BooleanSupplier condition, long stepMillis, long maxTries) throws InterruptedException {
         for (int i = 0; i < maxTries; i++) {

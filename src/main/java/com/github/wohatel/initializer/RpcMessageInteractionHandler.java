@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 /**
+ * RPC message interaction handler for processing different types of RPC messages.
  *
  * @author yaochuang 2025/06/30 17:33
  */
@@ -28,17 +29,33 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
+    // Handler for RPC file request messages
     private RpcFileRequestMsgHandler rpcFileRequestMsgHandler;
+    // Handler for RPC simple request messages
     private RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler;
+    // Handler for RPC session request messages
     private RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler;
 
+    /**
+     * Processes incoming RPC messages based on their command type.
+     *
+     * @param ctx the ChannelHandlerContext which contains the Channel
+     * @param msg the received message
+     * @throws Exception if an error occurs during message processing
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // Cast the incoming message to RpcMsg
         RpcMsg rpcMsg = (RpcMsg) msg;
+        // Switch based on the RPC command type to route to appropriate handlers
         switch (rpcMsg.getRpcCommandType()) {
+            // Handle reaction command type
             case reaction -> RpcFutureTransManager.addReaction(rpcMsg.getPayload(RpcReaction.class));
+            // Handle request command type through simple request message handler
             case request -> RpcRequestChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcSimpleRequestMsgHandler);
+            // Handle session command type through session request message handler
             case session -> RpcSessionChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcSessionRequestMsgHandler);
+            // Handle file command type through file request message handler
             case file -> RpcFileChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcFileRequestMsgHandler);
         }
     }

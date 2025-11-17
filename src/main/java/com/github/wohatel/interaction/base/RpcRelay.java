@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
+ * RPC relay class for handling data transmission
  *
  * @author yaochuang 2025/06/09 10:07
  */

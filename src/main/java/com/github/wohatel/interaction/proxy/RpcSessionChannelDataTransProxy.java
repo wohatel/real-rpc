@@ -22,13 +22,25 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 
+
 /**
- * @author yaochuang
+ * RpcSessionChannelDataTransProxy is a proxy class that handles RPC session data transmission.
+ * It processes incoming messages through different session states and delegates to appropriate handlers.
+ * This class is designed to be a singleton with private constructor access.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Slf4j
 public class RpcSessionChannelDataTransProxy {
 
+    /**
+     * Handles channel read events for RPC messages.
+     * Processes the message based on the current session state.
+     *
+     * @param ctx                         The ChannelHandlerContext for the channel
+     * @param rpcMsg                      The received RPC message
+     * @param rpcSessionRequestMsgHandler The handler for session requests
+     * @throws Exception if there's an error during processing
+     */
     @SneakyThrows
     public static void channelRead(ChannelHandlerContext ctx, RpcMsg rpcMsg, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         RpcSessionRequest request = rpcMsg.getPayload(RpcSessionRequest.class);
@@ -49,11 +61,22 @@ public class RpcSessionChannelDataTransProxy {
             case FINISHED -> handleFinished(ctx, request, rpcSessionRequestMsgHandler);
         }
     }
-    
+
+    /**
+     * Handles the start of an RPC session by processing a session request and managing session state.
+     *
+     * @param ctx                         The ChannelHandlerContext for the network channel
+     * @param request                     The RpcSessionRequest containing session initialization data
+     * @param rpcSessionRequestMsgHandler The handler for processing session-related messages
+     */
     public static void handleToStart(ChannelHandlerContext ctx, RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+        // Extract the RPC session from the request
         RpcSession session = request.getRpcSession();
+        // Convert the request to a reaction object for response
         RpcReaction reaction = request.toReaction();
+        // Check if a session with this ID is already running
         if (RpcSessionTransManger.isRunning(session.getSessionId())) {
+            // If session exists, create error message and send rejection
             String errorMsg = "{requestId:" + request.getRequestId() + "} build session id repeat";
             reaction.setMsg(errorMsg);
             reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
@@ -61,8 +84,11 @@ public class RpcSessionChannelDataTransProxy {
             RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
             return;
         }
+        // Deserialize the request body to get session context
         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
+        // Create a wrapper for the session context
         RpcSessionContextWrapper contextWrapper = new RpcSessionContextWrapper(session, context);
+        // Create a waiter for handling session reaction
         RpcSessionReactionWaiter waiter = new RpcSessionReactionWaiter(ctx, session.getSessionId());
         RpcSessionSignature signature = RunnerUtil.execSilentException(() -> rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter), e -> RpcSessionSignature.reject(e.getMessage()));
         reaction.setSuccess(signature.isAgreed());
@@ -75,31 +101,66 @@ public class RpcSessionChannelDataTransProxy {
         }
     }
 
+    /**
+     * Handles a running RPC session request by checking if the session is active and processing it accordingly.
+     * If the session is running, it flushes the session, retrieves the context wrapper and waiter, and processes the request.
+     * If the session is not running, it creates a failed reaction indicating the session is lost and sends it back.
+     *
+     * @param ctx                         The ChannelHandlerContext which contains the channel information
+     * @param request                     The RpcSessionRequest containing the session and request details
+     * @param rpcSessionRequestMsgHandler The handler for processing RPC session requests
+     */
     public static void handleRunning(ChannelHandlerContext ctx, RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+        // Get the RPC session from the request
         RpcSession session = request.getRpcSession();
+        // Check if the session with the given ID is currently running
         if (RpcSessionTransManger.isRunning(session.getSessionId())) {
+            // If running, flush the session to ensure all messages are processed
             RpcSessionTransManger.flush(session.getSessionId());
+            // Get the context wrapper associated with the session
             RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
+            // Get the waiter associated with the session
             RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+            // Process the request using the provided handler
             rpcSessionRequestMsgHandler.onReceiveRequest(contextWrapper, request, waiter);
         } else {
+            // If session is not running, create a failed reaction
             RpcReaction reaction = request.toReaction();
+            // Set error message with the request ID
             reaction.setMsg("{requestId:" + request.getRequestId() + "} the sending session message is abnormal and the session does not exist");
+            // Mark the reaction as failed
             reaction.setSuccess(false);
+            // Set the error code for session loss
             reaction.setCode(RpcErrorEnum.SESSION_LOSE.getCode());
+            // Send the failed reaction back through the channel
             RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
         }
     }
 
+    /**
+     * Handles the completion of a RPC session request.
+     * This method processes the finished RPC session by checking if it's still running,
+     * executing necessary cleanup operations, and ensuring proper resource release.
+     *
+     * @param ctx                         The ChannelHandlerContext which provides various context information
+     * @param request                     The RpcSessionRequest containing session information
+     * @param rpcSessionRequestMsgHandler The handler for RPC session request messages
+     */
     public static void handleFinished(ChannelHandlerContext ctx, RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+        // Get the RPC session from the request
         RpcSession session = request.getRpcSession();
         try {
+            // Check if the session with the given ID is currently running
             if (RpcSessionTransManger.isRunning(request.getRpcSession().getSessionId())) {
+                // Get the context wrapper for the session
                 RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
+                // Get the waiter associated with the session
                 RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+                // Execute session stop operations through the proxy
                 RpcSessionRequestMsgHandlerExecProxy.sessionStop(rpcSessionRequestMsgHandler, contextWrapper, waiter);
             }
         } finally {
+            // Ensure the session resources are released regardless of exceptions
             RpcSessionTransManger.release(session.getSessionId());
         }
     }

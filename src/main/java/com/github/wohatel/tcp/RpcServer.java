@@ -16,7 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-/** * Bind the server to the listening port and configure the channel
+/**
+ * Bind the server to the listening port and configure the channel
  * to notify the EchoServerHandler instance of inbound messages
  *
  * @author yaochuang
@@ -45,9 +46,6 @@ public class RpcServer extends RpcDataReceiver {
         this.childChannelOptions = childChannelOptions;
     }
 
-    /**     
-     * start netty tcp Server
-     */
     @SneakyThrows
     @SuppressWarnings("all")
     public ChannelFuture start() {

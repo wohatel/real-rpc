@@ -5,13 +5,18 @@ import lombok.experimental.Accessors;
 
 import java.net.InetSocketAddress;
 
-/** * upd request msg wrapper
+
+/**
+ * A generic UDP packet class for RPC (Remote Procedure Call) communication.
+ * This class uses Lombok annotations for reducing boilerplate code.
  *
- * @author yaochuang 2025/09/17 15:25
+ * @param <T> the type of the message payload in the packet
  */
 @Data
 @Accessors(chain = true)
 public class RpcUdpPacket<T> {
+    // The message payload of the packet
     private T msg;
+    // The network address of the sender
     private InetSocketAddress sender;
 }

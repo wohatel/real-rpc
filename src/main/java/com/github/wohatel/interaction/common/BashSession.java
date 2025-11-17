@@ -22,29 +22,29 @@ import java.util.function.Consumer;
 @Slf4j
 public class BashSession {
     @Getter
-    private final Process process;
+    private final Process process; // Process object representing the bash session
     @Getter
-    private final long bashSessionId;
-    private Consumer<String> consumer;
+    private final long bashSessionId; // Unique identifier for the bash session
+    private Consumer<String> consumer; // Consumer for handling output lines
     @Getter
-    private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>(); // Queue to store commands
     @Getter
-    private final BlockingQueue<String> outputQueue;
+    private final BlockingQueue<String> outputQueue; // Queue to store output lines
     @Getter
-    private AtomicBoolean stoped = new AtomicBoolean(false);
-    private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis());
+    private AtomicBoolean stoped = new AtomicBoolean(false); // Flag to indicate if session is stopped
+    private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis()); // Timestamp of last operation
 
 
     public BashSession() {
-        this(50000);
+        this(50000); // Default constructor with outline limit of 50000
     }
 
     public BashSession(int outlineLimit) {
-        this("bash", outlineLimit);
+        this("bash", outlineLimit); // Constructor with bash environment and outline limit
     }
 
-    /**     
-     *
+    /**
+     * Constructor to create a bash session with specified environment
      * @param bashEnv  bashEnv
      *                 "bash" linux or mac ... support
      *                 "zsh"
@@ -62,26 +62,52 @@ public class BashSession {
         this.outputQueue = new LinkedBlockingQueue<>(outlineLimit);
     }
 
+    /**
+     * Method to read from a BufferedReader and add lines to a queue
+     * Uses @SneakyThrows to handle exceptions in a sneaky way
+     *
+     * @param reader The BufferedReader to read from
+     */
     @SneakyThrows
     private void readStream(BufferedReader reader) {
-        String line;
+        String line; // Variable to store each line read from the reader
+        // Continue reading while the process is not stopped and there are lines available
         while (!stoped.get() && (line = reader.readLine()) != null) {
             outputQueue.offer(line); // 有界队列自己限制大小
         }
     }
 
+    /**
+     * Sends a command with default parameters
+     * This is a convenience method that calls the main sendCommand method with default parameter values
+     *
+     * @param cmd The command string to be sent
+     */
     public void sendCommand(String cmd) {
+        // Call the overloaded sendCommand method with default parameter for async
         this.sendCommand(cmd, false);
     }
 
+    /**
+     * Sends a command to the process with optional logging to output queue
+     *
+     * @param cmd              The command string to be sent
+     * @param addToOutputQueue Flag indicating whether to add the command to output queue
+     * @throws Throws exception sneakily using @SneakyThrows annotation
+     */
     @SneakyThrows
     public void sendCommand(String cmd, boolean addToOutputQueue) {
+        // Check if the process is still running
         if (!stoped.get()) {
+            // Update the last operation timestamp
             lastOperateTime.set(System.currentTimeMillis());
+            // Get the writer to process input
             BufferedWriter inputWriter = process.outputWriter();
+            // Write the command to process input
             inputWriter.write(cmd);
             inputWriter.write("\n");
             inputWriter.flush();
+            // Optionally add to output queue for tracking
             if (addToOutputQueue) {
                 outputQueue.offer(cmd);
             }
@@ -93,25 +119,48 @@ public class BashSession {
         }
     }
 
+    /**
+     * Returns the command history as a single string with each command separated by a newline character.
+     * This method is useful for displaying the sequence of commands that have been executed.
+     *
+     * @return A string containing all commands from the command queue, each separated by a newline character
+     */
     public String history() {
+        // Join all commands in the queue with newline character as delimiter
         return String.join("\n", commandQueue);
     }
 
+
     /**
-     * exec ctrl+C
+     * Sends a Ctrl+C signal to the running process to interrupt its current operation.
+     * This method updates the last operation time and writes the interrupt character to the process input.
      *
+     * @throws IOException if an I/O error occurs while writing to the process input stream
      */
     public void sendCtrlC() throws IOException {
+        // Update the timestamp of the last operation
         lastOperateTime.set(System.currentTimeMillis());
+        // Get the writer for the process standard input
         BufferedWriter inputWriter = process.outputWriter();
+        // Write the ASCII character 3 (Ctrl+C) to interrupt the process
         inputWriter.write("\u0003"); // Ctrl+C
+        // Ensure the data is immediately sent to the process
         inputWriter.flush();
     }
 
+    /**
+     * Method to send a SIGINT signal (interrupt) to a process with the specified PID.
+     * This is equivalent to pressing Ctrl+C in the terminal.
+     *
+     * @param pid The process ID of the target process to be interrupted
+     */
     public void kill2Pid(Long pid) {
         try {
+            // Record the last operation time for tracking purposes
             lastOperateTime.set(System.currentTimeMillis());
+            // Build and start a process to execute the kill command with SIGINT (-2) signal
             Process p = new ProcessBuilder("kill", "-2", String.valueOf(pid)).start();
+            // Close input and error streams to prevent resource leaks
             p.getInputStream().close();
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
@@ -123,10 +172,19 @@ public class BashSession {
     }
 
 
+    /**
+     * Forcefully terminates a process with the given PID using the 'kill -9' command.
+     * This method attempts to kill the process and waits for at most 500ms for the operation to complete.
+     *
+     * @param pid The process ID of the process to be terminated
+     */
     public void kill9Pid(Long pid) {
         try {
+            // Record the last operation time
             lastOperateTime.set(System.currentTimeMillis());
+            // Build and start the process to execute 'kill -9' command
             Process p = new ProcessBuilder("kill", "-9", String.valueOf(pid)).start();
+            // Close input and error streams to prevent resource leaks
             p.getInputStream().close();
             p.getErrorStream().close();
             p.waitFor(500, TimeUnit.MILLISECONDS); // 最多等500ms
@@ -137,27 +195,40 @@ public class BashSession {
         }
     }
 
+
     /**
-     * 处理标准输出或错误输出
+     * This method sets up a consumer for output processing with thread synchronization.
+     * It creates a virtual thread pool to handle batch processing of output messages.
      *
-     * @param consumer 消费每一行输出信息
+     * @param consumer The consumer function that processes the output strings
      */
     public synchronized void onOutPut(Consumer<String> consumer) {
+        // If a consumer is already set, do nothing and return
         if (this.consumer != null) {
             return;
         }
+        // Set the provided consumer
         this.consumer = consumer;
+        // Execute the processing in a default virtual thread pool
         DefaultVirtualThreadPool.execute(() -> {
+            // Create a batch list with initial capacity of 100
             List<String> batch = new ArrayList<>(100);
+            // Continue processing until stop flag is set
             while (!stoped.get()) {
                 try {
+                    // Clear the batch for new messages
                     batch.clear();
+                    // Drain up to 99 messages from the output queue to the batch
                     outputQueue.drainTo(batch, 99);
+                    // If batch is empty after draining
                     if (batch.isEmpty()) {
+                        // Try to poll a message with 5ms timeout
                         String poll = outputQueue.poll(5, TimeUnit.MILLISECONDS);
                         if (poll != null) {
+                            // Add the polled message to batch
                             batch.add(poll);
                         } else {
+                            // If no message received, continue to next iteration
                             continue;
                         }
                     }
@@ -174,30 +245,58 @@ public class BashSession {
 
 
     /**
-     * 是否是交互式
+     * This method checks if the current application is running in interactive mode.
+     * Interactive mode is determined by checking if there is a foreground process.
      *
-     * @return boolean
+     * @return true if there is no foreground process (indicating interactive mode),
+     *         false otherwise
      */
     public boolean isInteractive() {
+        // Find the foreground process ID
         Long foregroundProcess = findForegroundProcess();
+        // Return true if no foreground process is found (null), false otherwise
         return foregroundProcess == null;
     }
 
+    /**
+     * Finds the foreground process among child processes.
+     * This method sneaky throws any exceptions that might occur during process handling.
+     *
+     * @return The PID (Process ID) of the foreground process if found, otherwise null
+     */
     @SneakyThrows
     public Long findForegroundProcess() {
+        // Get all child processes and collect their PIDs into a list
         List<Long> collect = process.children().map(ProcessHandle::pid).toList();
+        // If there are no child processes, return null
         if (collect.isEmpty()) {
             return null;
         }
+        // Return the first PID from the collected list of child processes
         return collect.getFirst();
     }
 
+    /**
+     * Closes the resource using the default timeout of 2 seconds.
+     * This method is annotated with @SneakyThrows to automatically throw checked exceptions.
+     *
+     * @throws Exception if an error occurs during the closing process
+     */
     @SneakyThrows
     public void close() {
+        // Call the overloaded close method with a default timeout of 2 seconds
         this.close(2);
     }
 
+    /**
+     * Closes the process with a specified timeout period.
+     * This method attempts to gracefully shut down the process,
+     * and if necessary, forcefully terminates it.
+     *
+     * @param timeoutSeconds The maximum time in seconds to wait for the process to terminate
+     */
     public void close(int timeoutSeconds) {
+        // Check if the process hasn't been stopped yet, and atomically update the flag
         if (stoped.compareAndSet(false, true)) {
             try {
                 this.sendCommand("exit"); // 请求shell自行退出
@@ -218,10 +317,13 @@ public class BashSession {
     }
 
     /**
-     * 是否停止
+     * Method to check if the process or operation has been stopped.
+     * This method returns the current status of the stop flag.
+     *
+     * @return boolean value indicating whether the process is stopped (true) or running (false)
      */
     public boolean isStoped() {
-        return stoped.get();
+        return stoped.get();  // Returns the current value of the atomic boolean stop flag
     }
 
 }

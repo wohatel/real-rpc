@@ -1,9 +1,10 @@
 package com.github.wohatel.interaction.file;
 
 
+
 /**
- *
- * @author yaochuang 2025/05/13 14:41
+ * Enumeration defining different file transfer models for RPC operations.
+ * Each model specifies a different approach to handling file transfers.
  */
 public enum RpcFileTransModel {
 

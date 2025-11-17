@@ -19,19 +19,28 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
+ * SessionManager class for managing sessions with automatic cleanup and timeout handling.
  *
  * @author yaochuang 2025/04/22 18:57
  */
 @Data
 @Slf4j
 public class SessionManager<T> {
+    // Session timeout duration in milliseconds
     private final Long sessionTime;
+    // Atomic flag to indicate if the session manager is stopped
     private final AtomicBoolean stop = new AtomicBoolean(false);
+    // Concurrent map to store active sessions
     private final Map<String, T> container = new ConcurrentHashMap<>();
+    // Map to store release callbacks for sessions
     private final Map<String, Consumer<T>> onRelease = new ConcurrentHashMap<>();
+    // Map to store expiration times for sessions
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
+    // Priority queue for delayed cleanup of expired sessions
     private final DelayQueue<DelayItem> delayQueue = new DelayQueue<>();
+    // Background thread for cleaning up expired sessions
     private final Thread cleanerThread;
+    // Callback to be executed when a session is closed
     private final BiConsumer<String, T> sessionClose;
 
     /**     
@@ -42,10 +51,23 @@ public class SessionManager<T> {
      */
     private final double flushSeed;
 
+    /**
+     * Constructor for SessionManager with default flush seed
+     *
+     * @param sessionTime  The duration of a session in milliseconds
+     * @param sessionClose Callback to execute when a session is closed
+     */
     public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose) {
         this(sessionTime, sessionClose, 0.618);
     }
 
+    /**
+     * Constructor for SessionManager with custom flush seed
+     *
+     * @param sessionTime  The duration of a session in milliseconds
+     * @param sessionClose Callback to execute when a session is closed
+     * @param flushSeed    Factor determining when to refresh session timeouts
+     */
     public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose, double flushSeed) {
         this.flushSeed = flushSeed;
         this.sessionTime = sessionTime;
@@ -56,6 +78,11 @@ public class SessionManager<T> {
         cleanerThread = Thread.startVirtualThread(this::cleanerLoop);
     }
 
+    /**
+     * Constructor for SessionManager without session close callback
+     *
+     * @param sessionTime The duration of a session in milliseconds
+     */
     public SessionManager(long sessionTime) {
         this(sessionTime, null);
     }

@@ -3,10 +3,10 @@ package com.github.wohatel.interaction.handler;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.RpcReactionWaiter;
 
+
 /**
- * 普通消息接收事件
- *
- * @author yaochuang 2025/03/25 11:29
+ * Interface for handling simple RPC request messages.
+ * Implementations of this interface will process incoming RPC requests and optionally send reactions back.
  */
 public interface RpcSimpleRequestMsgHandler {
     /**

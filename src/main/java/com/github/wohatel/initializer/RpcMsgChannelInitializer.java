@@ -20,27 +20,49 @@ import java.util.function.Consumer;
 /**
  * @author yaochuang
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)  // Generates equals and hashCode methods including superclass fields
+@Accessors(chain = true)  // Enables method chaining for setters
 public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    @Getter
+    @Getter  // Auto-generates getter for this field
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
+    // Consumer for custom channel initialization logic
     private Consumer<SocketChannel> initChannelConsumer;
 
+    /**
+     * Sets the file request message handler
+     *
+     * @param rpcFileRequestMsgHandler Handler for file request messages
+     */
     public void onFileReceive(RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
         rpcMessageInteractionHandler.setRpcFileRequestMsgHandler(rpcFileRequestMsgHandler);
     }
 
+    /**
+     * Sets the simple request message handler
+     *
+     * @param rpcSimpleRequestMsgHandler Handler for simple request messages
+     */
     public void onRequestReceive(RpcSimpleRequestMsgHandler rpcSimpleRequestMsgHandler) {
         rpcMessageInteractionHandler.setRpcSimpleRequestMsgHandler(rpcSimpleRequestMsgHandler);
     }
 
+    /**
+     * Sets the session request message handler
+     *
+     * @param rpcSessionRequestMsgHandler Handler for session request messages
+     */
     public void onSessionRequestReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         rpcMessageInteractionHandler.setRpcSessionRequestMsgHandler(rpcSessionRequestMsgHandler);
     }
 
+    /**
+     * Initializes the channel pipeline
+     *
+     * @param socketChannel The socket channel to initialize
+     * @throws Exception If initialization fails
+     */
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         if (initChannelConsumer != null) {

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.wohatel</groupId>
     <artifactId>real-rpc</artifactId>
-    <version>4.0.1</version>
+    <version>4.0.0</version>
     <name>real-rpc</name>
     <packaging>jar</packaging>
     <description>

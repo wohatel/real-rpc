@@ -15,38 +15,57 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
- * default proxy udp spider class, used for forwarding and receiving requests
- *
- * @author yaochuang 2025/09/28 09:44
+ * A default implementation of UDP spider for RPC communication.
+ * This class provides basic functionality for sending and receiving RPC messages over UDP.
  */
 @Slf4j
 public class RpcDefaultUdpSpider {
 
+    /**
+     * The underlying RPC UDP spider instance that handles the actual network communication.
+     */
     @Getter
     protected final RpcUdpSpider<RpcRequest> rpcUdpSpider;
 
+    /**
+     * A consumer for handling received RPC messages.
+     * It takes a ChannelHandlerContext and an RpcUdpPacket as input.
+     */
     protected BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer;
 
+    /**
+     * An inbound handler for processing incoming RPC UDP packets.
+     * It extends SimpleChannelInboundHandler to handle RpcUdpPacket<RpcRequest> messages.
+     */
     @Getter
     protected SimpleChannelInboundHandler<RpcUdpPacket<RpcRequest>> inbondHandler = new SimpleChannelInboundHandler<>() {
         @Override
         protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
+            // If a message consumer is set, accept and process the incoming packet
             if (rpcMsgConsumer != null) {
                 rpcMsgConsumer.accept(channelHandlerContext, packet);
             }
         }
     };
 
+    /**
+     * Default constructor that uses the default event loop manager.
+     */
     public RpcDefaultUdpSpider() {
         this(RpcEventLoopManager.ofDefault());
     }
 
+    /**
+     * Sets the message consumer for handling received RPC messages.
+     *
+     * @param rpcMsgConsumer The consumer that will handle incoming messages
+     */
     public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer) {
         this.rpcMsgConsumer = rpcMsgConsumer;
     }
 
     /**
-     *
+     * Constructor that uses a specified event loop manager.
      * @param rpcEventLoopManager rpcEventLoopManager
      */
     public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager) {

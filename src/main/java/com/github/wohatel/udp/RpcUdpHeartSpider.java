@@ -33,26 +33,40 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
 
+    // Map to store remote socket addresses and their corresponding timing handlers
     @Getter
     private final Map<InetSocketAddress, TimingHandler> timingHandlerMap = new ConcurrentHashMap<>();
+    // Configuration for UDP heartbeat settings
     @Getter
     private final UdpHeartConfig udpHeartConfig;
 
 
+    /**
+     * Constructor with default configuration
+     *
+     * @param rpcEventLoopManager The event loop manager for RPC operations
+     */
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager) {
         this(rpcEventLoopManager, null, null);
     }
 
 
     /**
-     * @param channelOptions Connection channel options
+     * Constructor with custom channel options and default heartbeat configuration
+     * @param rpcEventLoopManager The event loop manager for RPC operations
+     * @param channelOptions List of channel options and values to configure
      */
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config) {
         this(rpcEventLoopManager, channelOptions, config, null);
     }
 
+
     /**
-     * @param channelOptions Connection channel options
+     * Constructor with custom channel options and heartbeat configuration
+     * @param rpcEventLoopManager The event loop manager for RPC operations
+     * @param channelOptions List of channel options and values to configure
+     * @param config Heartbeat configuration settings
+     * @param msgConsumer Consumer for handling received messages
      */
     public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super(rpcEventLoopManager, channelOptions, null);
@@ -60,12 +74,18 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
         this.onMsgReceive(msgConsumer);
     }
 
+    /**
+     * Override method to handle incoming messages
+     *
+     * @param msgConsumer Consumer for processing received messages
+     */
     @Override
     public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> msgConsumer) {
         super.onMsgReceive((ctx, packet) -> {
             RpcRequest request = packet.getMsg();
             String contentType = request.getContentType();
             RpcUdpAction action = RpcUdpAction.fromString(contentType);
+            // Handle PING action by sending PONG response
             if (action == RpcUdpAction.PING) {
                 RpcRequest rpcRequest = new RpcRequest();
                 rpcRequest.setContentType(RpcUdpAction.PONG.name());
@@ -84,10 +104,12 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
         });
     }
 
-    /**     
-     * Bind the port that the UDP service starts
-     */
     @Override
+    /**
+     * Bind the server to the specified port and set up heartbeat ping mechanism
+     * @param port The port number to bind the server to
+     * @return ChannelFuture representing the asynchronous bind operation
+     */
     public ChannelFuture bind(int port) {
         ChannelFuture future = super.bind(port);
         // 开始监听绑定,并添加任务
@@ -120,66 +142,126 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
         return future;
     }
 
-    /**     
-     * Add remote socket detection
+
+    /**
+     * Adds a remote socket to the timing handler map if it doesn't already exist.
+     * If the socket address is not present in the map, a new TimingHandler is created
+     * with the specified threshold time in milliseconds.
+     *
+     * @param socketAddress The InetSocketAddress representing the remote socket to be added
+     * @return The existing TimingHandler if present, or a new one created with the threshold time
      */
     public TimingHandler addRemoteSocket(InetSocketAddress socketAddress) {
+        // Compute the value if the key is not present, using the provided threshold time
         return timingHandlerMap.computeIfAbsent(socketAddress, key -> new TimingHandler(this.udpHeartConfig.thresholdTimeMillis));
     }
 
-    /**     
-     * Delete remote socket detection
+
+    /**
+     * Removes a remote socket and its associated timing handler from the mapping.
+     *
+     * @param socketAddress The InetSocketAddress representing the remote socket to be removed
      */
     public void removeRemoteSocket(InetSocketAddress socketAddress) {
+        // Remove the timing handler associated with the given socket address from the map
         timingHandlerMap.remove(socketAddress);
     }
 
-    /**     
-     * Get remote socket detection
+
+    /**
+     * Retrieves a TimingHandler instance associated with the specified socket address.
+     * This method looks up the timing handler in the internal map using the provided InetSocketAddress.
+     *
+     * @param socketAddress The InetSocketAddress key used to retrieve the TimingHandler
+     * @return The TimingHandler instance associated with the given socket address,
+     * or null if no mapping exists for this address
      */
     public TimingHandler getRemoteSocket(InetSocketAddress socketAddress) {
+        // Retrieve and return the TimingHandler from the map using the provided socket address
         return timingHandlerMap.get(socketAddress);
     }
 
-    /**     
-     * is remote socket detection exists
+
+    /**
+     * Checks if the given socket address is present in the timing handler map.
+     *
+     * @param socketAddress The InetSocketAddress to be checked for existence in the map
+     * @return true if the map contains the specified socket address, false otherwise
      */
     public boolean containsRemoteSocket(InetSocketAddress socketAddress) {
+        // Check if the timingHandlerMap contains the specified socket address as a key
         return timingHandlerMap.containsKey(socketAddress);
     }
 
-    /**     
-     * Clean up unconnected sockets
+
+    /**
+     * Removes all inactive sockets from the timing handler map.
+     * This method iterates through the entries in the timing handler map and removes those
+     * where the associated TimingHandler is not alive based on its last ping time.
      */
     public void releaseUnAliveSockets() {
+        // Remove entries from the timing handler map where the value (TimingHandler) is not alive
         timingHandlerMap.entrySet().removeIf(entry -> {
+            // Get the TimingHandler value from the map entry
             TimingHandler value = entry.getValue();
+            // Check if the lastPingTime is not null and the handler is not alive
             return value.lastPingTime != null && !value.isAlive();
         });
     }
 
 
+    /**
+     * Configuration class for UDP heartbeat mechanism
+     * This static class contains parameters for UDP heartbeat configuration
+     * It uses Lombok annotations for automatic generation of getters, setters, and constructors
+     */
     @Data
     @AllArgsConstructor
     public static class UdpHeartConfig {
+        /**
+         * The interval at which ping messages are sent
+         * This value determines how frequently heartbeat messages are transmitted
+         * It is a final field, meaning its value cannot be changed after initialization
+         */
         @Getter
         private final Long pingInterval;
 
+        /**
+         * The threshold time in milliseconds for response timeout
+         * If a response is not received within this time frame after sending a ping,
+         * the connection is considered to be lost
+         * It is a final field, meaning its value cannot be changed after initialization
+         */
         @Getter
         private final Long thresholdTimeMillis;
     }
 
 
+    /**
+     * A static inner class that handles timing-related operations for connection health monitoring.
+     * It tracks ping and pong timestamps to determine if the connection is still alive.
+     */
     @Data
     public static class TimingHandler {
-        private Long lastPingTime;
-        private Long lastPongTime;
-        private Long thresholdTimeMillis;
+        private Long lastPingTime;      // Timestamp of the last ping message received
+        private Long lastPongTime;      // Timestamp of the last pong message received
+        private Long thresholdTimeMillis; // Time threshold in milliseconds to consider connection alive
 
+        /**
+         * Constructor to initialize the TimingHandler with a specific threshold time.
+         *
+         * @param thresholdTimeMillis The time threshold in milliseconds to determine if connection is alive
+         */
         public TimingHandler(Long thresholdTimeMillis) {
             this.thresholdTimeMillis = thresholdTimeMillis;
         }
 
+        /**
+         * Checks if the connection is still alive based on the last pong time.
+         * A connection is considered alive if the time elapsed since the last pong is less than the threshold.
+         *
+         * @return true if connection is alive, false otherwise
+         */
         public boolean isAlive() {
             if (lastPongTime == null) {
                 return false;

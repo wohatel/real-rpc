@@ -16,7 +16,7 @@ import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
-import com.github.wohatel.interaction.file.RpcFileSenderListenerProxy;
+import com.github.wohatel.interaction.proxy.RpcFileSenderListenerProxy;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransConfig;
 import com.github.wohatel.interaction.file.RpcFileTransModel;

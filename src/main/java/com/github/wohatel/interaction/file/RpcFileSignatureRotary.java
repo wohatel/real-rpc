@@ -9,15 +9,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- *
- * @author yaochuang 2025/05/13 14:41
+ * A utility class for handling file signature rotation operations.
+ * Provides methods to manage file transfers based on different transmission models.
  */
 @Getter
 @Slf4j
 public class RpcFileSignatureRotary {
 
-    private RpcFileSignature signature;
+    private RpcFileSignature signature; // The file signature containing file and transfer information
 
+    /**
+     * Processes file rotation based on the transmission model.
+     *
+     * @param remoteFileSize The size of the remote file
+     * @return RpcFileSignatureRotaryResult containing the operation result and transfer status
+     */
     public RpcFileSignatureRotaryResult rotary(long remoteFileSize) {
         File file = signature.getFile();
         RpcFileTransModel transModel = signature.getTransModel();
@@ -86,19 +92,35 @@ public class RpcFileSignatureRotary {
 
     }
 
+    /**
+     * Creates a new RpcFileSignatureRotary instance from a local file signature wrapper.
+     *
+     * @param signature The file signature to wrap
+     * @return A new RpcFileSignatureRotary instance
+     */
     public static RpcFileSignatureRotary fromLocalWrapper(RpcFileSignature signature) {
         RpcFileSignatureRotary rpcFileSignatureRotary = new RpcFileSignatureRotary();
         rpcFileSignatureRotary.signature = signature;
         return rpcFileSignatureRotary;
     }
 
+    /**
+     * Result class for file signature rotation operations.
+     * Contains operation status, message, write index, and transfer requirements.
+     */
     @Data
     public static class RpcFileSignatureRotaryResult {
-        private boolean success;
-        private String msg;
-        private long writeIndex;
-        private boolean needTrans;
+        private boolean success; // Operation success status
+        private String msg; // Message describing the result or error
+        private long writeIndex; // Current write position in the file
+        private boolean needTrans; // Whether file transfer is needed
 
+        /**
+         * Creates a failed result with an error message.
+         *
+         * @param msg The error message
+         * @ RpcFileSignatureRotaryResult with success status set to false
+         */
         public static RpcFileSignatureRotaryResult fail(String msg) {
             RpcFileSignatureRotaryResult result = new RpcFileSignatureRotaryResult();
             result.success = false;
@@ -106,6 +128,12 @@ public class RpcFileSignatureRotary {
             return result;
         }
 
+        /**
+         * Creates a successful result with a write index.
+         *
+         * @param writeIndex The write index to set
+         * @return RpcFileSignatureRotaryResult with success status set to true
+         */
         public static RpcFileSignatureRotaryResult success(long writeIndex) {
             RpcFileSignatureRotaryResult result = new RpcFileSignatureRotaryResult();
             result.success = true;
