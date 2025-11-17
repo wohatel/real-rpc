@@ -15,7 +15,6 @@ import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import com.github.wohatel.util.SessionManager;
 import io.netty.channel.nio.NioEventLoopGroup;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -63,12 +62,10 @@ public class TestExecShell {
                 System.out.println("此次会话主题是:" + context.getTopic());
                 if (true) {// 构建shell
                     BashSession bashSession = new BashSession();
-                    bashSession.onOutPut(str -> {
+                    bashSession.onOutPut(strs -> {
                         RpcReaction reaction = contextWrapper.getRpcSession().toReaction();
-                        reaction.setBody(str);
-                        if (!StringUtils.isBlank(str)) {
-                            waiter.sendReaction(reaction);
-                        }
+                        reaction.setBody(String.join("\n", strs));
+                        waiter.sendReaction(reaction);
                     });
                     sessionManager.initSession(rpcSession.getSessionId(), bashSession);
                 } else {
@@ -83,8 +80,13 @@ public class TestExecShell {
                 // 假如客户端把命令写到body字段
                 String command = request.getBody();
                 BashSession session = sessionManager.getSession(contextWrapper.getRpcSession().getSessionId());
-                // 将command也放入输出
-                session.sendCommand(command,true);
+                if ("stop".equals(command)) {
+                    session.close();
+                } else {
+                    // 将command也放入输出
+                    session.sendCommand(command, true);
+
+                }
             }
 
             @Override
@@ -128,11 +130,13 @@ public class TestExecShell {
 //         打印工作目录下的文件列表
         client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));
         Thread.sleep(1000);
+//        client.sendSessionRequest(new RpcSessionRequest(session, "stop"));
+//        Thread.sleep(1000);
 //         切换了目录
         client.sendSessionRequest(new RpcSessionRequest(session, "cd /tmp"));
+        Thread.sleep(1000);
         // 打印/tmp下的文件目录
         client.sendSessionRequest(new RpcSessionRequest(session, "ls -al"));
-
         // 防止线程退出
         Thread.currentThread().join();
     }

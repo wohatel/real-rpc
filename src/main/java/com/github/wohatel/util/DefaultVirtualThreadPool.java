@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * DefaultVirtualThreadPool is a utility class that provides a virtual thread executor service.
@@ -74,5 +75,15 @@ public class DefaultVirtualThreadPool {
      */
     public static void execute(Runnable task) {
         execute(true, task);
+    }
+
+    /**
+     * Executes a task using the virtual thread executor.
+     * This is a convenience method that always executes the task (ack = true).
+     *
+     * @param task the Runnable task to be executed
+     */
+    public static Future<?> submit(Runnable task) {
+        return getExecutor().submit(task);
     }
 }

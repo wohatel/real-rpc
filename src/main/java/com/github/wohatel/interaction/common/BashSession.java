@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,7 +26,6 @@ public class BashSession {
     private final Process process; // Process object representing the bash session
     @Getter
     private final long bashSessionId; // Unique identifier for the bash session
-    private Consumer<String> consumer; // Consumer for handling output lines
     @Getter
     private final BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>(); // Queue to store commands
     @Getter
@@ -33,14 +33,18 @@ public class BashSession {
     @Getter
     private AtomicBoolean stoped = new AtomicBoolean(false); // Flag to indicate if session is stopped
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis()); // Timestamp of last operation
+    private Consumer<List<String>> consumer; // Consumer for handling output lines
+    private Future<?> future;
+    private EliminateModel eliminateModel;
+
 
 
     public BashSession() {
-        this(50000); // Default constructor with outline limit of 50000
+        this(500_000); // Default constructor with outline limit of 500_000
     }
 
     public BashSession(int outlineLimit) {
-        this("bash", outlineLimit); // Constructor with bash environment and outline limit
+        this("bash", outlineLimit, null); // Constructor with bash environment and outline limit
     }
 
     /**
@@ -53,13 +57,19 @@ public class BashSession {
      *                 "bash" is default
      */
     @SneakyThrows
-    public BashSession(String bashEnv, int outlineLimit) {
+    public BashSession(String bashEnv, int outlineLimit, EliminateModel eliminateModel) {
         ProcessBuilder builder = new ProcessBuilder(bashEnv);
         builder.redirectErrorStream(true); // stderr 合并到 stdout
         process = builder.start();
         this.bashSessionId = process.pid();
-        DefaultVirtualThreadPool.execute(() -> readStream(process.inputReader()));
+        this.eliminateModel = eliminateModel;
+        if (this.eliminateModel == null) {
+            this.eliminateModel = EliminateModel.DISCARD;
+        }
         this.outputQueue = new LinkedBlockingQueue<>(outlineLimit);
+        DefaultVirtualThreadPool.execute(() -> readStream(process.inputReader()));
+
+
     }
 
     /**
@@ -70,10 +80,20 @@ public class BashSession {
      */
     @SneakyThrows
     private void readStream(BufferedReader reader) {
-        String line; // Variable to store each line read from the reader
-        // Continue reading while the process is not stopped and there are lines available
-        while (!stoped.get() && (line = reader.readLine()) != null) {
-            outputQueue.offer(line); // 有界队列自己限制大小
+        try {
+            String line;
+            while (!stoped.get() && (line = reader.readLine()) != null) {
+                boolean offer = outputQueue.offer(line);
+                if (this.eliminateModel == EliminateModel.CLOSE && !offer) {
+                    log.warn("outputQueue满了，主动关闭 BashSession");
+                    this.close();
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            if (!stoped.get()) {
+                log.error("读取Bash输出异常", e);
+            }
         }
     }
 
@@ -202,45 +222,29 @@ public class BashSession {
      *
      * @param consumer The consumer function that processes the output strings
      */
-    public synchronized void onOutPut(Consumer<String> consumer) {
-        // If a consumer is already set, do nothing and return
-        if (this.consumer != null) {
-            return;
-        }
+    public synchronized void onOutPut(Consumer<List<String>> consumer) {
         // Set the provided consumer
         this.consumer = consumer;
         // Execute the processing in a default virtual thread pool
-        DefaultVirtualThreadPool.execute(() -> {
-            // Create a batch list with initial capacity of 100
-            List<String> batch = new ArrayList<>(100);
-            // Continue processing until stop flag is set
-            while (!stoped.get()) {
-                try {
-                    // Clear the batch for new messages
-                    batch.clear();
-                    // Drain up to 99 messages from the output queue to the batch
-                    outputQueue.drainTo(batch, 99);
-                    // If batch is empty after draining
-                    if (batch.isEmpty()) {
-                        // Try to poll a message with 5ms timeout
-                        String poll = outputQueue.poll(5, TimeUnit.MILLISECONDS);
-                        if (poll != null) {
-                            // Add the polled message to batch
-                            batch.add(poll);
-                        } else {
-                            // If no message received, continue to next iteration
-                            continue;
-                        }
+        if (this.future == null) {
+            this.future = DefaultVirtualThreadPool.submit(() -> {
+                while (!stoped.get() && !Thread.currentThread().isInterrupted()) {
+                    try {
+                        List<String> batch = new ArrayList<>(128);
+                        String take = outputQueue.take();
+                        batch.add(take);
+                        // Drain up to 99 messages from the output queue to the batch
+                        outputQueue.drainTo(batch, 99);
+                        // 注意消费线程
+                        this.consumer.accept(batch);
+                    } catch (InterruptedException e) {
+                        break;
+                    } catch (Exception e) {
+                        log.error("abnormal consumption", e);
                     }
-                    // 注意消费线程
-                    consumer.accept(String.join("\n", batch));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    log.error("abnormal consumption", e);
                 }
-            }
-        });
+            });
+        }
     }
 
 
@@ -296,6 +300,8 @@ public class BashSession {
      * @param timeoutSeconds The maximum time in seconds to wait for the process to terminate
      */
     public void close(int timeoutSeconds) {
+        // 直接尝试中断
+        future.cancel(true);
         // Check if the process hasn't been stopped yet, and atomically update the flag
         if (stoped.compareAndSet(false, true)) {
             try {
@@ -326,4 +332,8 @@ public class BashSession {
         return stoped.get();  // Returns the current value of the atomic boolean stop flag
     }
 
+    public enum EliminateModel {
+        DISCARD, // 丢弃
+        CLOSE // 关停
+    }
 }
