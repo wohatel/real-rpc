@@ -99,6 +99,8 @@ public class RpcSessionChannelDataTransProxy {
             // 注册最终release事件
             RpcSessionTransManger.initSession(context, session, ctx);
             RpcSessionTransManger.registOnRelease(session.getSessionId(), t -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter));
+        } else {
+            RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter);
         }
 
 

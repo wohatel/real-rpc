@@ -271,6 +271,8 @@ public class RpcFileChannelDataTransProxy {
             reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
             reaction.setMsg(signature.getMsg());
             RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));
+            RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(request.getRpcSession(), sessionContext, signature.getFile(), signature.getTransModel(), rpcFileInfo, 0L);
+            RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl);
         } else {
             RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, request, signature, rpcFileInfo);
             readInitFile(ctx, request, sessionContext, signature, rpcFileRequestMsgHandler, rpcFileInfo, rotaryResult);
