@@ -1,4 +1,4 @@
-package com.github.wohatel.udp;
+package com.github.wohatel.interaction.common;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

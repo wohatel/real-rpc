@@ -1,7 +1,7 @@
 package com.github.wohatel;
 
 import com.alibaba.fastjson2.TypeReference;
-import com.github.wohatel.udp.RpcUdpPacket;
+import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

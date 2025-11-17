@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcUdpPacket;
+import com.github.wohatel.interaction.common.RpcUdpWaiter;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -31,7 +33,7 @@ public class RpcDefaultUdpSpider {
      * A consumer for handling received RPC messages.
      * It takes a ChannelHandlerContext and an RpcUdpPacket as input.
      */
-    protected BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer;
+    protected BiConsumer<RpcUdpWaiter<RpcRequest>, RpcUdpPacket<RpcRequest>> rpcMsgConsumer;
 
     /**
      * An inbound handler for processing incoming RPC UDP packets.
@@ -43,7 +45,7 @@ public class RpcDefaultUdpSpider {
         protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcUdpPacket<RpcRequest> packet) throws Exception {
             // If a message consumer is set, accept and process the incoming packet
             if (rpcMsgConsumer != null) {
-                rpcMsgConsumer.accept(channelHandlerContext, packet);
+                rpcMsgConsumer.accept(new RpcUdpWaiter<>(channelHandlerContext), packet);
             }
         }
     };
@@ -60,7 +62,7 @@ public class RpcDefaultUdpSpider {
      *
      * @param rpcMsgConsumer The consumer that will handle incoming messages
      */
-    public void onMsgReceive(BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> rpcMsgConsumer) {
+    public void onMsgReceive(BiConsumer<RpcUdpWaiter<RpcRequest>, RpcUdpPacket<RpcRequest>> rpcMsgConsumer) {
         this.rpcMsgConsumer = rpcMsgConsumer;
     }
 
@@ -77,7 +79,7 @@ public class RpcDefaultUdpSpider {
      * @param rpcEventLoopManager rpcEventLoopManager
      * @param channelOptions Connection channel options
      */
-    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<ChannelHandlerContext, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
+    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<RpcUdpWaiter<RpcRequest>, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
         this.rpcMsgConsumer = udpMsgConsumer;
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
         }, rpcEventLoopManager, channelOptions, inbondHandler);

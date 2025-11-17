@@ -7,7 +7,7 @@ import com.github.wohatel.interaction.common.RpcReactionWaiter;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import com.github.wohatel.udp.RpcUdpPacket;
+import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
