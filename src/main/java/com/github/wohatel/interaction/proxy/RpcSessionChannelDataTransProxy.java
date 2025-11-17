@@ -62,17 +62,15 @@ public class RpcSessionChannelDataTransProxy {
             return;
         }
         RpcSessionContext context = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
-        RpcSessionTransManger.initSession(context, session, ctx);
-        RpcSessionContextWrapper contextWrapper = RpcSessionTransManger.getContextWrapper(session.getSessionId());
-        RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
+        RpcSessionContextWrapper contextWrapper = new RpcSessionContextWrapper(session, context);
+        RpcSessionReactionWaiter waiter = new RpcSessionReactionWaiter(ctx, session.getSessionId());
         RpcSessionSignature signature = RunnerUtil.execSilentException(() -> rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter), e -> RpcSessionSignature.reject(e.getMessage()));
         reaction.setSuccess(signature.isAgreed());
         reaction.setMsg(signature.getMsg());
         RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
-        if (!signature.isAgreed()) {
-            RpcSessionTransManger.release(session.getSessionId());
-        } else {
+        if (signature.isAgreed()) {
             // 注册最终release事件
+            RpcSessionTransManger.initSession(context, session, ctx);
             RpcSessionTransManger.registOnRelease(session.getSessionId(), t -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter));
         }
     }

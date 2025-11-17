@@ -91,8 +91,8 @@ public class RpcFileChannelDataTransProxy {
      * @return RpcFileSignatureRotaryResult 判决
      */
     private static RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryAndReaction(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcFileSignature signature, RpcFileInfo fileInfo) {
-        RpcFileSignatureRotary fileWrapper = RpcFileSignatureRotary.fromLocalWrapper(signature);
-        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = fileWrapper.rotary(fileInfo.getLength());
+        RpcFileSignatureRotary fileSignatureRotary = RpcFileSignatureRotary.fromLocalWrapper(signature);
+        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = fileSignatureRotary.rotary(fileInfo.getLength());
         List<String> body = new ArrayList<>();
         body.add(String.valueOf(rotaryResult.isNeedTrans()));
         body.add(signature.getTransModel().name());
@@ -119,7 +119,7 @@ public class RpcFileChannelDataTransProxy {
     private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileSignature signature, RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileInfo fileInfo) {
         RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, rpcFileRequest, signature, fileInfo);
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
-        if (rotaryResult.isAgreed()) {
+        if (rotaryResult.isSuccess()) {
             if (!rotaryResult.isNeedTrans()) {
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), fileInfo, 0L);
                 RpcFileRequestMsgHandlerExecProxy.onSuccess(rpcFileRequestMsgHandler, impl);
@@ -221,7 +221,7 @@ public class RpcFileChannelDataTransProxy {
             if (signature == null) {
                 reaction.setSuccess(false);
                 reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
-                reaction.setMsg("remote accept file path error: send terminated");
+                reaction.setMsg("remote accept file error: signature is null");
                 RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
                 return;
             }

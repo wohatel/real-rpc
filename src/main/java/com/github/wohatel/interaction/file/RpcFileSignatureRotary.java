@@ -78,7 +78,7 @@ public class RpcFileSignatureRotary {
                 }
             };
         } catch (Exception e) {
-            return RpcFileSignatureRotaryResult.fail("unknow:" + e.getMessage());
+            return RpcFileSignatureRotaryResult.fail("rotary RpcFileSignatureRotaryResult:" + e.getMessage());
         }
 
     }
@@ -91,21 +91,21 @@ public class RpcFileSignatureRotary {
 
     @Data
     public static class RpcFileSignatureRotaryResult {
-        private boolean agreed;
+        private boolean success;
         private String msg;
         private long writeIndex;
         private boolean needTrans;
 
         public static RpcFileSignatureRotaryResult fail(String msg) {
             RpcFileSignatureRotaryResult result = new RpcFileSignatureRotaryResult();
-            result.agreed = false;
+            result.success = false;
             result.msg = msg;
             return result;
         }
 
         public static RpcFileSignatureRotaryResult success(long writeIndex) {
             RpcFileSignatureRotaryResult result = new RpcFileSignatureRotaryResult();
-            result.agreed = true;
+            result.success = true;
             result.writeIndex = writeIndex;
             return result;
         }
