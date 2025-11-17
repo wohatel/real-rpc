@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -84,6 +85,57 @@ public final class RunnerUtil {
         } catch (Exception e) {
             log.error("execSilentExceptionTo exception:", e);
             return result.apply(e);
+        }
+    }
+
+
+    /**
+     * Executes a supplier and handles null values and exceptions gracefully.
+     *
+     * @param <T>      The type of the result
+     * @param supplier The supplier to execute
+     * @param nullTo   The callable to return if the supplier returns null
+     * @param result   The function to apply if an exception occurs
+     * @return The result from the supplier, nullTo, or result function
+     */
+    public static <T> T execSilentNullOrException(Supplier<T> supplier, Callable<T> nullTo, Function<Exception, T> result) {
+        try {
+            // Execute the supplier and get the result
+            T t = supplier.get();
+            // Check if the result is null
+            if (t == null) {
+                // If null, return the result from nullTo callable
+                return nullTo.call();
+            } else {
+                // Otherwise return the original result
+                return t;
+            }
+        } catch (Exception e) {
+            // Log the exception
+            log.error("execSilentNullOrException exception:", e);
+            // Return the result from the exception handler function
+            return result.apply(e);
+        }
+    }
+
+
+    /**
+     * Executes a throwing runnable silently, handling any exceptions by accepting them into a consumer.
+     * This method is designed to run operations that might throw exceptions without letting them propagate,
+     * instead capturing and processing them through the provided consumer.
+     *
+     * @param throwingRunnable The runnable that might throw exceptions, wrapped in a ThrowingRunnable interface
+     * @param result           A consumer that accepts any exception thrown by the runnable for further processing
+     */
+    public static void execSilentVoidException(ThrowingRunnable throwingRunnable, Consumer<Exception> result) {
+        try {
+            // Execute the provided runnable that might throw exceptions
+            throwingRunnable.run();
+        } catch (Exception e) {
+            // Log the exception with error level for debugging purposes
+            log.error("execSilentVoidException exception:", e);
+            // Pass the caught exception to the consumer for further handling
+            result.accept(e);
         }
     }
 

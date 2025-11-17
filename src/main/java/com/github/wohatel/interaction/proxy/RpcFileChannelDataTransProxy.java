@@ -129,7 +129,7 @@ public class RpcFileChannelDataTransProxy {
         // Create and configure reaction response
         rpcReaction.setMsg(rotaryResult.getMsg());
         rpcReaction.setSuccess(StringUtils.isBlank(rotaryResult.getMsg()));         // Set JSON formatted body
-        RpcMsgTransManager.sendReaction(ctx.channel(), rpcReaction);                  // Set operation message
+        RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), rpcReaction));
         return rotaryResult;  // Set success status based on message
         // Send reaction back to client
     }
@@ -144,10 +144,7 @@ public class RpcFileChannelDataTransProxy {
      * @param rpcFileRequestMsgHandler The handler for processing file request messages
      * @param fileInfo                 Information about the file being transferred
      */
-    private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileSignature signature, RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileInfo fileInfo) {
-        // Perform file rotation and reaction checks
-        RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, rpcFileRequest, signature, fileInfo);
-        // Get RPC session from the request
+    private static void readInitFile(ChannelHandlerContext ctx, RpcFileRequest rpcFileRequest, RpcSessionContext context, RpcFileSignature signature, RpcFileRequestMsgHandler rpcFileRequestMsgHandler, RpcFileInfo fileInfo, RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult) {
         RpcSession rpcSession = rpcFileRequest.getRpcSession();
         // Check if rotation was successful
         if (rotaryResult.isSuccess()) {
@@ -267,33 +264,16 @@ public class RpcFileChannelDataTransProxy {
         RpcSessionContext sessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
         // Deserialize the file info from request header
         RpcFileInfo rpcFileInfo = JsonUtil.fromJson(request.getHeader(), RpcFileInfo.class);
-        try {
-            // Get the target file signature using the request handler
-            RpcFileSignature signature = rpcFileRequestMsgHandler.getTargetFile(request.getRpcSession(), sessionContext, rpcFileInfo);
-            if (signature == null) {
-                // Handle case where signature is null
-                reaction.setSuccess(false);
-                reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
-                reaction.setMsg("remote accept file error: signature is null");
-                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
-                return;
-            }
-            if (!signature.isAgreed()) {
-                // Handle case where signature agreement is not given
-                reaction.setSuccess(false);
-                reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
-                reaction.setMsg(signature.getMsg());
-                RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
-                return;
-            }
-            // Initialize file reading if all checks pass
-            readInitFile(ctx, request, sessionContext, signature, rpcFileRequestMsgHandler, rpcFileInfo);
-        } catch (Exception e) {
-            // Handle any exceptions during the process
+        RpcFileSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcFileRequestMsgHandler.getTargetFile(request.getRpcSession(), sessionContext, rpcFileInfo), () -> RpcFileSignature.reject("remote accept file error: signature is null"), e -> RpcFileSignature.reject(e.getMessage()));
+        if (!signature.isAgreed()) {
+            // Handle case where signature agreement is not given
             reaction.setSuccess(false);
             reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
-            reaction.setMsg(e.getMessage());
-            RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+            reaction.setMsg(signature.getMsg());
+            RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));
+        } else {
+            RpcFileSignatureRotary.RpcFileSignatureRotaryResult rotaryResult = rotaryAndReaction(ctx, request, signature, rpcFileInfo);
+            readInitFile(ctx, request, sessionContext, signature, rpcFileRequestMsgHandler, rpcFileInfo, rotaryResult);
         }
     }
 

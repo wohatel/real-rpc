@@ -81,7 +81,7 @@ public class RpcSessionChannelDataTransProxy {
             reaction.setMsg(errorMsg);
             reaction.setCode(RpcErrorEnum.HANDLE_MSG.getCode());
             reaction.setSuccess(false);
-            RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+            RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));
             return;
         }
         // Deserialize the request body to get session context
@@ -90,15 +90,18 @@ public class RpcSessionChannelDataTransProxy {
         RpcSessionContextWrapper contextWrapper = new RpcSessionContextWrapper(session, context);
         // Create a waiter for handling session reaction
         RpcSessionReactionWaiter waiter = new RpcSessionReactionWaiter(ctx, session.getSessionId());
-        RpcSessionSignature signature = RunnerUtil.execSilentException(() -> rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter), e -> RpcSessionSignature.reject(e.getMessage()));
+        // signature is not be null
+        RpcSessionSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter), () -> RpcSessionSignature.reject("remote session signature error: signature is null"), e -> RpcSessionSignature.reject(e.getMessage()));
         reaction.setSuccess(signature.isAgreed());
         reaction.setMsg(signature.getMsg());
-        RpcMsgTransManager.sendReaction(ctx.channel(), reaction);
+        RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));
         if (signature.isAgreed()) {
             // 注册最终release事件
             RpcSessionTransManger.initSession(context, session, ctx);
             RpcSessionTransManger.registOnRelease(session.getSessionId(), t -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter));
         }
+
+
     }
 
     /**
