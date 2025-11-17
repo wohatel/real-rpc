@@ -74,6 +74,11 @@ public class TestServerSendFile {
             public void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
                 System.out.println("服务端发话:传完了");
             }
+
+            @Override
+            public void onFinally(final RpcFileReceiveWrapper rpcFileWrapper) {
+                System.out.println("服务端发话:传完了finally");
+            }
         });
 
 
