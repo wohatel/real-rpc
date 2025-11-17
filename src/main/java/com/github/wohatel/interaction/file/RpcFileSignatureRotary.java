@@ -2,6 +2,7 @@ package com.github.wohatel.interaction.file;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
  * @author yaochuang 2025/05/13 14:41
  */
 @Getter
+@Slf4j
 public class RpcFileSignatureRotary {
 
     private RpcFileSignature signature;
@@ -78,6 +80,7 @@ public class RpcFileSignatureRotary {
                 }
             };
         } catch (Exception e) {
+            log.error("rotary rpcFileSignature exception:", e);
             return RpcFileSignatureRotaryResult.fail("rotary RpcFileSignatureRotaryResult:" + e.getMessage());
         }
 
