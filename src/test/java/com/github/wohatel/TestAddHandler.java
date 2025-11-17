@@ -38,7 +38,7 @@ public class TestAddHandler {
         }
 
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            System.out.println("----------新的handler--------");
+            System.out.println("日志打印");
             ctx.fireChannelRead(msg);
         }
     };
@@ -70,7 +70,7 @@ public class TestAddHandler {
             pipeline.addLast("decoder", new RpcMsgBodyDecoder());
             pipeline.addLast("encoder", new RpcMsgBodyEncoder());
             // 此处为新添加的handler ------------
-            pipeline.addLast("actived", adapter);
+            pipeline.addLast("log", adapter);
             // ---------------
             pipeline.addLast("msgHandler", rpcMsgChannelInitializer.getRpcMessageInteractionHandler());
         });

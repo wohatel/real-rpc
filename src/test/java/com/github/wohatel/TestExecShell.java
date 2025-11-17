@@ -41,7 +41,7 @@ public class TestExecShell {
         // 等待客户端连接成功
         client.connect().sync();
         // 设置为1000秒,到期后自动关闭session
-        sessionManager = new SessionManager<>(1000_000, (sessionId, session) -> {
+        sessionManager = new SessionManager<>(10_000, (sessionId, session) -> {
             session.close();
         });
     }
@@ -101,6 +101,7 @@ public class TestExecShell {
             public void onFinally(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
                 // 释放session资源--(release后,内部的在53行里面有个consumer,已经做了关闭,所以不顾要跟再做BashSession.close)
                 sessionManager.release(contextWrapper.getRpcSession().getSessionId());
+                System.out.println("关闭了释放了");
             }
         };
 

@@ -48,7 +48,7 @@ public class TestSendFileMsg {
     @Test
     void clientSendFile() throws InterruptedException {
         // 需要
-        File sourceFile = new File("/tmp/abc.log");
+        File sourceFile = new File("/tmp/pnpm-lock.yaml.bak");
         File targetRile = new File("/tmp/user.keytab.bak");
 
         server.onFileReceive(new RpcFileRequestMsgHandler() {
@@ -65,7 +65,7 @@ public class TestSendFileMsg {
 //                File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
                 // 我要求客户端断点续传的方式,如果该文件有了,就继续传
                 RpcFileSignature local = RpcFileSignature.agree(targetRile, RpcFileTransModel.RESUME);
-                return local;
+                return null;
             }
 
             @Override
@@ -90,7 +90,7 @@ public class TestSendFileMsg {
 
             @Override
             public void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
-
+                System.out.println("客户端发话:失败" + errorMsg);
             }
         }).build();
         client.sendFile(sourceFile, build);

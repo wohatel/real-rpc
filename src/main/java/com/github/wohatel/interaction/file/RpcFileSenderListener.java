@@ -20,7 +20,7 @@ public interface RpcFileSenderListener {
     }
 
     /**
-     * Called when the file sending fails.
+     * only remote agreed and the file sending fails called
      * This method is called by default and does nothing.
      * Override this method to handle file sending failures.
      *
