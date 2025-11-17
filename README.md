@@ -43,6 +43,19 @@
     - 此类即源端请求后,处理完逻辑返回的结果,用的时候请注意RpcRequest中的needReaction参数,如果需要返回,业务处理返回
     - 返回方式: 规范的编码如下只有sendSynRequest的时候可以读取结果
 
+
+- RpcFileSenderListener
+```angular2html
+// 文件发送进度,只有文件开始发送后该方法才会调用
+void onProcess();
+
+// 文件发送失败,只有对方同意接收文件,本地发送到远端过程中一旦出现异常就会调用
+void onFailure();
+
+// 文件发送完成,只有对方同意接收文件,本地发送成功才会调用
+void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper);
+```
+
 - RpcFileReceiverHandler
 ```java
 
