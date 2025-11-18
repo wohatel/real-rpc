@@ -5,7 +5,6 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.BashSession;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
@@ -32,11 +31,10 @@ public class TestExecShell {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
-        server = new RpcServer(8765, eventLoopManager);
+        server = new RpcServer(8765);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765, eventLoopManager);
+        client = new RpcDefaultClient("127.0.0.1", 8765);
         // 等待客户端连接成功
         client.connect().sync();
         // 设置为1000秒,到期后自动关闭session
@@ -52,9 +50,7 @@ public class TestExecShell {
     @Test
     void clientSendSessionMsg() throws InterruptedException {
         // 绑定服务端接收消息处理
-
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
-
             @Override
             public RpcSessionSignature onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 RpcSessionContext context = contextWrapper.getRpcSessionContext();

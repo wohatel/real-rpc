@@ -1,7 +1,6 @@
 package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.udp.RpcUdpHeartSpider;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.Test;
@@ -18,8 +17,8 @@ public class TestUdpHeartSpider {
 
     @Test
     void sendHeart() throws InterruptedException {
-        RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider(RpcEventLoopManager.of(new NioEventLoopGroup()));
-        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider(RpcEventLoopManager.ofDefault());
+        RpcUdpHeartSpider spider1 = new RpcUdpHeartSpider();
+        RpcUdpHeartSpider spider2 = new RpcUdpHeartSpider();
 
         spider1.bind(8765);
         spider2.bind(8766);

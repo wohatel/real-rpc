@@ -3,7 +3,6 @@ package com.github.wohatel;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -23,11 +22,10 @@ public class TestSendMsg {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
-        server = new RpcServer(8765, eventLoopManager);
+        server = new RpcServer(8765);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765, eventLoopManager);
+        client = new RpcDefaultClient("127.0.0.1", 8765);
         // 等待客户端连接成功
         client.connect().sync();
     }

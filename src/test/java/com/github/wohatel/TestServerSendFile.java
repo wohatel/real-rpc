@@ -2,7 +2,6 @@ package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.common.RpcReactionWaiter;
 import com.github.wohatel.interaction.common.RpcSessionContext;
@@ -32,11 +31,10 @@ public class TestServerSendFile {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.ofDefault();
-        server = new RpcServer(8765, eventLoopManager);
+        server = new RpcServer(8765);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcAutoReconnectClient("127.0.0.1", 8765, eventLoopManager);
+        client = new RpcAutoReconnectClient("127.0.0.1", 8765);
         // 等待客户端连接成功
         client.autoReconnect();
     }

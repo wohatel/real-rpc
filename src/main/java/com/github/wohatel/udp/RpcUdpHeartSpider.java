@@ -3,7 +3,7 @@ package com.github.wohatel.udp;
 import com.github.wohatel.constant.RpcUdpAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcUdpEventLoopManager;
 import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.interaction.common.RpcUdpWaiter;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
@@ -41,24 +41,30 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
     @Getter
     private final UdpHeartConfig udpHeartConfig;
 
+    /**
+     * Constructor with default configuration
+     */
+    public RpcUdpHeartSpider() {
+        this(new RpcUdpEventLoopManager());
+    }
 
     /**
      * Constructor with default configuration
      *
-     * @param rpcEventLoopManager The event loop manager for RPC operations
+     * @param eventLoopManager The event loop manager for RPC operations
      */
-    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager) {
-        this(rpcEventLoopManager, null, null);
+    public RpcUdpHeartSpider(RpcUdpEventLoopManager eventLoopManager) {
+        this(eventLoopManager, null, null);
     }
 
     /**
      * Constructor with custom channel options and heartbeat configuration
-     * @param rpcEventLoopManager The event loop manager for RPC operations
+     * @param eventLoopManager The event loop manager for RPC operations
      * @param channelOptions List of channel options and values to configure
      * @param config Heartbeat configuration settings
      */
-    public RpcUdpHeartSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config) {
-        super(rpcEventLoopManager, channelOptions, null);
+    public RpcUdpHeartSpider(RpcUdpEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config) {
+        super(eventLoopManager, channelOptions, null);
         this.udpHeartConfig = Objects.requireNonNullElseGet(config, () -> new UdpHeartConfig(RpcNumberConstant.OVER_TIME, RpcNumberConstant.K_TEN_EIGHT));
         this.onMsgReceive(null);
     }

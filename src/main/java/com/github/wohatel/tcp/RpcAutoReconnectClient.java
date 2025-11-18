@@ -52,7 +52,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port The target port to connect to
      */
     public RpcAutoReconnectClient(String host, int port) {
-        this(host, port, RpcEventLoopManager.ofDefault());
+        this(host, port, new RpcEventLoopManager());
     }
 
     /**

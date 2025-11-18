@@ -3,7 +3,7 @@ package com.github.wohatel.udp;
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcUdpEventLoopManager;
 import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.interaction.common.RpcUdpWaiter;
 import io.netty.channel.ChannelFuture;
@@ -54,7 +54,7 @@ public class RpcDefaultUdpSpider {
      * Default constructor that uses the default event loop manager.
      */
     public RpcDefaultUdpSpider() {
-        this(RpcEventLoopManager.ofDefault());
+        this(new RpcUdpEventLoopManager());
     }
 
     /**
@@ -68,21 +68,21 @@ public class RpcDefaultUdpSpider {
 
     /**
      * Constructor that uses a specified event loop manager.
-     * @param rpcEventLoopManager rpcEventLoopManager
+     * @param eventLoopManager rpcEventLoopManager
      */
-    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager) {
-        this(rpcEventLoopManager, null, null);
+    public RpcDefaultUdpSpider(RpcUdpEventLoopManager eventLoopManager) {
+        this(eventLoopManager, null, null);
     }
 
     /**
      *
-     * @param rpcEventLoopManager rpcEventLoopManager
+     * @param eventLoopManager rpcEventLoopManager
      * @param channelOptions Connection channel options
      */
-    public RpcDefaultUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<RpcUdpWaiter<RpcRequest>, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
+    public RpcDefaultUdpSpider(RpcUdpEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, BiConsumer<RpcUdpWaiter<RpcRequest>, RpcUdpPacket<RpcRequest>> udpMsgConsumer) {
         this.rpcMsgConsumer = udpMsgConsumer;
         this.rpcUdpSpider = RpcUdpSpider.buildSpider(new TypeReference<RpcRequest>() {
-        }, rpcEventLoopManager, channelOptions, inbondHandler);
+        }, eventLoopManager, channelOptions, inbondHandler);
     }
 
     /**

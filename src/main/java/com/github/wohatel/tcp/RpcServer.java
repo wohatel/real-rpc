@@ -3,7 +3,7 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -29,19 +29,19 @@ import java.util.List;
 public class RpcServer extends RpcDataReceiver {
     private final List<ChannelOptionAndValue<Object>> channelOptions;
     private final List<ChannelOptionAndValue<Object>> childChannelOptions;
-    private final RpcEventLoopManager rpcEventLoopManager;
+    private final RpcMutiEventLoopManager eventLoopManager;
 
     public RpcServer(int port) {
-        this(port, RpcEventLoopManager.ofDefault());
+        this(port, new RpcMutiEventLoopManager());
     }
 
-    public RpcServer(int port, RpcEventLoopManager rpcEventLoopManager) {
-        this(null, port, rpcEventLoopManager, null, null);
+    public RpcServer(int port, RpcMutiEventLoopManager eventLoopManager) {
+        this(null, port, eventLoopManager, null, null);
     }
 
-    public RpcServer(String host, int port, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
+    public RpcServer(String host, int port, RpcMutiEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
         super(host, port);
-        this.rpcEventLoopManager = rpcEventLoopManager;
+        this.eventLoopManager = eventLoopManager;
         this.channelOptions = channelOptions;
         this.childChannelOptions = childChannelOptions;
     }
@@ -54,7 +54,7 @@ public class RpcServer extends RpcDataReceiver {
         }
         InetSocketAddress address = StringUtils.isBlank(host) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
         ServerBootstrap b = new ServerBootstrap();
-        b.group(rpcEventLoopManager.getEventLoopGroup(), rpcEventLoopManager.getWorkerEventLoopGroup()).channel(rpcEventLoopManager.getServerChannelClass());
+        b.group(eventLoopManager.getEventLoopGroup(), eventLoopManager.getWorkerEventLoopGroup()).channel(eventLoopManager.getChannelClass());
         b.childOption(ChannelOption.TCP_NODELAY, true);
         b.localAddress(address).childHandler(rpcMsgChannelInitializer);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {

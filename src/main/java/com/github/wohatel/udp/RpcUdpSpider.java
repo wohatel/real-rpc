@@ -6,6 +6,7 @@ import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
+import com.github.wohatel.interaction.common.RpcUdpEventLoopManager;
 import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.util.ByteBufUtil;
 import com.github.wohatel.util.EmptyVerifyUtil;
@@ -37,7 +38,7 @@ import java.util.List;
 public class RpcUdpSpider<T> {
     private static final Logger logger = LoggerFactory.getLogger(RpcUdpSpider.class);
     // Manager for RPC event loops
-    protected final RpcEventLoopManager rpcEventLoopManager;
+    protected final RpcUdpEventLoopManager eventLoopManager;
     // Initializer for configuring channels
     protected final ChannelInitializer<DatagramChannel> channelInitializer;
     // The active channel for communication
@@ -48,22 +49,22 @@ public class RpcUdpSpider<T> {
     /**
      * Constructor with default channel options
      *
-     * @param rpcEventLoopManager The event loop manager for handling RPC events
+     * @param eventLoopManager The event loop manager for handling RPC events
      * @param channelInitializer  The initializer for configuring channels
      */
-    public RpcUdpSpider(RpcEventLoopManager rpcEventLoopManager, ChannelInitializer<DatagramChannel> channelInitializer) {
-        this(rpcEventLoopManager, null, channelInitializer);
+    public RpcUdpSpider(RpcUdpEventLoopManager eventLoopManager, ChannelInitializer<DatagramChannel> channelInitializer) {
+        this(eventLoopManager, null, channelInitializer);
     }
 
     /**
      * Full constructor with all parameters
      *
-     * @param rpcEventLoopManager The event loop manager for handling RPC events
+     * @param eventLoopManager The event loop manager for handling RPC events
      * @param channelOptions      List of channel options and their values
      * @param channelInitializer  The initializer for configuring channels
      */
-    public RpcUdpSpider(RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, ChannelInitializer<DatagramChannel> channelInitializer) {
-        this.rpcEventLoopManager = rpcEventLoopManager;
+    public RpcUdpSpider(RpcUdpEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, ChannelInitializer<DatagramChannel> channelInitializer) {
+        this.eventLoopManager = eventLoopManager;
         this.channelInitializer = channelInitializer;
         this.channelOptions = channelOptions;
     }
@@ -76,19 +77,19 @@ public class RpcUdpSpider<T> {
      * @return A new RpcUdpSpider instance
      */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return buildSpider(clazz, RpcEventLoopManager.ofDefault(), null, simpleChannelInboundHandler);
+        return buildSpider(clazz, new RpcUdpEventLoopManager(), null, simpleChannelInboundHandler);
     }
 
     /**
      * Build a simple UDP service
      * @param clazz Type reference for the message type
-     * @param rpcEventLoopManager The event loop manager for handling RPC events
+     * @param eventLoopManager The event loop manager for handling RPC events
      * @param channelOptions List of channel options and their values
      * @param simpleChannelInboundHandler Handler for processing incoming messages
      * @return A new RpcUdpSpider instance
      */
-    public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return new RpcUdpSpider<>(rpcEventLoopManager, channelOptions, new ChannelInitializer<>() {
+    public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, RpcUdpEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
+        return new RpcUdpSpider<>(eventLoopManager, channelOptions, new ChannelInitializer<>() {
             @Override
             protected void initChannel(DatagramChannel datagramChannel) throws Exception {
                 // Create a decoder to handle incoming datagram packets
@@ -127,8 +128,8 @@ public class RpcUdpSpider<T> {
         }
         // Create and configure the bootstrap
         Bootstrap b = new Bootstrap();
-        b.group(rpcEventLoopManager.getEventLoopGroup());
-        b.channel(rpcEventLoopManager.getDatagramChannelClass());
+        b.group(eventLoopManager.getEventLoopGroup());
+        b.channel(eventLoopManager.getChannelClass());
         // 默认开启广播
         b.option(ChannelOption.SO_BROADCAST, true);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {

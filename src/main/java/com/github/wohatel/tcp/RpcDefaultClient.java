@@ -56,7 +56,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected SocketAddress localAddress;
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, RpcEventLoopManager.ofDefault());
+        this(host, port, new RpcEventLoopManager());
     }
 
     public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {

@@ -2,16 +2,14 @@ package com.github.wohatel;
 
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcReactionWaiter;
+import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -37,9 +35,8 @@ public class TestUdpTcpBindOnePort {
         });
         server.bind(8765).sync();
 
-        RpcEventLoopManager eventLoopManager = RpcEventLoopManager.of(new NioEventLoopGroup());
         // tcp绑定8765
-        RpcServer rpcServer = new RpcServer(8765, eventLoopManager);
+        RpcServer rpcServer = new RpcServer(8765);
         rpcServer.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void onReceiveRequest(RpcRequest request, RpcReactionWaiter waiter) {
@@ -59,7 +56,7 @@ public class TestUdpTcpBindOnePort {
         client.bind().sync();
 
         // tcp-client
-        RpcDefaultClient rpcDefaultClient = new RpcDefaultClient("127.0.0.1", 8765, eventLoopManager);
+        RpcDefaultClient rpcDefaultClient = new RpcDefaultClient("127.0.0.1", 8765);
         rpcDefaultClient.connect().sync();
 
 
