@@ -19,4 +19,6 @@ public class RpcUdpPacket<T> {
     private T msg;
     // The network address of the sender
     private InetSocketAddress sender;
+    // The network address of the receiver
+    private InetSocketAddress recipient;
 }

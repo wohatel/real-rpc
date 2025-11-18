@@ -101,6 +101,7 @@ public class RpcUdpSpider<T> {
                         RpcUdpPacket<T> rpcUdpPacket = new RpcUdpPacket<>();
                         rpcUdpPacket.setMsg(decode);
                         rpcUdpPacket.setSender(datagramPacket.sender());
+                        rpcUdpPacket.setRecipient(datagramPacket.recipient());
                         // Forward the decoded packet to the next handler in the pipeline
                         channelHandlerContext.fireChannelRead(rpcUdpPacket);
                     }
