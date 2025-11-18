@@ -17,6 +17,7 @@ import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
+import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.util.EmptyVerifyUtil;
@@ -129,9 +130,6 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture == null) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist, try opening a new one");
         }
-        if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
-        }
         if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
@@ -172,8 +170,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
-        rpcFuture.setUniqueId(this.uniqueId);
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
+        rpcFuture.setRpcSessionType(RpcSessionType.session);
         RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcReaction rpcReaction = rpcFuture.get();
         if (rpcReaction.isSuccess()) {
@@ -191,9 +189,6 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
         if (sessionFuture == null || sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
             return;
-        }
-        if (!this.uniqueId.equals(sessionFuture.getUniqueId())) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session doesn't match the session");
         }
         RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
         rpcRequest.setSessionProcess(RpcSessionProcess.FINISHED);

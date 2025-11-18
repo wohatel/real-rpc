@@ -1,7 +1,5 @@
-package com.github.wohatel.interaction.file;
+package com.github.wohatel.interaction.base;
 
-import com.github.wohatel.interaction.base.RpcSession;
-import com.github.wohatel.interaction.base.RpcSessionRequest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

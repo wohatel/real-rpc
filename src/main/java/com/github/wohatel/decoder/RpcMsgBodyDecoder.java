@@ -6,7 +6,7 @@ import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcCommandType;
-import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.util.ByteBufUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

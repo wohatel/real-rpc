@@ -1,7 +1,6 @@
 package com.github.wohatel.interaction.base;
 
 import com.github.wohatel.interaction.constant.RpcCommandType;
-import com.github.wohatel.interaction.file.RpcFileRequest;
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
 

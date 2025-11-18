@@ -52,7 +52,6 @@ public class RpcSessionReactionWaiter extends RpcReactionWaiter {
      * Forces the interruption of an active session by releasing its resources.
      * This method is typically called when an immediate termination of a session is required.
      *
-     * @param sessionId The unique identifier of the session to be interrupted
      */
     public void forceInterruptSession() {
         // Release the session resources through the RPC session transfer manager

@@ -1,6 +1,7 @@
 package com.github.wohatel.interaction.base;
 
 
+import com.github.wohatel.interaction.constant.RpcSessionType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,8 +19,8 @@ public class RpcSessionFuture extends RpcFuture {  // Extends RpcFuture for sess
     private volatile RpcSessionProcess rpcSessionProcess;  // Session process handler, volatile for thread safety
 
     @Getter  // Automatically generates getter method for this field
-    @Setter  // Automatically generates setter method for this field
-    private String uniqueId;  // Unique identifier for the session
+    @Setter
+    private RpcSessionType rpcSessionType;
 
     /**
      * Constructor for RpcSessionFuture

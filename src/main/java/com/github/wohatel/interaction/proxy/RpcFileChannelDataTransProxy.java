@@ -14,7 +14,7 @@ import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
-import com.github.wohatel.interaction.file.RpcFileRequest;
+import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSignature;
 import com.github.wohatel.interaction.file.RpcFileSignatureRotary;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
@@ -264,7 +264,7 @@ public class RpcFileChannelDataTransProxy {
         RpcSessionContext sessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
         // Deserialize the file info from request header
         RpcFileInfo rpcFileInfo = JsonUtil.fromJson(request.getHeader(), RpcFileInfo.class);
-        RpcFileSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcFileRequestMsgHandler.getTargetFile(request.getRpcSession(), sessionContext, rpcFileInfo), () -> RpcFileSignature.reject("remote accept file error: signature is null"), e -> RpcFileSignature.reject(e.getMessage()));
+        RpcFileSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcFileRequestMsgHandler.onFileReceive(request.getRpcSession(), sessionContext, rpcFileInfo), () -> RpcFileSignature.reject("remote accept file error: signature is null"), e -> RpcFileSignature.reject(e.getMessage()));
         if (!signature.isAgreed()) {
             // Handle case where signature agreement is not given
             reaction.setSuccess(false);

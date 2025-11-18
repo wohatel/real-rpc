@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcReaction;
@@ -13,8 +14,8 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
+import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileInfo;
-import com.github.wohatel.interaction.file.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransConfig;
@@ -28,7 +29,6 @@ import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -76,7 +76,7 @@ public class RpcMsgTransManager {
         if (channel == null || !channel.isActive()) {
             throw new IllegalStateException("Channel unavailable, send failed");
         }
-        byte[] msgBytes = null;
+        byte[] msgBytes;
         if (msg instanceof byte[] bytes) {
             msgBytes = bytes;
         } else if (msg instanceof String s) {
@@ -90,14 +90,14 @@ public class RpcMsgTransManager {
         channel.writeAndFlush(packet);
     }
 
-    private static ChannelFuture sendFileTrunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
+    private static void sendFileChunk(Channel channel, RpcFileRequest rpcRequest, ByteBuf byteBuf) {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
         RpcFutureTransManager.verifySessionRequest(rpcRequest);
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
-        return channel.writeAndFlush(build);
+        channel.writeAndFlush(build);
     }
 
 
@@ -122,7 +122,7 @@ public class RpcMsgTransManager {
         rpcFileRequest.setSerial(serial);
         rpcFileRequest.setEnableCompress(needCompress);
         rpcFileRequest.setLastBlock(finished);
-        RpcMsgTransManager.sendFileTrunk(channel, rpcFileRequest, buffer);
+        RpcMsgTransManager.sendFileChunk(channel, rpcFileRequest, buffer);
     }
 
 
@@ -140,6 +140,7 @@ public class RpcMsgTransManager {
         }
         rpcFileRequest.setNeedReaction(true);
         RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
+        rpcFuture.setRpcSessionType(RpcSessionType.file);
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
         sendRequest(channel, rpcFileRequest);
         return rpcFuture;
@@ -147,20 +148,22 @@ public class RpcMsgTransManager {
 
     @SneakyThrows
     public static void interruptSendFile(Channel channel, RpcSession rpcSession) {
-        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.stopSessionGracefully(rpcSession.getSessionId());
-        if (rpcSessionFuture != null) {
+        RpcSessionFuture rpcSessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
+        if (rpcSessionFuture == null) {
+            return;
+        }
+        if (rpcSessionFuture.getRpcSessionType() != RpcSessionType.file) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is not a file session");
+        }
+        if (rpcSessionFuture.getRpcSessionProcess() != RpcSessionProcess.FINISHED) {
+            // destroy file pool
+            RunnerUtil.execSilent(() -> ByteBufPoolManager.destroy(rpcSession.getSessionId()));
+            rpcSessionFuture.setRpcSessionProcess(RpcSessionProcess.FINISHED);
             RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
             rpcFileRequest.setSessionProcess(RpcSessionProcess.FINISHED);
             rpcFileRequest.setNeedReaction(false);
             sendRequest(channel, rpcFileRequest);
         }
-        ByteBufPoolManager.destroy(rpcSession.getSessionId());
-    }
-
-    @SneakyThrows
-    public static void interruptReceiveFile(RpcSession rpcSession) {
-        // 直接终端文件的接收
-        RpcSessionTransManger.release(rpcSession.getSessionId());
     }
 
     public static void sendFile(Channel channel, File file, RpcFileSenderInput input) {
@@ -278,7 +281,7 @@ public class RpcMsgTransManager {
             }
             byte[] compressed = Snappy.compress(inputBytes);
             double compressRate = compressed.length * 100.0 / headSize;
-            log.info("file:" + file.getName() + " compressRate is " + compressRate + "%");
+            log.info("file:{} compressRate is {}", file.getName(), compressRate);
             return compressRate < rate;
         } catch (Exception e) {
             return false;
