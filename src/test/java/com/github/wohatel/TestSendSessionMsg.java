@@ -12,7 +12,6 @@ import com.github.wohatel.interaction.file.RpcSessionSignature;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

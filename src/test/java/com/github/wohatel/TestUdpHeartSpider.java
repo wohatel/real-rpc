@@ -2,7 +2,6 @@ package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.udp.RpcUdpHeartSpider;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;

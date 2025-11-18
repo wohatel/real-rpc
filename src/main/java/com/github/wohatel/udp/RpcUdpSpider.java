@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcUdpEventLoopManager;
 import com.github.wohatel.interaction.common.RpcUdpPacket;

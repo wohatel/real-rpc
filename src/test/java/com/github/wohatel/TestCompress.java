@@ -1,10 +1,8 @@
 package com.github.wohatel;
 
 import com.github.wohatel.interaction.base.RpcRequest;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
