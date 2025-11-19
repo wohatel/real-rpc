@@ -256,18 +256,7 @@ public class SessionManager<T> {
                 AtomicLong expireAt = timeFlushMap.get(item.sessionId);
                 long now = System.currentTimeMillis();
                 if (now >= expireAt.get()) {
-                    // 释放资源
-                    this.release(item.sessionId);
-                    if (sessionClose != null) {
-                        // 如果使用线程池关闭任务
-                        DefaultVirtualThreadPool.execute(() -> {
-                            try {
-                                sessionClose.accept(item.sessionId, resource);
-                            } catch (Exception e) {
-                                log.error("cleanerLoop exception:", e);
-                            }
-                        });
-                    }
+                    DefaultVirtualThreadPool.execute(() -> releaseAndSessionClose(item.sessionId));
                 } else {
                     delayQueue.offer(new DelayItem(item.sessionId, expireAt.get()));
                 }

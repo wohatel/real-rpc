@@ -33,7 +33,6 @@ public class BashSession {
     @Getter
     private AtomicBoolean stoped = new AtomicBoolean(false); // Flag to indicate if session is stopped
     private final AtomicLong lastOperateTime = new AtomicLong(System.currentTimeMillis()); // Timestamp of last operation
-    private Consumer<List<String>> consumer; // Consumer for handling output lines
     private Future<?> future;
     private EliminateModel eliminateModel;
 
@@ -113,7 +112,6 @@ public class BashSession {
      *
      * @param cmd              The command string to be sent
      * @param addToOutputQueue Flag indicating whether to add the command to output queue
-     * @throws Throws exception sneakily using @SneakyThrows annotation
      */
     @SneakyThrows
     public void sendCommand(String cmd, boolean addToOutputQueue) {
@@ -223,8 +221,6 @@ public class BashSession {
      * @param consumer The consumer function that processes the output strings
      */
     public synchronized void onOutPut(Consumer<List<String>> consumer) {
-        // Set the provided consumer
-        this.consumer = consumer;
         // Execute the processing in a default virtual thread pool
         if (this.future == null) {
             this.future = DefaultVirtualThreadPool.submit(() -> {
@@ -236,7 +232,7 @@ public class BashSession {
                         // Drain up to 99 messages from the output queue to the batch
                         outputQueue.drainTo(batch, 99);
                         // 注意消费线程
-                        this.consumer.accept(batch);
+                        consumer.accept(batch);
                     } catch (InterruptedException e) {
                         break;
                     } catch (Exception e) {
