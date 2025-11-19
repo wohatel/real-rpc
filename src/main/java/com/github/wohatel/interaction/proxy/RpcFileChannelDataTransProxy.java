@@ -264,7 +264,7 @@ public class RpcFileChannelDataTransProxy {
         RpcSessionContext sessionContext = JsonUtil.fromJson(request.getBody(), RpcSessionContext.class);
         // Deserialize the file info from request header
         RpcFileInfo rpcFileInfo = JsonUtil.fromJson(request.getHeader(), RpcFileInfo.class);
-        RpcFileSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcFileRequestMsgHandler.onFileReceive(request.getRpcSession(), sessionContext, rpcFileInfo), () -> RpcFileSignature.reject("remote accept file error: signature is null"), e -> RpcFileSignature.reject(e.getMessage()));
+        RpcFileSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcFileRequestMsgHandler.signature(request.getRpcSession(), sessionContext, rpcFileInfo), () -> RpcFileSignature.reject("remote accept file error: signature is null"), e -> RpcFileSignature.reject(e.getMessage()));
         if (!signature.isAgreed()) {
             // Handle case where signature agreement is not given
             reaction.setSuccess(false);

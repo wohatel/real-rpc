@@ -51,7 +51,7 @@ public class TestExecShell {
         // 绑定服务端接收消息处理
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
             @Override
-            public RpcSessionSignature onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+            public RpcSessionSignature signature(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 RpcSessionContext context = contextWrapper.getRpcSessionContext();
                 RpcSession rpcSession = contextWrapper.getRpcSession();
                 System.out.println("此次会话主题是:" + context.getTopic());

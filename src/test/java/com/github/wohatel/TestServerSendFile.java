@@ -53,7 +53,7 @@ public class TestServerSendFile {
              * 收文件的一方,根据发送发发来的文件元数据信息,以及上下文信息决定如何处理文件
              */
             @Override
-            public RpcFileSignature onFileReceive(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
+            public RpcFileSignature signature(RpcSession rpcSession, RpcSessionContext context, RpcFileInfo fileInfo) {
                 File file = new File("/tmp/" + fileInfo.getFileName() + ".bak");
                 // 我要求客户端断点续传的方式,如果该文件有了,就继续传
                 RpcFileSignature local = RpcFileSignature.agree(file, RpcFileTransModel.REBUILD);

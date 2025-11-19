@@ -48,7 +48,7 @@ public class TestSendSessionMsg {
         RpcSessionRequestMsgHandler serverSessionHandler = new RpcSessionRequestMsgHandler() {
 
             @Override
-            public RpcSessionSignature onSessionStart(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
+            public RpcSessionSignature signature(RpcSessionContextWrapper contextWrapper, RpcSessionReactionWaiter waiter) {
                 System.out.println("服务端收到客户端会话请求:");
                 System.out.println("此次会话主题是:" + contextWrapper.getRpcSessionContext().getTopic());
                 // 同意开启会话

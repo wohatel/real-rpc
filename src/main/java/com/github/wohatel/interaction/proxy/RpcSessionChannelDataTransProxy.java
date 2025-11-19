@@ -91,7 +91,7 @@ public class RpcSessionChannelDataTransProxy {
         // Create a waiter for handling session reaction
         RpcSessionReactionWaiter waiter = new RpcSessionReactionWaiter(ctx, session.getSessionId());
         // signature is not be null
-        RpcSessionSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcSessionRequestMsgHandler.onSessionStart(contextWrapper, waiter), () -> RpcSessionSignature.reject("remote session signature error: signature is null"), e -> RpcSessionSignature.reject(e.getMessage()));
+        RpcSessionSignature signature = RunnerUtil.execSilentNullOrException(() -> rpcSessionRequestMsgHandler.signature(contextWrapper, waiter), () -> RpcSessionSignature.reject("remote session signature error: signature is null"), e -> RpcSessionSignature.reject(e.getMessage()));
         reaction.setSuccess(signature.isAgreed());
         reaction.setMsg(signature.getMsg());
         RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));

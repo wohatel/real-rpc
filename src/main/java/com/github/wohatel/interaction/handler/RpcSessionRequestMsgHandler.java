@@ -19,7 +19,7 @@ public interface RpcSessionRequestMsgHandler {
      * @param waiter The reaction waiter for the session start event
      * @return The session signature, default is agreement
      */
-    default RpcSessionSignature onSessionStart(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
+    default RpcSessionSignature signature(final RpcSessionContextWrapper contextWrapper, final RpcSessionReactionWaiter waiter) {
         return RpcSessionSignature.agree();
     }
 

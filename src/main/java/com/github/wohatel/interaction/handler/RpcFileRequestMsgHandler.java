@@ -22,7 +22,7 @@ public interface RpcFileRequestMsgHandler {
      * @param fileInfo Information about the file to be transferred
      * @return RpcFileSignature containing the determined storage location details
      */
-    RpcFileSignature onFileReceive(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
+    RpcFileSignature signature(final RpcSession rpcSession, final RpcSessionContext context, final RpcFileInfo fileInfo);
 
     /**
      * Remotely receive the progress of the file, which is triggered every time there is a change
