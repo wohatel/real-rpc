@@ -28,14 +28,14 @@ public class RpcFileTransConfig {
      * Default value is 512KB (512 * 1024 bytes).
      */
     @Builder.Default
-    private long chunkSize = 512 * 1024L;
+    private long chunkSize = 1024 * 1024L;
 
     /**
      * Number of cache blocks to use for file transfer.
      * Default value is 5.
      */
     @Builder.Default
-    private int cacheBlock = 5;
+    private int cacheBlock = 10;
 
     /**
      * Flag indicating whether to try compression during file transfer.

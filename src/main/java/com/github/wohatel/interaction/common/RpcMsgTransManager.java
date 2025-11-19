@@ -329,9 +329,9 @@ public class RpcMsgTransManager {
 
                 boolean isEnough = rateLimiter.tryAcquire(thisChunkSize, rpcSession.getTimeOutMillis(), TimeUnit.MILLISECONDS);
                 if (!isEnough) {
+                    log.error("file Send Timeout: The rateLimiter limit too low: {}", finalConfig.getSpeedLimit());
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file Send Timeout: The rateLimiter limit too low");
                 }
-
                 ByteBuf bufferRead = ByteBufPoolManager.borrow(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
                 ByteBuffer bufferIn = bufferRead.nioBuffer(0, thisChunkSize); // 转换为nio
                 int bytesRead = fileChannel.read(bufferIn);
