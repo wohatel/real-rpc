@@ -3,6 +3,7 @@ package com.github.wohatel.interaction.proxy;
 import com.alibaba.fastjson2.JSONArray;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcSession;
@@ -14,7 +15,6 @@ import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
-import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.interaction.file.RpcFileSignature;
 import com.github.wohatel.interaction.file.RpcFileSignatureRotary;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
@@ -70,7 +70,7 @@ public class RpcFileChannelDataTransProxy {
         switch (sessionProcess) {
             case TOSTART -> handleToStart(ctx, rpcFileRequest, rpcFileRequestMsgHandler);
             case RUNNING -> handleRunning(ctx, rpcFileRequest, rpcMsg.getByteBuffer());
-            case FINISHED -> handleFinished(ctx, rpcFileRequest, rpcFileRequestMsgHandler);
+            case FINISHED -> handleFinished(rpcFileRequest);
         }
     }
 
@@ -311,11 +311,9 @@ public class RpcFileChannelDataTransProxy {
      * Handles the completion of a file transfer request in the RPC system.
      * This method checks if the session is still active and releases resources if needed.
      *
-     * @param ctx                      The ChannelHandlerContext which provides various contextual information and operations
      * @param request                  The RpcFileRequest containing details about the file transfer
-     * @param rpcFileRequestMsgHandler The handler for RPC file request messages
      */
-    public static void handleFinished(ChannelHandlerContext ctx, RpcFileRequest request, RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
+    public static void handleFinished(RpcFileRequest request) {
         // Get the RPC session from the request
         RpcSession rpcSession = request.getRpcSession();
         // Check if the session is still running

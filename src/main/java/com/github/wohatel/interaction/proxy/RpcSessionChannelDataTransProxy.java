@@ -147,11 +147,10 @@ public class RpcSessionChannelDataTransProxy {
      * This method processes the finished RPC session by checking if it's still running,
      * executing necessary cleanup operations, and ensuring proper resource release.
      *
-     * @param ctx                         The ChannelHandlerContext which provides various context information
      * @param request                     The RpcSessionRequest containing session information
      * @param rpcSessionRequestMsgHandler The handler for RPC session request messages
      */
-    public static void handleFinished(ChannelHandlerContext ctx, RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
+    public static void handleFinished(RpcSessionRequest request, RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         // Get the RPC session from the request
         RpcSession session = request.getRpcSession();
         try {

@@ -209,16 +209,15 @@ public class SessionManager<T> {
      * @return 刷新下session 的最近交互时间
      */
     public boolean flushTime(String sessionId, long sessionTime, boolean force) {
-        if (!stop.get()) {
-            if (container.containsKey(sessionId)) {
-                AtomicLong atomicLong = timeFlushMap.get(sessionId);
-                if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
-                    long expiredAt = System.currentTimeMillis() + sessionTime;
-                    delayQueue.add(new DelayItem(sessionId, expiredAt));
-                    atomicLong.set(expiredAt);
-                }
-                return true;
+
+        if (!stop.get() && container.containsKey(sessionId)) {
+            AtomicLong atomicLong = timeFlushMap.get(sessionId);
+            if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
+                long expiredAt = System.currentTimeMillis() + sessionTime;
+                delayQueue.add(new DelayItem(sessionId, expiredAt));
+                atomicLong.set(expiredAt);
             }
+            return true;
         }
         return false;
     }

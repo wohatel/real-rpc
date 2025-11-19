@@ -1,5 +1,8 @@
 package com.github.wohatel.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.util.UUID;
 
 /**
@@ -7,6 +10,7 @@ import java.util.UUID;
  *
  * @author yaochuang 2025/11/14 17:14
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RandomUtil {
 
     public static String randomUUID() {
