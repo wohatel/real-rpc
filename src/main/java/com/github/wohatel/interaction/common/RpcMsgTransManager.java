@@ -304,7 +304,9 @@ public class RpcMsgTransManager {
             int serial = 0;
             long position = writeIndex;
             fileChannel.position(position);
-            long waitPer = Math.round(rpcSession.getTimeOutMillis() / 100.0);
+            double stepMills = 30.0;
+            long stepMillsLong = (long) stepMills;
+            long waitPer = Math.round(rpcSession.getTimeOutMillis() / stepMills);
             while (position < fileSize) {
                 log.info("the file transfer position:{} size:", fileSize);
                 if (rpcFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
@@ -317,13 +319,13 @@ public class RpcMsgTransManager {
                 if (!channel.isActive()) {
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "the link is not available");
                 }
-                boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, 100, waitPer);
+                boolean isWritable = RunnerUtil.waitUntil(channel::isWritable, stepMillsLong, waitPer);
                 if (!isWritable) {
                     log.error("the link is not available");
                     throw new RpcException(RpcErrorEnum.SEND_MSG, "file sending timeout");
                 }
                 // Detect the number of blocks processed
-                RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), 100, 50);
+                RunnerUtil.waitUntil(() -> (rpcFileTransProcess.getSendSize() - rpcFileTransProcess.getRemoteHandleSize()) / finalConfig.getChunkSize() < finalConfig.getCacheBlock(), stepMillsLong, waitPer);
 
                 int thisChunkSize = (int) Math.min(finalConfig.getChunkSize(), fileSize - position);
 
