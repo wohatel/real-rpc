@@ -26,52 +26,36 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcSocketEventLoopManager extends RpcEventLoopManager<Channel> {
 
-    public static RpcSocketEventLoopManager of(EventLoopGroup eventLoopGroup, Class<Channel> channelClass) {
     /**
-     * Factory method to create an instance of RpcSocketEventLoopManager with specified EventLoopGroup and Channel class.
+     * Creates a new RpcSocketEventLoopManager instance with the specified EventLoopGroup and Channel class.
+     * This is a static factory method that provides a convenient way to create and configure an RpcSocketEventLoopManager.
      *
-     * @param eventLoopGroup The EventLoopGroup to be used
-     * @param channelClass The specific Channel class to be used
-     * @return A new instance of RpcSocketEventLoopManager
+     * @param eventLoopGroup the EventLoopGroup to be used by the manager
+     * @param channelClass   the class of the Channel to be used by the manager
+     * @return a new RpcSocketEventLoopManager instance configured with the provided parameters
      * @throws NullPointerException if eventLoopGroup is null
      */
+    public static RpcSocketEventLoopManager of(EventLoopGroup eventLoopGroup, Class<Channel> channelClass) {
+        // Validate that eventLoopGroup is not null
         Objects.requireNonNull(eventLoopGroup);
+        // Create a new RpcSocketEventLoopManager instance
         RpcSocketEventLoopManager eventLoopGroupManager = new RpcSocketEventLoopManager();
+        // Configure the eventLoopGroup and channelClass for the manager
         eventLoopGroupManager.eventLoopGroup = eventLoopGroup;
         eventLoopGroupManager.channelClass = channelClass;
+        // Return the configured manager
         return eventLoopGroupManager;
     }
 
     public static RpcSocketEventLoopManager of(EventLoopGroup eventLoopGroup) {
-    /**
-     * Factory method to create an instance of RpcSocketEventLoopManager with specified EventLoopGroup.
-     * Uses default Channel class which will be determined based on EventLoopGroup type.
-     *
-     * @param eventLoopGroup The EventLoopGroup to be used
-     * @return A new instance of RpcSocketEventLoopManager
-     */
         return of(eventLoopGroup, null);
     }
 
     public static RpcSocketEventLoopManager of() {
-    /**
-     * Factory method to create an instance of RpcSocketEventLoopManager with default NioEventLoopGroup.
-     * Uses NIO socket channel by default.
-     *
-     * @return A new instance of RpcSocketEventLoopManager
-     */
         return of(new NioEventLoopGroup());
     }
 
     public Class<? extends Channel> getChannelClass() {
-    /**
-     * Returns the appropriate Channel class based on the EventLoopGroup type.
-     * If channelClass has already been set, it returns that directly.
-     * Otherwise, it determines the appropriate Channel class based on the type of EventLoopGroup.
-     *
-     * @return The appropriate Channel class
-     * @throws RpcException if the EventLoopGroup type is not supported
-     */
         // If channelClass has already been set, return it directly
         if (channelClass != null) {
             return channelClass;
