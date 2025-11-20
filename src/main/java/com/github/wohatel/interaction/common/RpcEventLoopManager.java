@@ -1,69 +1,26 @@
 package com.github.wohatel.interaction.common;
 
-import com.github.wohatel.constant.RpcErrorEnum;
-import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.kqueue.KQueueSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import lombok.Data;
-
-import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * A manager class for RPC event loops that handles different types of event loop groups and their associated channel classes.
  * This class provides factory methods to create instances for server, client, and UDP configurations.
  */
-@Data
-public class RpcEventLoopManager {
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class RpcEventLoopManager<T extends Channel> {
     // Event loop group for accepting connections
-    private EventLoopGroup eventLoopGroup;
+    @Getter
+    protected EventLoopGroup eventLoopGroup;
     // Class for client channel implementation
-    private Class<? extends Channel> channelClass;
-
-    public RpcEventLoopManager(EventLoopGroup eventLoopGroup, Class<? extends Channel> channelClass) {
-        Objects.requireNonNull(eventLoopGroup);
-        this.eventLoopGroup = eventLoopGroup;
-        this.channelClass = channelClass;
-    }
-
-    public RpcEventLoopManager(EventLoopGroup eventLoopGroup) {
-        this(eventLoopGroup, null);
-    }
-
-    public RpcEventLoopManager() {
-        this(new NioEventLoopGroup());
-    }
-
-
-    public Class<? extends Channel> getChannelClass() {
-        // If channelClass has already been set, return it directly
-        if (channelClass != null) {
-            return channelClass;
-        }
-        // Check if the eventLoopGroup is of type NioEventLoopGroup
-        if (this.eventLoopGroup instanceof NioEventLoopGroup) {
-            // Use NIO socket channel for NIO event loop group
-            return NioSocketChannel.class;
-        }
-        // Check if the eventLoopGroup is of type EpollEventLoopGroup
-        if (this.eventLoopGroup instanceof EpollEventLoopGroup) {
-            // Use Epoll socket channel for Epoll event loop group (Linux specific)
-            return EpollSocketChannel.class;
-        }
-        // Check if the eventLoopGroup is of type KQueueEventLoopGroup
-        if (this.eventLoopGroup instanceof KQueueEventLoopGroup) {
-            // Use KQueue socket channel for KQueue event loop group (BSD/macOS specific)
-            return KQueueSocketChannel.class;
-        }
-        // Throw an exception if none of the supported eventLoopGroup types match
-        throw new RpcException(RpcErrorEnum.RUNTIME, "eventLoopGroup types are not supported at the moment");
-    }
+    protected Class<T> channelClass;
 
     /**
      * Gracefully shuts down the event loop groups if they are not already shutting down or shut down.
@@ -73,8 +30,7 @@ public class RpcEventLoopManager {
         // Check if the main event loop group is not null and not already in shutdown process
         if (eventLoopGroup != null && (!eventLoopGroup.isShutdown() && !eventLoopGroup.isShuttingDown())) {
             // Shutdown the main event loop group gracefully
-            eventLoopGroup.shutdownGracefully();
-
+            RunnerUtil.execSilentVoidException(eventLoopGroup::shutdownGracefully, e -> log.error("close eventLoopGroup error:", e));
         }
     }
 }

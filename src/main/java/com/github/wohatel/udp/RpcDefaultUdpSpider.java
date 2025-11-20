@@ -54,7 +54,7 @@ public class RpcDefaultUdpSpider {
      * Default constructor that uses the default event loop manager.
      */
     public RpcDefaultUdpSpider() {
-        this(new RpcUdpEventLoopManager());
+        this(RpcUdpEventLoopManager.of());
     }
 
     /**

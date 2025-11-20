@@ -58,7 +58,7 @@ public class RpcSessionChannelDataTransProxy {
         switch (sessionProcess) {
             case TOSTART -> handleToStart(ctx, request, rpcSessionRequestMsgHandler);
             case RUNNING -> handleRunning(ctx, request, rpcSessionRequestMsgHandler);
-            case FINISHED -> handleFinished(ctx, request, rpcSessionRequestMsgHandler);
+            case FINISHED -> handleFinished(request, rpcSessionRequestMsgHandler);
         }
     }
 

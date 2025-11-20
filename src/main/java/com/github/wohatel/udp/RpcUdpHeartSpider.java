@@ -45,7 +45,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
      * Constructor with default configuration
      */
     public RpcUdpHeartSpider() {
-        this(new RpcUdpEventLoopManager());
+        this(RpcUdpEventLoopManager.of());
     }
 
     /**

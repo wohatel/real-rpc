@@ -32,7 +32,7 @@ public class RpcServer extends RpcDataReceiver {
     private final RpcMutiEventLoopManager eventLoopManager;
 
     public RpcServer(int port) {
-        this(port, new RpcMutiEventLoopManager());
+        this(port, RpcMutiEventLoopManager.of());
     }
 
     public RpcServer(int port, RpcMutiEventLoopManager eventLoopManager) {

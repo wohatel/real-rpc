@@ -76,7 +76,7 @@ public class RpcUdpSpider<T> {
      * @return A new RpcUdpSpider instance
      */
     public static <T> RpcUdpSpider<T> buildSpider(TypeReference<T> clazz, SimpleChannelInboundHandler<RpcUdpPacket<T>> simpleChannelInboundHandler) {
-        return buildSpider(clazz, new RpcUdpEventLoopManager(), null, simpleChannelInboundHandler);
+        return buildSpider(clazz, RpcUdpEventLoopManager.of(), null, simpleChannelInboundHandler);
     }
 
     /**

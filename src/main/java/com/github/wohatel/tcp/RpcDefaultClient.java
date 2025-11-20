@@ -11,11 +11,11 @@ import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
+import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
@@ -45,7 +45,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
      * Manager for handling RPC event loops
      */
     @Getter
-    protected final RpcEventLoopManager rpcEventLoopManager;
+    protected final RpcSocketEventLoopManager eventLoopManager;
     /**
      * List of channel options and their values for configuring the connection
      */
@@ -57,16 +57,16 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected SocketAddress localAddress;
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, new RpcEventLoopManager());
+        this(host, port, RpcSocketEventLoopManager.of());
     }
 
-    public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
-        this(host, port, rpcEventLoopManager, null);
+    public RpcDefaultClient(String host, int port, RpcSocketEventLoopManager socketEventLoopManager) {
+        this(host, port, socketEventLoopManager, null);
     }
 
-    public RpcDefaultClient(String host, int port, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+    public RpcDefaultClient(String host, int port, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port);
-        this.rpcEventLoopManager = rpcEventLoopManager;
+        this.eventLoopManager = socketEventLoopManager;
         this.channelOptions = channelOptions;
     }
 
@@ -81,8 +81,8 @@ public class RpcDefaultClient extends RpcDataReceiver {
             throw new RpcException(RpcErrorEnum.CONNECT, "the connection is alive:RpcDefaultClient");
         }
         Bootstrap b = new Bootstrap();
-        b.group(rpcEventLoopManager.getEventLoopGroup());
-        b.channel(rpcEventLoopManager.getChannelClass());
+        b.group(eventLoopManager.getEventLoopGroup());
+        b.channel(eventLoopManager.getChannelClass());
         b.handler(rpcMsgChannelInitializer);
         b.option(ChannelOption.TCP_NODELAY, true);
         if (!EmptyVerifyUtil.isEmpty(channelOptions)) {

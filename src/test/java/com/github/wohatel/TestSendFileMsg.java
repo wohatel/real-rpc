@@ -31,7 +31,7 @@ public class TestSendFileMsg {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        RpcMutiEventLoopManager eventLoopManager = new RpcMutiEventLoopManager();
+        RpcMutiEventLoopManager eventLoopManager = RpcMutiEventLoopManager.of();
         server = new RpcServer(8765, eventLoopManager);
         // 等待服务端开启成功
         server.start().sync();

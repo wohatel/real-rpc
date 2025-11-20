@@ -3,7 +3,7 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcEventLoopManager;
+import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -52,7 +52,7 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port The target port to connect to
      */
     public RpcAutoReconnectClient(String host, int port) {
-        this(host, port, new RpcEventLoopManager());
+        this(host, port, RpcSocketEventLoopManager.of());
     }
 
     /**
@@ -60,10 +60,10 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      *
      * @param host                The target host to connect to
      * @param port                The target port to connect to
-     * @param rpcEventLoopManager The event loop manager for handling I/O operations
+     * @param eventLoopManager The event loop manager for handling I/O operations
      */
-    public RpcAutoReconnectClient(String host, int port, RpcEventLoopManager rpcEventLoopManager) {
-        this(host, port, rpcEventLoopManager, null);
+    public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager) {
+        this(host, port, eventLoopManager, null);
     }
 
     /**
@@ -71,11 +71,11 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      *
      * @param host                The target host to connect to
      * @param port                The target port to connect to
-     * @param rpcEventLoopManager The event loop manager for handling I/O operations
+     * @param eventLoopManager The event loop manager for handling I/O operations
      * @param channelOptions      List of channel options and their values to configure the connection
      */
-    public RpcAutoReconnectClient(String host, int port, RpcEventLoopManager rpcEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, rpcEventLoopManager, channelOptions);
+    public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, eventLoopManager, channelOptions);
     }
 
     /**
@@ -95,9 +95,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             // Configure the event loop group
-            bootstrap.group(rpcEventLoopManager.getEventLoopGroup());
+            bootstrap.group(eventLoopManager.getEventLoopGroup());
             // Set the channel class
-            bootstrap.channel(rpcEventLoopManager.getChannelClass());
+            bootstrap.channel(eventLoopManager.getChannelClass());
             // Disable Nagle's algorithm for lower latency
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             // Apply additional channel options if any

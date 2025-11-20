@@ -2,6 +2,7 @@ package com.github.wohatel.interaction.common;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -10,40 +11,45 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import lombok.Data;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
 
-/**
- * A manager class for RPC event loops that handles different types of event loop groups and their associated channel classes.
- * This class provides factory methods to create instances for server, client, and UDP configurations.
- */
-@Data
-public class RpcMutiEventLoopManager {
-    // Event loop group for accepting connections
-    private EventLoopGroup eventLoopGroup;
-    // Worker event loop group for handling incoming connections
+
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class RpcMutiEventLoopManager extends RpcEventLoopManager<ServerChannel> {
+
+    /**
+     * The worker event loop group responsible for handling incoming connections
+     * and processing I/O operations for child channels.
+     */
+    @Getter
     private EventLoopGroup workerEventLoopGroup;
-    // Class for server channel implementation
-    private Class<? extends ServerChannel> channelClass;
 
     /**
      * Creates and returns an instance of RpcMutiEventLoopManager with the specified parameters.
+     * This factory method ensures proper initialization of the event loop manager
+     * with all necessary components for server operation.
      *
      * @param eventLoopGroup      The main event loop group for handling I/O operations
      * @param childEventLoopGroup The child event loop group for handling child channel operations
      * @param channelClass        The class of the server channel to be used
      * @throws NullPointerException if any of the parameters are null
      */
-    public RpcMutiEventLoopManager(EventLoopGroup eventLoopGroup, EventLoopGroup childEventLoopGroup, Class<? extends ServerChannel> channelClass) {
+    public static RpcMutiEventLoopManager of(EventLoopGroup eventLoopGroup, EventLoopGroup childEventLoopGroup, Class<ServerChannel> channelClass) {
         // Validate that required parameters are not null
         Objects.requireNonNull(eventLoopGroup);
         Objects.requireNonNull(childEventLoopGroup);
-        // Set the provided parameters to the instance
-        this.eventLoopGroup = eventLoopGroup;
-        this.workerEventLoopGroup = childEventLoopGroup;
-        this.channelClass = channelClass;
+        RpcMutiEventLoopManager rpcMutiEventLoopManager = new RpcMutiEventLoopManager();
+        rpcMutiEventLoopManager.eventLoopGroup = eventLoopGroup;
+        rpcMutiEventLoopManager.workerEventLoopGroup = childEventLoopGroup;
+        rpcMutiEventLoopManager.channelClass = channelClass;
+        return rpcMutiEventLoopManager;
     }
 
     /**
@@ -52,8 +58,8 @@ public class RpcMutiEventLoopManager {
      * @param eventLoopGroup      The main event loop group for handling server connections
      * @param childEventLoopGroup The child event loop group for handling incoming connections
      */
-    public RpcMutiEventLoopManager(EventLoopGroup eventLoopGroup, EventLoopGroup childEventLoopGroup) {
-        this(eventLoopGroup, childEventLoopGroup, null);
+    public static RpcMutiEventLoopManager of(EventLoopGroup eventLoopGroup, EventLoopGroup childEventLoopGroup) {
+        return of(eventLoopGroup, childEventLoopGroup, null);
     }
 
     /**
@@ -62,18 +68,14 @@ public class RpcMutiEventLoopManager {
      * @param eventLoopGroup The EventLoopGroup to be used by the RpcEventLoopManager
      *                       and default values for other parameters
      */
-    public RpcMutiEventLoopManager(EventLoopGroup eventLoopGroup) {
+    public static RpcMutiEventLoopManager of(EventLoopGroup eventLoopGroup) {
         // Delegate to the main factory method with null values for unspecified parameters
-        this(eventLoopGroup, eventLoopGroup);
+        return of(eventLoopGroup, eventLoopGroup);
     }
 
-    /**
-     * Creates a default RpcEventLoopManager instance using NioEventLoopGroup.
-     * This is a factory method that provides a convenient way to create a manager with default NIO implementation.
-     *
-     */
-    public RpcMutiEventLoopManager() {
-        this(new NioEventLoopGroup());
+    public static RpcMutiEventLoopManager of() {
+        // Delegate to the main factory method with null values for unspecified parameters
+        return of(new NioEventLoopGroup());
     }
 
     /**
@@ -113,13 +115,12 @@ public class RpcMutiEventLoopManager {
         // Check if the main event loop group is not null and not already in shutdown process
         if (eventLoopGroup != null && (!eventLoopGroup.isShutdown() && !eventLoopGroup.isShuttingDown())) {
             // Shutdown the main event loop group gracefully
-            eventLoopGroup.shutdownGracefully();
-
+            RunnerUtil.execSilentVoidException(eventLoopGroup::shutdownGracefully, e -> log.error("close eventLoopGroup error:", e));
         }
         // Check if the worker event loop group is not null and not already in shutdown process
         if (workerEventLoopGroup != null && (!workerEventLoopGroup.isShutdown() && !workerEventLoopGroup.isShuttingDown())) {
             // Shutdown the worker event loop group gracefully
-            workerEventLoopGroup.shutdownGracefully();
+            RunnerUtil.execSilentVoidException(workerEventLoopGroup::shutdownGracefully, e -> log.error("close workerEventLoopGroup error:", e));
         }
     }
 }
