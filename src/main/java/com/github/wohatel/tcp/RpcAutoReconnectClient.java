@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * A client implementation that automatically reconnects when the connection is lost.
@@ -45,6 +46,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * This is lazily initialized when first needed
      */
     private Bootstrap bootstrap;
+
+    @Getter
+    private Consumer<Channel> channelConnectedConsumer;
 
     /**
      * Constructor with host and port parameters
@@ -77,6 +81,18 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      */
     public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port, eventLoopManager, channelOptions);
+    }
+
+    /**
+     * Sets the consumer to be called when a channel becomes active.
+     * This consumer will be invoked with the active channel as its argument.
+     *
+     * @param channelConnectedConsumer the consumer to be called when a channel becomes active.
+     *                                 If null, no action will be taken when the channel becomes active.
+     */
+    public void onChannelConnected(Consumer<Channel> channelConnectedConsumer) {
+        // Store the channel active consumer for later use when a channel becomes active
+        this.channelConnectedConsumer = channelConnectedConsumer;
     }
 
     /**
@@ -143,9 +159,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                     log.error("the connection is broken and will try to reconnect...");
                     closeFuture.channel().eventLoop().execute(this::autoReconnect);
                 });
-                if (channelActiveConsumer != null) {
+                if (channelConnectedConsumer != null) {
                     log.info("auto reClient connect success-execute consumer");
-                    DefaultVirtualThreadPool.execute(() -> channelActiveConsumer.accept(newChannel));
+                    DefaultVirtualThreadPool.execute(() -> channelConnectedConsumer.accept(newChannel));
                 }
             } else {
                 Throwable cause = connectFuture.cause();
