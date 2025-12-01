@@ -20,8 +20,10 @@ import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import lombok.Getter;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -56,6 +59,9 @@ public class RpcDefaultClient extends RpcDataReceiver {
     @Setter
     protected SocketAddress localAddress;
 
+    @Getter
+    protected Consumer<Channel> channelActiveConsumer;
+
     public RpcDefaultClient(String host, int port) {
         this(host, port, RpcSocketEventLoopManager.of());
     }
@@ -70,9 +76,22 @@ public class RpcDefaultClient extends RpcDataReceiver {
         this.channelOptions = channelOptions;
     }
 
+
     @Override
     public final void onSessionRequestReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
         throw new RpcException(RpcErrorEnum.RUNTIME, "onSessionMsgReceive is unavailable in client");
+    }
+
+    /**
+     * Sets the consumer to be called when a channel becomes active.
+     * This consumer will be invoked with the active channel as its argument.
+     *
+     * @param channelActiveConsumer the consumer to be called when a channel becomes active.
+     *                              If null, no action will be taken when the channel becomes active.
+     */
+    public void onChannelActive(Consumer<Channel> channelActiveConsumer) {
+        // Store the channel active consumer for later use when a channel becomes active
+        this.channelActiveConsumer = channelActiveConsumer;
     }
 
     @SuppressWarnings("all")
@@ -96,6 +115,10 @@ public class RpcDefaultClient extends RpcDataReceiver {
         f.addListener(future -> {
             if (future.isSuccess()) {
                 log.info("connect to-{}:{} success", host, port);
+                if (channelActiveConsumer != null) {
+                    log.info("default client connect success-execute consumer");
+                    DefaultVirtualThreadPool.execute(() -> channelActiveConsumer.accept(channel));
+                }
             } else {
                 log.error("connect to-{}:{} failure", host, port);
             }

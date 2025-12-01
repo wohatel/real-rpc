@@ -4,6 +4,7 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -142,6 +143,10 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
                     log.error("the connection is broken and will try to reconnect...");
                     closeFuture.channel().eventLoop().execute(this::autoReconnect);
                 });
+                if (channelActiveConsumer != null) {
+                    log.info("auto reClient connect success-execute consumer");
+                    DefaultVirtualThreadPool.execute(() -> channelActiveConsumer.accept(newChannel));
+                }
             } else {
                 Throwable cause = connectFuture.cause();
                 log.error("connection failed: {}:{}", host, port, cause);
@@ -159,7 +164,6 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             }
         });
     }
-
 
     /**
      * Overrides the close method to disable auto-connection before closing the channel.
