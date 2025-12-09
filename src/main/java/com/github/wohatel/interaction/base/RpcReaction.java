@@ -54,10 +54,7 @@ public class RpcReaction extends RpcRelay {
      * @return A new RpcReaction instance
      */
     public static RpcReaction fromSession(RpcSession rpcSession) {
-        RpcReaction reaction = new RpcReaction();
-        reaction.setReactionId(rpcSession.getSessionId());
-        reaction.setOrigin(rpcSession.getSessionId());
-        return reaction;
+        return fromSession(rpcSession.getSessionId());
     }
 
     /**
