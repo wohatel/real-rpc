@@ -161,7 +161,7 @@ public class RpcFileChannelDataTransProxy {
                 long length = fileInfo.getLength() - rotaryResult.getWriteIndex();
                 RpcFileReceiveWrapper impl = new RpcFileReceiveWrapper(rpcSession, context, signature.getFile(), signature.getTransModel(), fileInfo, length);
                 RpcSessionTransManger.initFile(rpcSession, RpcNumberConstant.SEVENTY_FIVE, impl);
-                RpcSessionTransManger.registOnRelease(rpcSession.getSessionId(), t -> RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl));
+                RpcSessionTransManger.onRelease(rpcSession.getSessionId(), () -> RpcFileRequestMsgHandlerExecProxy.onFinally(rpcFileRequestMsgHandler, impl));
                 DefaultVirtualThreadPool.execute(() -> handleAsynReceiveFile(ctx, rpcFileRequest, rpcFileRequestMsgHandler));
             }
         } else {

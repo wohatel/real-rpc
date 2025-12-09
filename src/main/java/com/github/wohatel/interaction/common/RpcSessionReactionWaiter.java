@@ -57,4 +57,9 @@ public class RpcSessionReactionWaiter extends RpcReactionWaiter {
         // Release the session resources through the RPC session transfer manager
         RpcSessionTransManger.release(sessionId);
     }
+
+    public void onSessionRelease(Runnable runnable) {
+        RpcSessionTransManger.onRelease(sessionId, runnable);
+    }
+
 }

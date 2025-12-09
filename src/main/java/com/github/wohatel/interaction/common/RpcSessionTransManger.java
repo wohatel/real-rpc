@@ -21,7 +21,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * RpcSessionTransManger is responsible for managing RPC sessions, including session initialization,
@@ -82,10 +81,10 @@ public class RpcSessionTransManger {
     /**
      * Registers a consumer to be called when the session is released.
      * @param sessionId The session identifier
-     * @param consumer Consumer to be called on session release
+     * @param runnable Consumer to be called on session release
      */
-    public static void registOnRelease(String sessionId, Consumer<SessionDataWrapper> consumer) {
-        SESSION_MANAGER.registOnRelease(sessionId, consumer);
+    public static void onRelease(String sessionId, Runnable runnable) {
+        SESSION_MANAGER.onRelease(sessionId, runnable);
     }
 
     /**

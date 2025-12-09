@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * SessionManager class for managing sessions with automatic cleanup and timeout handling.
@@ -33,7 +32,7 @@ public class SessionManager<T> {
     // Concurrent map to store active sessions
     private final Map<String, T> container = new ConcurrentHashMap<>();
     // Map to store release callbacks for sessions
-    private final Map<String, Consumer<T>> onRelease = new ConcurrentHashMap<>();
+    private final Map<String, Runnable> onRelease = new ConcurrentHashMap<>();
     // Map to store expiration times for sessions
     private final Map<String, AtomicLong> timeFlushMap = new ConcurrentHashMap<>();
     // Priority queue for delayed cleanup of expired sessions
@@ -121,11 +120,11 @@ public class SessionManager<T> {
      * 注册销毁事件
      *
      * @param sessionId sessionId
-     * @param consumer  消费者
+     * @param runnable  消费者
      */
-    public void registOnRelease(String sessionId, Consumer<T> consumer) {
-        if (consumer != null && container.containsKey(sessionId)) {
-            onRelease.put(sessionId, consumer);
+    public void onRelease(String sessionId, Runnable runnable) {
+        if (runnable != null && container.containsKey(sessionId)) {
+            onRelease.put(sessionId, runnable);
         }
     }
 
@@ -133,9 +132,9 @@ public class SessionManager<T> {
     public T release(String sessionId) {
         timeFlushMap.remove(sessionId);
         T remove = container.remove(sessionId);
-        Consumer<T> consumer = onRelease.remove(sessionId);
-        if (remove != null && consumer != null) {
-            DefaultVirtualThreadPool.execute(() -> consumer.accept(remove));
+        Runnable runnable = onRelease.remove(sessionId);
+        if (runnable != null) {
+            DefaultVirtualThreadPool.execute(runnable);
         }
         return remove;
     }
@@ -151,6 +150,11 @@ public class SessionManager<T> {
     @SneakyThrows
     public boolean contains(String sessionId) {
         return container.containsKey(sessionId);
+    }
+
+
+    public Runnable getOnReleaseEvent(String sessionId) {
+        return onRelease.get(sessionId);
     }
 
     /**     
