@@ -58,8 +58,25 @@ public class RpcSessionReactionWaiter extends RpcReactionWaiter {
         RpcSessionTransManger.release(sessionId);
     }
 
+    /**
+     * Executes a runnable when the current session is released.
+     * This method delegates the execution to RpcSessionTransManger by passing the session ID and the runnable.
+     *
+     * @param runnable The runnable to be executed upon session release
+     */
     public void onSessionRelease(Runnable runnable) {
+        // Delegate to RpcSessionTransManger to handle the release callback
         RpcSessionTransManger.onRelease(sessionId, runnable);
     }
 
+    /**
+     * Returns the Runnable object responsible for session release operations.
+     * This method retrieves the release event associated with the current session ID.
+     *
+     * @return Runnable A Runnable object that represents the session release event,
+     * or null if no release event is associated with the session ID.
+     */
+    public Runnable getSessionRelease() {
+        return RpcSessionTransManger.getOnReleaseEvent(sessionId);
+    }
 }

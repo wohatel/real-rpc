@@ -88,6 +88,17 @@ public class RpcSessionTransManger {
     }
 
     /**
+     * Retrieves the release event for a specific session.
+     *
+     * @param sessionId the ID of the session to get the release event for
+     * @return a Runnable representing the session's release event, or null if no such event exists
+     */
+    public static Runnable getOnReleaseEvent(String sessionId) {
+        // Get the on release event associated with the specified session ID from the session manager
+        return SESSION_MANAGER.getOnReleaseEvent(sessionId);
+    }
+
+    /**
      * Flushes the session timeout time.
      *
      * @param sessionId   The session identifier
