@@ -4,7 +4,8 @@ import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
-import com.github.wohatel.util.DefaultVirtualThreadPool;
+import com.github.wohatel.tcp.strategy.FixedDelayReconnectStrategy;
+import com.github.wohatel.tcp.strategy.ReconnectStrategy;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -20,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 /**
  * A client implementation that automatically reconnects when the connection is lost.
@@ -29,18 +29,6 @@ import java.util.function.Consumer;
 @Slf4j
 public class RpcAutoReconnectClient extends RpcDefaultClient {
 
-    @Getter
-    @Setter
-    private Long autoReconnectInterval = 5000L;
-
-    /**     
-     * Whether automatic reconnection is allowed
-     * This flag can be used to disable auto-reconnect functionality when needed
-     */
-    @Getter
-    @Setter
-    private boolean allowAutoConnect = true;
-
     /**
      * Netty Bootstrap instance used for connection initialization
      * This is lazily initialized when first needed
@@ -48,7 +36,11 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     private Bootstrap bootstrap;
 
     @Getter
-    private Consumer<Channel> channelConnectedConsumer;
+    private boolean closed;
+
+    @Getter
+    @Setter
+    private ReconnectStrategy reconnectStrategy;
 
     /**
      * Constructor with host and port parameters
@@ -63,8 +55,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     /**
      * Constructor with host, port, and event loop manager parameters
      *
-     * @param host                The target host to connect to
-     * @param port                The target port to connect to
+     * @param host             The target host to connect to
+     * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
      */
     public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager) {
@@ -74,25 +66,13 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     /**
      * Constructor with all parameters including channel options
      *
-     * @param host                The target host to connect to
-     * @param port                The target port to connect to
+     * @param host             The target host to connect to
+     * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
-     * @param channelOptions      List of channel options and their values to configure the connection
+     * @param channelOptions   List of channel options and their values to configure the connection
      */
     public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
         super(host, port, eventLoopManager, channelOptions);
-    }
-
-    /**
-     * Sets the consumer to be called when a channel becomes active.
-     * This consumer will be invoked with the active channel as its argument.
-     *
-     * @param channelConnectedConsumer the consumer to be called when a channel becomes active.
-     *                                 If null, no action will be taken when the channel becomes active.
-     */
-    public void onChannelConnected(Consumer<Channel> channelConnectedConsumer) {
-        // Store the channel active consumer for later use when a channel becomes active
-        this.channelConnectedConsumer = channelConnectedConsumer;
     }
 
     /**
@@ -139,59 +119,65 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         throw new RpcException(RpcErrorEnum.CONNECT, "rpcAutoReconnectClient connect link is not supported, please use it instead autoReconnect()");
     }
 
-    /**     
+    /**
      * Automatic reconnection when broken
+     * This method handles the automatic reconnection logic when the connection is lost
      */
-    @SneakyThrows
     public void autoReconnect() {
-        if (!allowAutoConnect) {
-            // 如果被设置为不允许重连,则直接返回
+        if (closed) {
+            // If the connection was manually closed, do not attempt to reconnect
             return;
         }
+        if (reconnectStrategy == null) {
+            // If no reconnect strategy is set, initialize with a default strategy
+            // Default strategy: retry every 5 seconds
+            reconnectStrategy = new FixedDelayReconnectStrategy(5000);
+        }
+        if (!reconnectStrategy.shouldReconnect()) {
+            // Check if the current strategy allows reconnection
+            // If not, exit the method
+            return;
+        }
+        // Attempt to establish a new connection
         ChannelFuture future = tryConnect();
-        future.addListener((ChannelFutureListener) connectFuture -> {
-            Channel newChannel = connectFuture.channel();
-            this.channel = newChannel;
-            if (connectFuture.isSuccess()) {
-                log.info("the connection was successful--{}:{} ", host, port);
-                // 监听关闭，关闭后自动重连（异步调度，避免递归）
-                newChannel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                    log.error("the connection is broken and will try to reconnect...");
-                    closeFuture.channel().eventLoop().execute(this::autoReconnect);
-                });
-                if (channelConnectedConsumer != null) {
-                    log.info("auto reClient connect success-execute consumer");
-                    DefaultVirtualThreadPool.execute(() -> channelConnectedConsumer.accept(newChannel));
-                }
+        // Add a listener to handle the connection attempt result
+        future.addListener((ChannelFutureListener) f -> {
+            if (f.isSuccess()) {
+                // If connection is successful
+                Channel newChannel = future.channel();
+                // Update the current channel reference
+                this.channel = newChannel;
+                // Notify the strategy about successful connection
+                reconnectStrategy.onSuccess();
+                // Schedule a new reconnection attempt when this channel closes
+                newChannel.closeFuture().addListener(cf -> scheduleReconnect());
             } else {
-                Throwable cause = connectFuture.cause();
-                log.error("connection failed: {}:{}", host, port, cause);
-
-                // 清理失败 channel
-                if (newChannel != null && newChannel.isOpen()) {
-                    newChannel.close();
-                }
-                // 使用 Bootstrap 绑定的 EventLoopGroup 安排重连任务（安全）
-                EventLoop eventLoop = bootstrap.config().group().next();
-                eventLoop.schedule(() -> {
-                    log.info("await " + autoReconnectInterval + "ms reconnect...");
-                    autoReconnect();
-                }, autoReconnectInterval, TimeUnit.MILLISECONDS);
+                // If connection fails
+                // Notify the strategy about the failure
+                reconnectStrategy.onFailure();
+                // Schedule a new reconnection attempt
+                scheduleReconnect();
             }
         });
     }
 
-    /**
-     * Overrides the close method to disable auto-connection before closing the channel.
-     * This ensures that after the channel is closed, it won't automatically try to reconnect.
-     *
-     * @return ChannelFuture representing the asynchronous close operation
-     */
     @Override
     public ChannelFuture close() {
-        // Disable auto-connection before closing the channel
-        this.setAllowAutoConnect(false);
-        // Call the parent class's close method to perform the actual close operation
+        this.closed = true;
         return super.close();
+    }
+
+    /**
+     * Schedules a reconnection attempt using the configured reconnection strategy.
+     * This method calculates the appropriate delay for reconnection based on the strategy
+     * and schedules the reconnection task to be executed on the next available event loop.
+     */
+    private void scheduleReconnect() {
+        // Calculate the delay for reconnection using the reconnection strategy
+        long delay = reconnectStrategy.nextDelayMillis();
+        // Get the next event loop from the event loop group
+        EventLoop loop = bootstrap.config().group().next();
+        // Schedule the autoReconnect method to be called after the calculated delay
+        loop.schedule(this::autoReconnect, delay, TimeUnit.MILLISECONDS);
     }
 }
