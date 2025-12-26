@@ -3,6 +3,7 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
+import com.github.wohatel.interaction.common.RpcHeartHandler;
 import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.tcp.strategy.FixedDelayReconnectStrategy;
 import com.github.wohatel.tcp.strategy.ReconnectStrategy;
@@ -15,7 +16,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -49,7 +49,17 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port The target port to connect to
      */
     public RpcAutoReconnectClient(String host, int port) {
-        this(host, port, RpcSocketEventLoopManager.of());
+        this(host, port, null);
+    }
+
+    /**
+     * Constructor with host, port, and event loop manager parameters
+     *
+     * @param host The target host to connect to
+     * @param port The target port to connect to
+     */
+    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler) {
+        this(host, port, rpcHeartHandler, RpcSocketEventLoopManager.of());
     }
 
     /**
@@ -59,20 +69,19 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
      */
-    public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager) {
-        this(host, port, eventLoopManager, null);
+    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager eventLoopManager) {
+        this(host, port, rpcHeartHandler, eventLoopManager, null);
     }
 
     /**
-     * Constructor with all parameters including channel options
+     * Constructor with host, port, and event loop manager parameters
      *
      * @param host             The target host to connect to
      * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
-     * @param channelOptions   List of channel options and their values to configure the connection
      */
-    public RpcAutoReconnectClient(String host, int port, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, eventLoopManager, channelOptions);
+    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, rpcHeartHandler, eventLoopManager, channelOptions);
     }
 
     /**

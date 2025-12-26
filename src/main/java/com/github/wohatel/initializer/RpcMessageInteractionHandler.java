@@ -1,8 +1,10 @@
 package com.github.wohatel.initializer;
 
+import com.github.wohatel.constant.RpcHeartAction;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
+import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
@@ -57,6 +59,13 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case session -> RpcSessionChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcSessionRequestMsgHandler);
             // Handle file command type through file request message handler
             case file -> RpcFileChannelDataTransProxy.channelRead(ctx, rpcMsg, rpcFileRequestMsgHandler);
+
+            case heart -> {
+                RpcHeartAction payload = rpcMsg.getPayload(RpcHeartAction.class);
+                if (RpcHeartAction.PING == payload) {
+//                    RpcMsgTransManager.sendHeart(ctx.channel(), RpcHeartAction.PONG);
+                }
+            }
         }
     }
 }

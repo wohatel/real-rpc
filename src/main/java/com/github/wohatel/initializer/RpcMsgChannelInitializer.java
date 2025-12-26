@@ -2,6 +2,7 @@ package com.github.wohatel.initializer;
 
 import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
+import com.github.wohatel.interaction.common.RpcHeartHandler;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
@@ -15,8 +16,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
-import java.util.function.Consumer;
-
 /**
  * @author yaochuang
  */
@@ -27,8 +26,15 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     @Getter  // Auto-generates getter for this field
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
-    // Consumer for custom channel initialization logic
-    private Consumer<SocketChannel> initChannelConsumer;
+    private RpcHeartHandler rpcHeartHandler;
+
+    public RpcMsgChannelInitializer(RpcHeartHandler rpcHeartHandler) {
+        this.rpcHeartHandler = rpcHeartHandler;
+    }
+
+    public RpcMsgChannelInitializer() {
+
+    }
 
     /**
      * Sets the file request message handler
@@ -65,26 +71,15 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
      */
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
-        if (initChannelConsumer != null) {
-            initChannelConsumer.accept(socketChannel);
-        } else {
-            initChannel0(socketChannel);
-        }
-    }
-
-    /**
-     * 初始化修正
-     */
-    public void initChannel(Consumer<SocketChannel> initChannelConsumer) {
-        this.initChannelConsumer = initChannelConsumer;
-    }
-
-    private void initChannel0(SocketChannel socketChannel) {
         ChannelPipeline pipeline = socketChannel.pipeline();
         pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(RpcNumberConstant.DATA_LIMIT_M_16, 0, 4, 0, 4));
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
         pipeline.addLast("decoder", new RpcMsgBodyDecoder());
         pipeline.addLast("encoder", new RpcMsgBodyEncoder());
+        if (rpcHeartHandler != null) {
+//            pipeline.addLast("idleStateHandler", rpcHeartHandler.toIdleStateHandler()).addLast("heartHandler", rpcHeartHandler);
+            pipeline.addLast("idleStateHandler", rpcHeartHandler);
+        }
         pipeline.addLast("msgHandler", rpcMessageInteractionHandler);
     }
 }

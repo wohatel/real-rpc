@@ -1,6 +1,7 @@
 package com.github.wohatel.decoder;
 
 import com.alibaba.fastjson2.JSON;
+import com.github.wohatel.constant.RpcHeartAction;
 import com.github.wohatel.interaction.base.RpcMsg;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
@@ -49,6 +50,7 @@ public class RpcMsgBodyDecoder extends ByteToMessageDecoder {
             case request -> msg.setPayload(JSON.parseObject(payloadBytes, RpcRequest.class));
             case session -> msg.setPayload(JSON.parseObject(payloadBytes, RpcSessionRequest.class));
             case reaction -> msg.setPayload(JSON.parseObject(payloadBytes, RpcReaction.class));
+            case heart -> msg.setPayload(JSON.parseObject(payloadBytes, RpcHeartAction.class));
             case file -> {
                 RpcFileRequest fileRequest = JSON.parseObject(payloadBytes, RpcFileRequest.class);
                 msg.setPayload(fileRequest);

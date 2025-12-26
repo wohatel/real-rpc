@@ -12,6 +12,7 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
+import com.github.wohatel.util.FlushStrategy;
 import com.github.wohatel.util.SessionManager;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,7 +34,7 @@ public class RpcFutureTransManager {
      * It uses a timeout handler for managing expired sessions.
      */
     @Getter
-    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut);
+    private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut, FlushStrategy.buildDefault(RpcNumberConstant.OVER_TIME));
 
     /**
      * Verifies and processes an RPC session request.

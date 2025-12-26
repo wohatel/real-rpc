@@ -9,7 +9,7 @@ import java.util.Arrays;
 public enum RpcCommandType {
     request(1), session(2), reaction(4),
 
-    file(3),
+    file(3), heart(5),
     ;
 
     @Getter

@@ -17,7 +17,7 @@ public class RpcNumberConstant {
     /**
      * Ten thousand (10,000) - often used as a threshold or limit value
      */
-    public static final int K_TEN = 10_000;
+    public static final long K_TEN = 10_000;
     /**
      * Basic numeric constant for ten (10)
      */

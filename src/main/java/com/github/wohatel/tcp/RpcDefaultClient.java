@@ -3,6 +3,7 @@ package com.github.wohatel.tcp;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcReaction;
 import com.github.wohatel.interaction.base.RpcRequest;
@@ -12,6 +13,7 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
+import com.github.wohatel.interaction.common.RpcHeartHandler;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
@@ -57,15 +59,19 @@ public class RpcDefaultClient extends RpcDataReceiver {
     protected SocketAddress localAddress;
 
     public RpcDefaultClient(String host, int port) {
-        this(host, port, RpcSocketEventLoopManager.of());
+        this(host, port, null);
     }
 
-    public RpcDefaultClient(String host, int port, RpcSocketEventLoopManager socketEventLoopManager) {
-        this(host, port, socketEventLoopManager, null);
+    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler) {
+        this(host, port, rpcHeartHandler, RpcSocketEventLoopManager.of());
     }
 
-    public RpcDefaultClient(String host, int port, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port);
+    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager socketEventLoopManager) {
+        this(host, port, rpcHeartHandler, socketEventLoopManager, null);
+    }
+
+    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, new RpcMsgChannelInitializer(rpcHeartHandler));
         this.eventLoopManager = socketEventLoopManager;
         this.channelOptions = channelOptions;
     }
@@ -124,7 +130,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
     public RpcFuture sendSynRequest(RpcRequest rpcRequest, long timeOut) {
         return RpcMsgTransManager.sendSynRequest(channel, rpcRequest, timeOut);
     }
-    
+
     public void sendSessionRequest(RpcSessionRequest rpcSessionRequest) {
         RpcSession rpcSession = rpcSessionRequest.getRpcSession();
         RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcSession.getSessionId());
@@ -139,7 +145,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
 
-    /**     
+    /**
      * Establish a session
      *
      * @param rpcSession rpcSession
@@ -149,7 +155,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return startSession(rpcSession, null);
     }
 
-    /**     
+    /**
      * Establish a session with context
      *
      * @param rpcSession session
@@ -183,7 +189,7 @@ public class RpcDefaultClient extends RpcDataReceiver {
         return rpcFuture;
     }
 
-    /**     
+    /**
      * close session
      */
     public void stopSession(RpcSession rpcSession) {

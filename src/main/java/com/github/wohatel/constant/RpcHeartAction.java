@@ -5,23 +5,23 @@ package com.github.wohatel.constant;
  *
  * @author yaochuang 2025/09/15 15:32
  */
-public enum RpcUdpAction {
+public enum RpcHeartAction {
     // Enum constants representing different UDP actions
     PING, PONG;
 
     /**
-     * Converts a string representation to its corresponding RpcUdpAction enum value.
+     * Converts a string representation to its corresponding RpcHeartAction enum value.
      *
      * @param action The string representation of the action to convert
-     * @return The corresponding RpcUdpAction enum value, or null if no match is found or input is null
+     * @return The corresponding RpcHeartAction enum value, or null if no match is found or input is null
      */
-    public static RpcUdpAction fromString(String action) {
+    public static RpcHeartAction fromString(String action) {
         // Check if input string is null, return null if true
         if (action == null) {
             return null;
         }
         // Iterate through all enum values to find a match (case-insensitive comparison)
-        for (RpcUdpAction actionEnum : RpcUdpAction.values()) {
+        for (RpcHeartAction actionEnum : RpcHeartAction.values()) {
             // Compare enum name with input string ignoring case
             if (actionEnum.name().equalsIgnoreCase(action)) {
                 return actionEnum;

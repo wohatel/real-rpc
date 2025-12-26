@@ -10,6 +10,8 @@ import io.netty.channel.ChannelFuture;
 import lombok.Data;
 import lombok.Getter;
 
+import java.util.Objects;
+
 
 /**
  * A class responsible for receiving RPC data and managing network communication channels.
@@ -28,7 +30,20 @@ public class RpcDataReceiver {
     protected Channel channel;       // Network channel for communication
 
     // Channel initializer for setting up RPC message handlers
-    protected RpcMsgChannelInitializer rpcMsgChannelInitializer = new RpcMsgChannelInitializer();
+    protected RpcMsgChannelInitializer rpcMsgChannelInitializer;
+
+    /**
+     * Constructor for creating a receiver with specified host and port
+     *
+     * @param host The host address to bind to
+     * @param port The port number to bind to
+     */
+    protected RpcDataReceiver(String host, int port, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+        this.uniqueId = RandomUtil.randomUUIDWithTime();
+        this.host = host;
+        this.port = port;
+        this.rpcMsgChannelInitializer = Objects.requireNonNullElseGet(rpcMsgChannelInitializer, RpcMsgChannelInitializer::new);
+    }
 
     /**
      * Constructor for creating a receiver with specified host and port
@@ -37,9 +52,7 @@ public class RpcDataReceiver {
      * @param port The port number to bind to
      */
     protected RpcDataReceiver(String host, int port) {
-        this.uniqueId = RandomUtil.randomUUIDWithTime();
-        this.host = host;
-        this.port = port;
+        this(host, port, null);
     }
 
     /**

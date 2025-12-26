@@ -5,6 +5,7 @@ import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
+import com.github.wohatel.util.FlushStrategy;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class RpcSessionTransManger {
 
     // Session manager with custom timeout handling
-    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN, (sessionId, wrapper) -> removeDataMap(sessionId));
+    private static final SessionManager<SessionDataWrapper> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN, (sessionId, wrapper) -> removeDataMap(sessionId), FlushStrategy.buildDefault(RpcNumberConstant.K_TEN));
     // Thread-safe map to store file chunk queues for each session
     private static final Map<String, BlockingQueue<FileChunkItem>> FILE_ITEM_MAP = new ConcurrentHashMap<>();
     // Thread-safe map to store session reaction waiters

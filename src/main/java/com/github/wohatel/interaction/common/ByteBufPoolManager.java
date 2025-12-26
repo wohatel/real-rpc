@@ -3,6 +3,7 @@ package com.github.wohatel.interaction.common;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
+import com.github.wohatel.util.FlushStrategy;
 import com.github.wohatel.util.ReferenceByteBufUtil;
 import com.github.wohatel.util.SessionManager;
 import io.netty.buffer.ByteBuf;
@@ -30,7 +31,7 @@ public class ByteBufPoolManager {
 
     // Session manager for handling ByteBuf pools with a capacity of 10^8
     // Each session has its own ByteBuf pool with a cleanup callback that destroys the pool when the session is released
-    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN_EIGHT, (sessionId, bytePoll) -> bytePoll.destroy());
+    private static final SessionManager<ByteBufPool> SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.K_TEN_EIGHT, (sessionId, bytePoll) -> bytePoll.destroy(), FlushStrategy.buildDefault(RpcNumberConstant.K_TEN_EIGHT));
 
     /**
      * Initialize a new ByteBuf pool for the given session.
@@ -82,11 +83,11 @@ public class ByteBufPoolManager {
      * Borrows a ByteBuf from a session with the given session ID and timeout.
      *
      * @param sessionId The ID of the session to borrow from
-     * @param timeOut The timeout period for borrowing
+     * @param timeOut   The timeout period for borrowing
      * @return The borrowed ByteBuf
      * @throws InterruptedException If the thread is interrupted while waiting
-     * @throws TimeoutException If the borrowing operation times out
- */
+     * @throws TimeoutException     If the borrowing operation times out
+     */
     public static ByteBuf borrow(String sessionId, Long timeOut) throws InterruptedException, TimeoutException {
         // Check if the session exists in the session manager
         if (!SESSION_MANAGER.contains(sessionId)) {
@@ -134,7 +135,7 @@ public class ByteBufPoolManager {
          *
          * @param timeoutMillis Maximum time to wait for an available ByteBuf
          * @return A borrowed ByteBuf instance
-         * @throws TimeoutException If the timeout expires before a ByteBuf is available
+         * @throws TimeoutException     If the timeout expires before a ByteBuf is available
          * @throws InterruptedException If the thread is interrupted while waiting
          */
         public ByteBuf borrow(long timeoutMillis) throws TimeoutException, InterruptedException {
@@ -152,6 +153,7 @@ public class ByteBufPoolManager {
 
         /**
          * Releases a ByteBuf back to the pool if it was borrowed from it
+         *
          * @param buf The ByteBuf to be released
          */
         public void release(ByteBuf buf) {

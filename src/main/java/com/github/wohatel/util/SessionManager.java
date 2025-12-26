@@ -2,7 +2,6 @@ package com.github.wohatel.util;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
-import com.github.wohatel.interaction.common.RpcSessionFlushStrategy;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 
 /**
  * SessionManager class for managing sessions with automatic cleanup and timeout handling.
@@ -41,14 +41,8 @@ public class SessionManager<T> {
     private final Thread cleanerThread;
     // Callback to be executed when a session is closed
     private final BiConsumer<String, T> sessionClose;
-
-    /**     
-     * Refresh factor (if 0.4)
-     * If the timeout corresponding to a request is 10s, if the distance from the timeout is > 4s, it will not be refreshed, and it will be refreshed if it is less than 4s.
-     * That is, the higher this value, the more frequently it is refreshed
-     * If the refresh factor is negative, refresh immediately
-     */
-    private final double flushSeed;
+    // oldExpirdTime,new ExpirdTime 对比后,决定是否刷新time
+    private BiPredicate<Long, Long> flushStrategy;
 
     /**
      * Constructor for SessionManager with default flush seed
@@ -57,7 +51,7 @@ public class SessionManager<T> {
      * @param sessionClose Callback to execute when a session is closed
      */
     public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose) {
-        this(sessionTime, sessionClose, 0.618);
+        this(sessionTime, sessionClose, null);
     }
 
     /**
@@ -65,16 +59,19 @@ public class SessionManager<T> {
      *
      * @param sessionTime  The duration of a session in milliseconds
      * @param sessionClose Callback to execute when a session is closed
-     * @param flushSeed    Factor determining when to refresh session timeouts
      */
-    public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose, double flushSeed) {
-        this.flushSeed = flushSeed;
+    public SessionManager(long sessionTime, BiConsumer<String, T> sessionClose, BiPredicate<Long, Long> flushStrategy) {
         this.sessionTime = sessionTime;
         if (sessionTime <= 0) {
-            throw new RpcException(RpcErrorEnum.RUNTIME, "session time error: session time <= 0");
+            throw new RuntimeException("session time error: session time <= 0");
         }
         this.sessionClose = sessionClose;
         cleanerThread = Thread.startVirtualThread(this::cleanerLoop);
+        if (flushStrategy == null) {
+            this.flushStrategy = (expiredAt, addTime) -> true;
+        } else {
+            this.flushStrategy = flushStrategy;
+        }
     }
 
     /**
@@ -87,7 +84,7 @@ public class SessionManager<T> {
     }
 
 
-    /**     
+    /**
      * 初始化资源
      *
      * @param sessionId sessionId
@@ -97,7 +94,7 @@ public class SessionManager<T> {
         this.initSession(sessionId, resource, null);
     }
 
-    /**     
+    /**
      * 初始化资源
      *
      * @param sessionId sessionId
@@ -157,7 +154,7 @@ public class SessionManager<T> {
         return onRelease.get(sessionId);
     }
 
-    /**     
+    /**
      * 获取session
      *
      * @param sessionId 获取session的资源
@@ -167,7 +164,7 @@ public class SessionManager<T> {
         return container.get(sessionId);
     }
 
-    /**     
+    /**
      * 获取session
      *
      * @param sessionId 获取session的资源
@@ -185,7 +182,7 @@ public class SessionManager<T> {
         return container.size();
     }
 
-    /**     
+    /**
      * 关闭管理器
      */
     public void destroy() {
@@ -206,37 +203,27 @@ public class SessionManager<T> {
         }
     }
 
-    /**     
+    /**
      * 刷新时间
      *
      * @param sessionId sessionId
      * @return 刷新下session 的最近交互时间
      */
-    public boolean flushTime(String sessionId, long sessionTime, boolean force) {
-
+    public boolean flushTime(String sessionId, long sessionTime) {
         if (!stop.get() && container.containsKey(sessionId)) {
             AtomicLong atomicLong = timeFlushMap.get(sessionId);
-            if (force || RpcSessionFlushStrategy.isNeedFlushForExpired(atomicLong.get(), sessionTime, this.flushSeed)) {
-                long expiredAt = System.currentTimeMillis() + sessionTime;
-                delayQueue.add(new DelayItem(sessionId, expiredAt));
-                atomicLong.set(expiredAt);
+            long oldExpired = atomicLong.get();
+            long newExpired = System.currentTimeMillis() + sessionTime;
+            if (flushStrategy.test(oldExpired, newExpired)) {
+                delayQueue.add(new DelayItem(sessionId, newExpired));
+                atomicLong.set(newExpired);
+                return true;
             }
-            return true;
         }
         return false;
     }
 
-    /**     
-     * 刷新时间
-     *
-     * @param sessionId sessionId
-     * @return 刷新下会话的最近交互时间
-     */
-    public boolean flushTime(String sessionId, long sessionTime) {
-        return flushTime(sessionId, sessionTime, false);
-    }
-
-    /**     
+    /**
      * 刷新时间
      *
      * @param sessionId sessionId
@@ -246,7 +233,7 @@ public class SessionManager<T> {
         return this.flushTime(sessionId, sessionTime);
     }
 
-    /**     
+    /**
      * 循环清理
      */
     private void cleanerLoop() {

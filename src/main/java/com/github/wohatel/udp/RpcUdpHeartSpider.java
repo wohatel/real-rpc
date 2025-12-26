@@ -1,6 +1,6 @@
 package com.github.wohatel.udp;
 
-import com.github.wohatel.constant.RpcUdpAction;
+import com.github.wohatel.constant.RpcHeartAction;
 import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcUdpEventLoopManager;
@@ -59,9 +59,10 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
 
     /**
      * Constructor with custom channel options and heartbeat configuration
+     *
      * @param eventLoopManager The event loop manager for RPC operations
-     * @param channelOptions List of channel options and values to configure
-     * @param config Heartbeat configuration settings
+     * @param channelOptions   List of channel options and values to configure
+     * @param config           Heartbeat configuration settings
      */
     public RpcUdpHeartSpider(RpcUdpEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, UdpHeartConfig config) {
         super(eventLoopManager, channelOptions, null);
@@ -73,6 +74,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
      * Override method to handle incoming messages, if msgConsumer is null
      * the default heart ping pong will worked
      * if msgConsumer is not null, u can use the msgConsumer to process the ping pong logic
+     *
      * @param msgConsumer Consumer for processing received messages
      */
     @Override
@@ -81,14 +83,14 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
             if (msgConsumer == null) {
                 RpcRequest request = packet.getMsg();
                 String contentType = request.getContentType();
-                RpcUdpAction action = RpcUdpAction.fromString(contentType);
+                RpcHeartAction action = RpcHeartAction.fromString(contentType);
                 // Handle PING action by sending PONG response
-                if (action == RpcUdpAction.PING) {
+                if (action == RpcHeartAction.PING) {
                     RpcRequest rpcRequest = new RpcRequest();
-                    rpcRequest.setContentType(RpcUdpAction.PONG.name());
+                    rpcRequest.setContentType(RpcHeartAction.PONG.name());
                     // 对方是ping,则直接pong回去
                     waiter.sendMsg(rpcRequest, packet.getSender());
-                } else if (action == RpcUdpAction.PONG) {
+                } else if (action == RpcHeartAction.PONG) {
                     TimingHandler handler = timingHandlerMap.get(packet.getSender());
                     if (handler != null) {
                         handler.lastPongTime = System.currentTimeMillis();
@@ -102,6 +104,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
 
     /**
      * Bind the server to the specified port and set up heartbeat ping mechanism
+     *
      * @param port The port number to bind the server to
      * @return ChannelFuture representing the asynchronous bind operation
      */
@@ -115,7 +118,7 @@ public class RpcUdpHeartSpider extends RpcDefaultUdpSpider {
                 // 如果链接成功,每隔pingInterval 毫秒就触发一次ping
                 ScheduledFuture<?> pingFuture = newChannel.eventLoop().scheduleAtFixedRate(() -> {
                     RpcRequest rpcRequest = new RpcRequest();
-                    rpcRequest.setContentType(RpcUdpAction.PING.name());
+                    rpcRequest.setContentType(RpcHeartAction.PING.name());
                     Set<Map.Entry<InetSocketAddress, TimingHandler>> entries = timingHandlerMap.entrySet();
                     for (Map.Entry<InetSocketAddress, TimingHandler> entry : entries) {
                         RunnerUtil.execSilent(() -> {

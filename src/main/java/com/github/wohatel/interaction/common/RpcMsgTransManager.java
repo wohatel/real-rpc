@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.constant.RpcHeartAction;
 import com.github.wohatel.interaction.base.RpcFileRequest;
 import com.github.wohatel.interaction.base.RpcFuture;
 import com.github.wohatel.interaction.base.RpcMsg;
@@ -13,6 +14,7 @@ import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
+import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileInfo;
@@ -67,6 +69,13 @@ public class RpcMsgTransManager {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
         channel.writeAndFlush(RpcMsg.fromRequest(rpcRequest));
+    }
+
+    public static void sendHeart(Channel channel, RpcHeartAction heartAction) {
+        if (channel == null || !channel.isActive()) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
+        }
+        channel.writeAndFlush(new RpcMsg(RpcCommandType.heart, heartAction));
     }
 
     public static <T> void sendUdpMsg(Channel channel, T msg, InetSocketAddress to) {
