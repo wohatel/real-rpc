@@ -63,7 +63,7 @@ public class RpcMessageInteractionHandler extends ChannelInboundHandlerAdapter {
             case heart -> {
                 RpcHeartAction payload = rpcMsg.getPayload(RpcHeartAction.class);
                 if (RpcHeartAction.PING == payload) {
-//                    RpcMsgTransManager.sendHeart(ctx.channel(), RpcHeartAction.PONG);
+                    RpcMsgTransManager.sendHeart(ctx.channel(), RpcHeartAction.PONG);
                 }
             }
         }

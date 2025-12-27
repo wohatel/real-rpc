@@ -3,7 +3,7 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcHeartHandler;
+import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.tcp.strategy.FixedDelayReconnectStrategy;
 import com.github.wohatel.tcp.strategy.ReconnectStrategy;
@@ -58,8 +58,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param host The target host to connect to
      * @param port The target port to connect to
      */
-    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler) {
-        this(host, port, rpcHeartHandler, RpcSocketEventLoopManager.of());
+    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler) {
+        this(host, port, rpcVivoHandler, RpcSocketEventLoopManager.of());
     }
 
     /**
@@ -69,8 +69,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
      */
-    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager eventLoopManager) {
-        this(host, port, rpcHeartHandler, eventLoopManager, null);
+    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager eventLoopManager) {
+        this(host, port, rpcVivoHandler, eventLoopManager, null);
     }
 
     /**
@@ -80,8 +80,8 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
      * @param port             The target port to connect to
      * @param eventLoopManager The event loop manager for handling I/O operations
      */
-    public RpcAutoReconnectClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, rpcHeartHandler, eventLoopManager, channelOptions);
+    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, rpcVivoHandler, eventLoopManager, channelOptions);
     }
 
     /**

@@ -2,7 +2,7 @@ package com.github.wohatel.initializer;
 
 import com.github.wohatel.decoder.RpcMsgBodyDecoder;
 import com.github.wohatel.decoder.RpcMsgBodyEncoder;
-import com.github.wohatel.interaction.common.RpcHeartHandler;
+import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
@@ -26,10 +26,10 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
     @Getter  // Auto-generates getter for this field
     private final RpcMessageInteractionHandler rpcMessageInteractionHandler = new RpcMessageInteractionHandler();
 
-    private RpcHeartHandler rpcHeartHandler;
+    private RpcVivoHandler rpcVivoHandler;
 
-    public RpcMsgChannelInitializer(RpcHeartHandler rpcHeartHandler) {
-        this.rpcHeartHandler = rpcHeartHandler;
+    public RpcMsgChannelInitializer(RpcVivoHandler rpcVivoHandler) {
+        this.rpcVivoHandler = rpcVivoHandler;
     }
 
     public RpcMsgChannelInitializer() {
@@ -76,9 +76,8 @@ public class RpcMsgChannelInitializer extends ChannelInitializer<SocketChannel> 
         pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
         pipeline.addLast("decoder", new RpcMsgBodyDecoder());
         pipeline.addLast("encoder", new RpcMsgBodyEncoder());
-        if (rpcHeartHandler != null) {
-//            pipeline.addLast("idleStateHandler", rpcHeartHandler.toIdleStateHandler()).addLast("heartHandler", rpcHeartHandler);
-            pipeline.addLast("idleStateHandler", rpcHeartHandler);
+        if (rpcVivoHandler != null) {
+            pipeline.addLast("rpcVivoHandler", rpcVivoHandler);
         }
         pipeline.addLast("msgHandler", rpcMessageInteractionHandler);
     }

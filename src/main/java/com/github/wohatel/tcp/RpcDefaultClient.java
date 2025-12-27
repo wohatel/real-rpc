@@ -13,7 +13,7 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
-import com.github.wohatel.interaction.common.RpcHeartHandler;
+import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
@@ -62,16 +62,16 @@ public class RpcDefaultClient extends RpcDataReceiver {
         this(host, port, null);
     }
 
-    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler) {
-        this(host, port, rpcHeartHandler, RpcSocketEventLoopManager.of());
+    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler) {
+        this(host, port, rpcVivoHandler, RpcSocketEventLoopManager.of());
     }
 
-    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager socketEventLoopManager) {
-        this(host, port, rpcHeartHandler, socketEventLoopManager, null);
+    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager socketEventLoopManager) {
+        this(host, port, rpcVivoHandler, socketEventLoopManager, null);
     }
 
-    public RpcDefaultClient(String host, int port, RpcHeartHandler rpcHeartHandler, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, new RpcMsgChannelInitializer(rpcHeartHandler));
+    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
+        super(host, port, new RpcMsgChannelInitializer(rpcVivoHandler));
         this.eventLoopManager = socketEventLoopManager;
         this.channelOptions = channelOptions;
     }

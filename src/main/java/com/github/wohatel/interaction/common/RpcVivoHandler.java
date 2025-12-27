@@ -7,13 +7,29 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract class RpcHeartHandler extends IdleStateHandler {
+public abstract class RpcVivoHandler extends IdleStateHandler {
 
-    public RpcHeartHandler(long readerIdleMs, long writerIdleMs) {
-        super(readerIdleMs, writerIdleMs, 0, TimeUnit.MILLISECONDS);
+    public RpcVivoHandler(long readerIdleMills, long writerIdleMills) {
+        super(readerIdleMills, writerIdleMills, 0, TimeUnit.MILLISECONDS);
     }
 
-    public abstract void onChannelHeatTimeOut(ChannelHandlerContext ctx) throws Exception;
+    @Override
+    public final void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        this.onChannelActive(ctx);
+    }
+
+    @Override
+    public final void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        this.onChannelInactive(ctx);
+    }
+
+    public abstract void onChannelHeatTimeOut(ChannelHandlerContext ctx);
+
+    public abstract void onChannelActive(ChannelHandlerContext ctx);
+
+    public abstract void onChannelInactive(ChannelHandlerContext ctx);
 
     @Override
     protected void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
