@@ -48,10 +48,10 @@ public class TestTcpHeart {
         };
 
         // 线程组暂时用一个
-        server = new RpcServer(8765);
+        server = new RpcServer(8765, rpcVivoHandler);
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765, rpcVivoHandler);
+        client = new RpcDefaultClient("127.0.0.1", 8765);
         // 等待客户端连接成功
         client.connect().sync();
         // 绑定服务端接收消息处理
@@ -62,7 +62,7 @@ public class TestTcpHeart {
         });
         for (int j = 0; j < 15; j++) {
             Thread.sleep(1000);
-            if (j == 14){
+            if (j == 14) {
                 client.close();
             }
         }

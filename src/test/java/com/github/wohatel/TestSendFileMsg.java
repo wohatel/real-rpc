@@ -32,7 +32,7 @@ public class TestSendFileMsg {
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
         RpcMutiEventLoopManager eventLoopManager = RpcMutiEventLoopManager.of();
-        server = new RpcServer(8765, eventLoopManager);
+        server = new RpcServer(8765, null, eventLoopManager);
         // 等待服务端开启成功
         server.start().sync();
         client = new RpcDefaultClient("127.0.0.1", 8765);

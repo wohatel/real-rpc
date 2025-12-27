@@ -2,8 +2,10 @@ package com.github.wohatel.tcp;
 
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
+import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
+import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -32,15 +34,19 @@ public class RpcServer extends RpcDataReceiver {
     private final RpcMutiEventLoopManager eventLoopManager;
 
     public RpcServer(int port) {
-        this(port, RpcMutiEventLoopManager.of());
+        this(port, null);
     }
 
-    public RpcServer(int port, RpcMutiEventLoopManager eventLoopManager) {
-        this(null, port, eventLoopManager, null, null);
+    public RpcServer(int port, RpcVivoHandler rpcVivoHandler) {
+        this(port, rpcVivoHandler, RpcMutiEventLoopManager.of());
     }
 
-    public RpcServer(String host, int port, RpcMutiEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
-        super(host, port);
+    public RpcServer(int port, RpcVivoHandler rpcVivoHandler, RpcMutiEventLoopManager eventLoopManager) {
+        this(null, port, rpcVivoHandler, eventLoopManager, null, null);
+    }
+
+    public RpcServer(String host, int port, RpcVivoHandler rpcVivoHandler, RpcMutiEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
+        super(host, port, new RpcMsgChannelInitializer(rpcVivoHandler));
         this.eventLoopManager = eventLoopManager;
         this.channelOptions = channelOptions;
         this.childChannelOptions = childChannelOptions;
