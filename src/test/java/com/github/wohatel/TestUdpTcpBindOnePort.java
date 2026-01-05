@@ -2,11 +2,15 @@ package com.github.wohatel;
 
 import com.alibaba.fastjson2.TypeReference;
 import com.github.wohatel.interaction.base.RpcRequest;
+import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
 import com.github.wohatel.interaction.common.RpcReactionWaiter;
+import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.interaction.common.RpcUdpPacket;
 import com.github.wohatel.interaction.handler.RpcSimpleRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
+import com.github.wohatel.tcp.builder.RpcClientConnectConfig;
+import com.github.wohatel.tcp.builder.RpcServerConnectConfig;
 import com.github.wohatel.udp.RpcUdpSpider;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -36,14 +40,14 @@ public class TestUdpTcpBindOnePort {
         server.bind(8765).sync();
 
         // tcp绑定8765
-        RpcServer rpcServer = new RpcServer(8765);
-        rpcServer.onRequestReceive(new RpcSimpleRequestMsgHandler() {
+        RpcServer rpcserver = new RpcServer(RpcServerConnectConfig.builder().port(8765).build(), RpcMutiEventLoopManager.of());
+        rpcserver.onRequestReceive(new RpcSimpleRequestMsgHandler() {
             @Override
             public void onReceiveRequest(RpcRequest request, RpcReactionWaiter waiter) {
                 System.out.println("tcp服务端收到:" + request.getBody());
             }
         });
-        rpcServer.start().sync();
+        rpcserver.start().sync();
 
         // udpc-lient
         RpcUdpSpider<String> client = RpcUdpSpider.buildSpider(new TypeReference<String>() {
@@ -56,12 +60,12 @@ public class TestUdpTcpBindOnePort {
         client.bind().sync();
 
         // tcp-client
-        RpcDefaultClient rpcDefaultClient = new RpcDefaultClient("127.0.0.1", 8765);
-        rpcDefaultClient.connect().sync();
+        RpcDefaultClient rpcDefaultclient = new RpcDefaultClient(RpcClientConnectConfig.builder().host("127.0.0.1").port(8765).build(), RpcSocketEventLoopManager.of());
+        rpcDefaultclient.connect().sync();
 
 
         client.sendMsg("udp客户端发送第一次请求", new InetSocketAddress("127.0.0.1", 8765));
-        rpcDefaultClient.sendRequest(RpcRequest.withBody("tcp客户端发送第一次请求"));
+        rpcDefaultclient.sendRequest(RpcRequest.withBody("tcp客户端发送第一次请求"));
 
 
         Thread.currentThread().join();

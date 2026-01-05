@@ -3,8 +3,8 @@ package com.github.wohatel.tcp;
 import com.github.wohatel.constant.RpcErrorEnum;
 import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
-import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
+import com.github.wohatel.tcp.builder.RpcClientConnectConfig;
 import com.github.wohatel.tcp.strategy.FixedDelayReconnectStrategy;
 import com.github.wohatel.tcp.strategy.ReconnectStrategy;
 import com.github.wohatel.util.EmptyVerifyUtil;
@@ -15,11 +15,9 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoop;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,49 +37,11 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
     private boolean closed;
 
     @Getter
-    @Setter
     private ReconnectStrategy reconnectStrategy;
 
-    /**
-     * Constructor with host and port parameters
-     *
-     * @param host The target host to connect to
-     * @param port The target port to connect to
-     */
-    public RpcAutoReconnectClient(String host, int port) {
-        this(host, port, null);
-    }
-
-    /**
-     * Constructor with host, port, and event loop manager parameters
-     *
-     * @param host The target host to connect to
-     * @param port The target port to connect to
-     */
-    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler) {
-        this(host, port, rpcVivoHandler, RpcSocketEventLoopManager.of());
-    }
-
-    /**
-     * Constructor with host, port, and event loop manager parameters
-     *
-     * @param host             The target host to connect to
-     * @param port             The target port to connect to
-     * @param eventLoopManager The event loop manager for handling I/O operations
-     */
-    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager eventLoopManager) {
-        this(host, port, rpcVivoHandler, eventLoopManager, null);
-    }
-
-    /**
-     * Constructor with host, port, and event loop manager parameters
-     *
-     * @param host             The target host to connect to
-     * @param port             The target port to connect to
-     * @param eventLoopManager The event loop manager for handling I/O operations
-     */
-    public RpcAutoReconnectClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, rpcVivoHandler, eventLoopManager, channelOptions);
+    public RpcAutoReconnectClient(RpcClientConnectConfig config, RpcSocketEventLoopManager socketEventLoopManager, ReconnectStrategy reconnectStrategy) {
+        super(config, socketEventLoopManager);
+        this.reconnectStrategy = reconnectStrategy;
     }
 
     /**
@@ -107,9 +67,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
             // Disable Nagle's algorithm for lower latency
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             // Apply additional channel options if any
-            if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
+            if (!EmptyVerifyUtil.isEmpty(connectConfig.getChannelOptions())) {
                 // Iterate through all channel options and apply them
-                for (ChannelOptionAndValue<Object> channelOption : channelOptions) {
+                for (ChannelOptionAndValue<Object> channelOption : connectConfig.getChannelOptions()) {
                     bootstrap.option(channelOption.getChannelOption(), channelOption.getValue());
                 }
             }
@@ -117,9 +77,9 @@ public class RpcAutoReconnectClient extends RpcDefaultClient {
         // Set the channel handler
         bootstrap.handler(this.rpcMsgChannelInitializer);
         // Create the remote address
-        InetSocketAddress remote = InetSocketAddress.createUnresolved(host, port);
+        InetSocketAddress remote = InetSocketAddress.createUnresolved(connectConfig.getHost(), connectConfig.getPort());
         // Initiate the connection, using local address if specified
-        return localAddress == null ? bootstrap.connect(remote) : bootstrap.connect(remote, localAddress);
+        return connectConfig.getLocalAddress() == null ? bootstrap.connect(remote) : bootstrap.connect(remote, connectConfig.getLocalAddress());
     }
 
 

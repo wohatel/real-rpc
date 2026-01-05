@@ -3,6 +3,7 @@ package com.github.wohatel;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
+import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.interaction.file.RpcFileInfo;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
@@ -13,6 +14,8 @@ import com.github.wohatel.interaction.file.RpcFileTransModel;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
+import com.github.wohatel.tcp.builder.RpcClientConnectConfig;
+import com.github.wohatel.tcp.builder.RpcServerConnectConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +35,10 @@ public class TestSendFileMsg {
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
         RpcMutiEventLoopManager eventLoopManager = RpcMutiEventLoopManager.of();
-        server = new RpcServer(8765, null, eventLoopManager);
+        server = new RpcServer(RpcServerConnectConfig.builder().port(8765).build(), RpcMutiEventLoopManager.of());
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765);
+        client = new RpcDefaultClient(RpcClientConnectConfig.builder().host("127.0.0.1").port(8765).build(), RpcSocketEventLoopManager.of());
         // 等待客户端连接成功
         client.connect().sync();
     }
@@ -47,7 +50,7 @@ public class TestSendFileMsg {
     @Test
     void clientSendFile() throws InterruptedException {
         // 需要
-        File sourceFile = new File("/tmp/pnpm-lock.yaml.bak");
+        File sourceFile = new File("/tmp/abc.log");
         File targetRile = new File("/tmp/user.keytab.bak");
 
         server.onFileReceive(new RpcFileRequestMsgHandler() {

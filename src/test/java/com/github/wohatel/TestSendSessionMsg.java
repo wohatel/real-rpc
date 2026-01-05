@@ -5,13 +5,17 @@ import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
+import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionContextWrapper;
 import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
+import com.github.wohatel.interaction.common.RpcSocketEventLoopManager;
 import com.github.wohatel.interaction.file.RpcSessionSignature;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
 import com.github.wohatel.tcp.RpcDefaultClient;
 import com.github.wohatel.tcp.RpcServer;
+import com.github.wohatel.tcp.builder.RpcClientConnectConfig;
+import com.github.wohatel.tcp.builder.RpcServerConnectConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -29,10 +33,10 @@ public class TestSendSessionMsg {
     @BeforeAll
     static void beforeAll() throws InterruptedException {
         // 线程组暂时用一个
-        server = new RpcServer(8765);
+        server = new RpcServer(RpcServerConnectConfig.builder().port(8765).build(), RpcMutiEventLoopManager.of());
         // 等待服务端开启成功
         server.start().sync();
-        client = new RpcDefaultClient("127.0.0.1", 8765);
+        client = new RpcDefaultClient(RpcClientConnectConfig.builder().host("127.0.0.1").port(8765).build(), RpcSocketEventLoopManager.of());
         // 等待客户端连接成功
         client.connect().sync();
     }

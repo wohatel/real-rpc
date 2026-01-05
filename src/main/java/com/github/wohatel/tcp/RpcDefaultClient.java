@@ -13,7 +13,6 @@ import com.github.wohatel.interaction.base.RpcSessionProcess;
 import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcFutureTransManager;
-import com.github.wohatel.interaction.common.RpcVivoHandler;
 import com.github.wohatel.interaction.common.RpcMsgTransManager;
 import com.github.wohatel.interaction.common.RpcSessionContext;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
@@ -22,18 +21,16 @@ import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.constant.RpcSessionType;
 import com.github.wohatel.interaction.file.RpcFileSenderInput;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
+import com.github.wohatel.tcp.builder.RpcClientConnectConfig;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.List;
 
 
 /**
@@ -42,40 +39,16 @@ import java.util.List;
  */
 @Slf4j
 public class RpcDefaultClient extends RpcDataReceiver {
-
-    /**
-     * Manager for handling RPC event loops
-     */
+    @Getter
+    protected final RpcClientConnectConfig connectConfig;
     @Getter
     protected final RpcSocketEventLoopManager eventLoopManager;
-    /**
-     * List of channel options and their values for configuring the connection
-     */
-    @Getter
-    protected final List<ChannelOptionAndValue<Object>> channelOptions;
-    // If you need to bind a local NIC to connect to remote services, you need to set it
-    @Getter
-    @Setter
-    protected SocketAddress localAddress;
 
-    public RpcDefaultClient(String host, int port) {
-        this(host, port, null);
+    public RpcDefaultClient(RpcClientConnectConfig config, RpcSocketEventLoopManager eventLoopManager) {
+        super(new RpcMsgChannelInitializer(config.getRpcVivoHandler()));
+        this.connectConfig = config;
+        this.eventLoopManager = eventLoopManager;
     }
-
-    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler) {
-        this(host, port, rpcVivoHandler, RpcSocketEventLoopManager.of());
-    }
-
-    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager socketEventLoopManager) {
-        this(host, port, rpcVivoHandler, socketEventLoopManager, null);
-    }
-
-    public RpcDefaultClient(String host, int port, RpcVivoHandler rpcVivoHandler, RpcSocketEventLoopManager socketEventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions) {
-        super(host, port, new RpcMsgChannelInitializer(rpcVivoHandler));
-        this.eventLoopManager = socketEventLoopManager;
-        this.channelOptions = channelOptions;
-    }
-
 
     @Override
     public final void onSessionRequestReceive(RpcSessionRequestMsgHandler rpcSessionRequestMsgHandler) {
@@ -92,19 +65,19 @@ public class RpcDefaultClient extends RpcDataReceiver {
         b.channel(eventLoopManager.getChannelClass());
         b.handler(rpcMsgChannelInitializer);
         b.option(ChannelOption.TCP_NODELAY, true);
-        if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
-            for (ChannelOptionAndValue channelOption : channelOptions) {
+        if (!EmptyVerifyUtil.isEmpty(connectConfig.getChannelOptions())) {
+            for (ChannelOptionAndValue channelOption : connectConfig.getChannelOptions()) {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());
             }
         }
-        InetSocketAddress remote = InetSocketAddress.createUnresolved(host, port);
-        ChannelFuture f = localAddress == null ? b.connect(remote) : b.connect(remote, localAddress);
+        InetSocketAddress remote = InetSocketAddress.createUnresolved(connectConfig.getHost(), connectConfig.getPort());
+        ChannelFuture f = connectConfig.getLocalAddress() == null ? b.connect(remote) : b.connect(remote, connectConfig.getLocalAddress());
         this.channel = f.channel();
         f.addListener(future -> {
             if (future.isSuccess()) {
-                log.info("connect to-{}:{} success", host, port);
+                log.info("connect to-{}:{} success", connectConfig.getHost(), connectConfig.getPort());
             } else {
-                log.error("connect to-{}:{} failure", host, port);
+                log.error("connect to-{}:{} failure", connectConfig.getHost(), connectConfig.getPort());
             }
         });
         return f;

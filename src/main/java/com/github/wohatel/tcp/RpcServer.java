@@ -5,7 +5,7 @@ import com.github.wohatel.constant.RpcException;
 import com.github.wohatel.initializer.RpcMsgChannelInitializer;
 import com.github.wohatel.interaction.common.ChannelOptionAndValue;
 import com.github.wohatel.interaction.common.RpcMutiEventLoopManager;
-import com.github.wohatel.interaction.common.RpcVivoHandler;
+import com.github.wohatel.tcp.builder.RpcServerConnectConfig;
 import com.github.wohatel.util.EmptyVerifyUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetSocketAddress;
-import java.util.List;
 
 /**
  * Bind the server to the listening port and configure the channel
@@ -29,27 +28,13 @@ import java.util.List;
 @Getter
 @Slf4j
 public class RpcServer extends RpcDataReceiver {
-    private final List<ChannelOptionAndValue<Object>> channelOptions;
-    private final List<ChannelOptionAndValue<Object>> childChannelOptions;
+    private final RpcServerConnectConfig connectConfig;
     private final RpcMutiEventLoopManager eventLoopManager;
 
-    public RpcServer(int port) {
-        this(port, null);
-    }
-
-    public RpcServer(int port, RpcVivoHandler rpcVivoHandler) {
-        this(port, rpcVivoHandler, RpcMutiEventLoopManager.of());
-    }
-
-    public RpcServer(int port, RpcVivoHandler rpcVivoHandler, RpcMutiEventLoopManager eventLoopManager) {
-        this(null, port, rpcVivoHandler, eventLoopManager, null, null);
-    }
-
-    public RpcServer(String host, int port, RpcVivoHandler rpcVivoHandler, RpcMutiEventLoopManager eventLoopManager, List<ChannelOptionAndValue<Object>> channelOptions, List<ChannelOptionAndValue<Object>> childChannelOptions) {
-        super(host, port, new RpcMsgChannelInitializer(rpcVivoHandler));
+    public RpcServer(RpcServerConnectConfig connectConfig, RpcMutiEventLoopManager eventLoopManager) {
+        super(new RpcMsgChannelInitializer(connectConfig.getVivoHandler()));
         this.eventLoopManager = eventLoopManager;
-        this.channelOptions = channelOptions;
-        this.childChannelOptions = childChannelOptions;
+        this.connectConfig = connectConfig;
     }
 
     @SneakyThrows
@@ -58,18 +43,18 @@ public class RpcServer extends RpcDataReceiver {
         if (this.channel != null && this.channel.isActive()) {
             throw new RpcException(RpcErrorEnum.CONNECT, "rpcServer: do not repeat the start");
         }
-        InetSocketAddress address = StringUtils.isBlank(host) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
+        InetSocketAddress address = StringUtils.isBlank(connectConfig.getHost()) ? new InetSocketAddress(connectConfig.getPort()) : new InetSocketAddress(connectConfig.getHost(), connectConfig.getPort());
         ServerBootstrap b = new ServerBootstrap();
         b.group(eventLoopManager.getEventLoopGroup(), eventLoopManager.getWorkerEventLoopGroup()).channel(eventLoopManager.getChannelClass());
         b.childOption(ChannelOption.TCP_NODELAY, true);
         b.localAddress(address).childHandler(rpcMsgChannelInitializer);
-        if (!EmptyVerifyUtil.isEmpty(channelOptions)) {
-            for (ChannelOptionAndValue channelOption : channelOptions) {
+        if (!EmptyVerifyUtil.isEmpty(connectConfig.getChannelOptions())) {
+            for (ChannelOptionAndValue channelOption : connectConfig.getChannelOptions()) {
                 b.option(channelOption.getChannelOption(), channelOption.getValue());
             }
         }
-        if (!EmptyVerifyUtil.isEmpty(childChannelOptions)) {
-            for (ChannelOptionAndValue childOption : childChannelOptions) {
+        if (!EmptyVerifyUtil.isEmpty(connectConfig.getChildChannelOptions())) {
+            for (ChannelOptionAndValue childOption : connectConfig.getChildChannelOptions()) {
                 b.childOption(childOption.getChannelOption(), childOption.getValue());
             }
         }

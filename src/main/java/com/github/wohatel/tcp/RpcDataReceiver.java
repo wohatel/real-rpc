@@ -22,10 +22,6 @@ public class RpcDataReceiver {
 
     protected final String uniqueId;  // Unique identifier for this receiver instance
 
-    protected final String host;     // Host address for the receiver
-
-    protected final int port;        // Port number for the receiver
-
     @Getter
     protected Channel channel;       // Network channel for communication
 
@@ -35,35 +31,11 @@ public class RpcDataReceiver {
     /**
      * Constructor for creating a receiver with specified host and port
      *
-     * @param host The host address to bind to
-     * @param port The port number to bind to
      */
-    protected RpcDataReceiver(String host, int port, RpcMsgChannelInitializer rpcMsgChannelInitializer) {
+    protected RpcDataReceiver(RpcMsgChannelInitializer rpcMsgChannelInitializer) {
         this.uniqueId = RandomUtil.randomUUIDWithTime();
-        this.host = host;
-        this.port = port;
         this.rpcMsgChannelInitializer = Objects.requireNonNullElseGet(rpcMsgChannelInitializer, RpcMsgChannelInitializer::new);
     }
-
-    /**
-     * Constructor for creating a receiver with specified host and port
-     *
-     * @param host The host address to bind to
-     * @param port The port number to bind to
-     */
-    protected RpcDataReceiver(String host, int port) {
-        this(host, port, null);
-    }
-
-    /**
-     * Constructor for creating a receiver with only a specified port
-     *
-     * @param port The port number to bind to
-     */
-    protected RpcDataReceiver(Integer port) {
-        this(null, port);
-    }
-
 
     /**
      * Sets up a handler for receiving file transfer requests
