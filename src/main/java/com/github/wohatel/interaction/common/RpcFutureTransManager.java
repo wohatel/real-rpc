@@ -36,47 +36,12 @@ public class RpcFutureTransManager {
     @Getter
     private static final SessionManager<RpcFuture> RPC_FUTURE_SESSION_MANAGER = new SessionManager<>(RpcNumberConstant.OVER_TIME, RpcFutureTransManager::handleTimeOut, FlushStrategy.buildDefault(RpcNumberConstant.OVER_TIME));
 
-    /**
-     * Verifies and processes an RPC session request.
-     *
-     * @param rpcSessionRequest The RPC session request to verify
-     * @return A RpcSessionFuture representing the session
-     * @throws RpcException if the request is null, session is null, or session validation fails
-     */
-    public static RpcSessionFuture verifySessionRequest(RpcSessionRequest rpcSessionRequest) {
-        if (rpcSessionRequest == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSessionRequest cannot be null");
-        }
-        RpcSession rpcSession = rpcSessionRequest.getRpcSession();
-        if (rpcSession == null) {
-            throw new RpcException(RpcErrorEnum.SEND_MSG, "session the identity cannot be null");
-        }
-        if (contains(rpcSession.getSessionId())) {
-            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.TOSTART) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "sessions cannot be opened repeatedly");
-            }
-            RpcSessionFuture rpcFuture = getSessionFuture(rpcSession.getSessionId());
-            RpcSessionProcess rpcSessionProcess = rpcFuture.getRpcSessionProcess();
-            if (rpcSessionProcess != RpcSessionProcess.FINISHED) {
-                rpcFuture.setRequestTime(System.currentTimeMillis());
-                // 刷新时间
-                RPC_FUTURE_SESSION_MANAGER.flushTime(rpcSession.getSessionId(), rpcSession.getTimeOutMillis());
-            }
-            return rpcFuture;
-        } else {
-            if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.RUNNING) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "session does not exist or has ended, and session messages cannot be sent");
-            } else if (rpcSessionRequest.getSessionProcess() == RpcSessionProcess.FINISHED) {
-                throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist or has ended, and there is no need to end the session");
-            } else {
-                RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
-                rpcFuture.setFutureId(rpcSession.getSessionId());
-                rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
-                RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
-                return rpcFuture;
-            }
-        }
-
+    public static RpcSessionFuture initSession(RpcSession rpcSession) {
+        RpcSessionFuture rpcFuture = new RpcSessionFuture(rpcSession.getTimeOutMillis());
+        rpcFuture.setFutureId(rpcSession.getSessionId());
+        rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
+        RPC_FUTURE_SESSION_MANAGER.initSession(rpcSession.getSessionId(), rpcFuture, System.currentTimeMillis() + rpcSession.getTimeOutMillis());
+        return rpcFuture;
     }
 
     /**

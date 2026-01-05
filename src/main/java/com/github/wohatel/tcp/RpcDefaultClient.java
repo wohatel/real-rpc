@@ -113,8 +113,10 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
         }
+        if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.TOSTART) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is TO-START, please wait");
+        }
         rpcSessionRequest.setSessionProcess(RpcSessionProcess.RUNNING);
-        RpcFutureTransManager.verifySessionRequest(rpcSessionRequest);
         RpcMsgTransManager.sendRequest(channel, rpcSessionRequest);
     }
 
@@ -149,10 +151,10 @@ public class RpcDefaultClient extends RpcDataReceiver {
         if (context != null) {
             rpcRequest.setBody(JSONObject.toJSONString(context));
         }
-        RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcRequest);
+        RpcMsgTransManager.sendRequest(channel, rpcRequest);
+        RpcSessionFuture rpcFuture = RpcFutureTransManager.initSession(rpcSession);
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
         rpcFuture.setRpcSessionType(RpcSessionType.session);
-        RpcMsgTransManager.sendRequest(channel, rpcRequest);
         RpcReaction rpcReaction = rpcFuture.get();
         if (rpcReaction.isSuccess()) {
             rpcFuture.setRpcSessionProcess(RpcSessionProcess.RUNNING);

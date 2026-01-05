@@ -14,6 +14,7 @@ import com.github.wohatel.interaction.base.RpcRequest;
 import com.github.wohatel.interaction.base.RpcSession;
 import com.github.wohatel.interaction.base.RpcSessionFuture;
 import com.github.wohatel.interaction.base.RpcSessionProcess;
+import com.github.wohatel.interaction.base.RpcSessionRequest;
 import com.github.wohatel.interaction.constant.RpcCommandType;
 import com.github.wohatel.interaction.constant.RpcNumberConstant;
 import com.github.wohatel.interaction.constant.RpcSessionType;
@@ -103,7 +104,16 @@ public class RpcMsgTransManager {
         if (channel == null || !channel.isActive()) {
             throw new RpcException(RpcErrorEnum.SEND_MSG, "connection is not available");
         }
-        RpcFutureTransManager.verifySessionRequest(rpcRequest);
+        RpcSessionFuture sessionFuture = RpcFutureTransManager.getSessionFuture(rpcRequest.getRpcSession().getSessionId());
+        if (sessionFuture == null) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session does not exist, try opening a new one");
+        }
+        if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.FINISHED) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is over, try opening a new one");
+        }
+        if (sessionFuture.getRpcSessionProcess() == RpcSessionProcess.TOSTART) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session is TOSTART, please wait");
+        }
         RpcMsg build = RpcMsg.fromFileRequest(rpcRequest);
         build.setByteBuffer(byteBuf);
         channel.writeAndFlush(build);
@@ -137,6 +147,21 @@ public class RpcMsgTransManager {
 
     @SneakyThrows
     private static RpcSessionFuture sendFileOfStartSession(Channel channel, File file, RpcFileTransConfig fileTransConfig, RpcSession rpcSession, RpcSessionContext context) {
+        if (rpcSession == null) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "rpcSession cannot be empty");
+        }
+        if (RpcFutureTransManager.contains(rpcSession.getSessionId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session already exists and cannot be opened repeatedly");
+        }
+        if (RpcSessionTransManger.isRunning(rpcSession.getSessionId())) {
+            throw new RpcException(RpcErrorEnum.SEND_MSG, "the session already exists and is opened by the remote end");
+        }
+        RpcSessionRequest rpcRequest = new RpcSessionRequest(rpcSession);
+        rpcRequest.setSessionProcess(RpcSessionProcess.TOSTART);
+        if (context != null) {
+            rpcRequest.setBody(JSONObject.toJSONString(context));
+        }
+
         RpcFileRequest rpcFileRequest = new RpcFileRequest(rpcSession);
         RpcFileInfo rpcFileInfo = new RpcFileInfo();
         rpcFileInfo.setFileName(file.getName());
@@ -148,10 +173,11 @@ public class RpcMsgTransManager {
             rpcFileRequest.setBody(JSONObject.toJSONString(context));
         }
         rpcFileRequest.setNeedReaction(true);
-        RpcSessionFuture rpcFuture = RpcFutureTransManager.verifySessionRequest(rpcFileRequest);
+
+        sendRequest(channel, rpcFileRequest);
+        RpcSessionFuture rpcFuture = RpcFutureTransManager.initSession(rpcSession);
         rpcFuture.setRpcSessionType(RpcSessionType.file);
         rpcFuture.setRpcSessionProcess(RpcSessionProcess.TOSTART);
-        sendRequest(channel, rpcFileRequest);
         return rpcFuture;
     }
 
