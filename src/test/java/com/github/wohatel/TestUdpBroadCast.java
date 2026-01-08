@@ -11,7 +11,11 @@ import java.net.InetSocketAddress;
 
 
 /**
+ * 测试 UDP 广播功能。
+ * 验证 RpcUdpSpider 能够向指定网段内的所有主机发送 UDP 广播消息，
+ * 并接收来自多个客户端的响应。
  *
+ * @author yaochuang
  */
 public class TestUdpBroadCast {
 

@@ -20,7 +20,11 @@ import java.net.InetSocketAddress;
 
 
 /**
+ * 测试 UDP 和 TCP 绑定同一端口的功能。
+ * 验证在同一端口上可以同时绑定 UDP 和 TCP 服务，
+ * 实现混合协议通信场景。
  *
+ * @author yaochuang
  */
 public class TestUdpTcpBindOnePort {
 

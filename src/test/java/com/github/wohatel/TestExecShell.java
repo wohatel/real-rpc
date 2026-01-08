@@ -22,6 +22,9 @@ import org.junit.jupiter.api.Test;
 
 
 /**
+ * 测试远程执行 Shell 命令功能。
+ * 通过 RPC 会话机制实现客户端向服务端发送 Shell 命令，服务端执行并返回结果。
+ * 演示了如何使用 BashSession 进行交互式命令执行。
  *
  * @author yaochuang 2025/09/09 15:06
  */

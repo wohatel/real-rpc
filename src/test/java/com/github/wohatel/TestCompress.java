@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
+ * 测试消息压缩功能。
+ * 验证 RPC 消息在启用压缩选项时能够正确压缩和解压缩，适用于传输大量文本数据的场景。
  *
  * @author yaochuang 2025/09/18 17:27
  */

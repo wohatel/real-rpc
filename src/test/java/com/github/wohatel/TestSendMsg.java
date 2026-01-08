@@ -13,7 +13,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- *
+ * 集成示例：验证客户端与服务端之间的普通消息收发、同步应答以及双向发送流程。
+ * 覆盖三种场景：
+ * 1) client 单向发送；
+ * 2) client 发送并等待 reaction；
+ * 3) server 反向向 client 主动请求。
  *
  * @author yaochuang 2025/09/11 16:55
  */

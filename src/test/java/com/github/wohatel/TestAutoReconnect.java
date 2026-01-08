@@ -11,7 +11,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- *
+ * 测试自动重连客户端功能。
+ * 验证 RpcAutoReconnectClient 在连接断开后能够自动重连，并支持指数退避重连策略。
  *
  * @author yaochuang 2025/09/11 16:55
  */

@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
+ * 测试 TCP 心跳检测功能。
+ * 验证 RpcVivoHandler 能够检测连接活跃状态，在超时或连接断开时触发相应回调。
  *
  * @author yaochuang 2025/09/28 11:15
  */

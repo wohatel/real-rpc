@@ -20,8 +20,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * ----------注意--------------
- * 只能客户端发起会话及请求,服务端响应
+ * 测试 RPC 会话消息传输功能。
+ * 注意：只能客户端发起会话及请求，服务端响应。
+ * 验证客户端如何开启会话、发送会话消息、监听响应以及关闭会话的完整流程。
  *
  * @author yaochuang 2025/09/11 16:55
  */

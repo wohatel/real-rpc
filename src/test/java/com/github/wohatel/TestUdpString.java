@@ -11,6 +11,9 @@ import java.net.InetSocketAddress;
 
 
 /**
+ * 测试 UDP 字符串消息传输功能。
+ * 验证 RpcUdpSpider 能够发送和接收字符串类型的 UDP 消息，
+ * 适用于轻量级通信场景，如心跳、通知等。
  *
  * @author yaochuang 2025/09/09 15:06
  */
