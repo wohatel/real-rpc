@@ -13,6 +13,7 @@ import com.github.wohatel.interaction.common.RpcSessionReactionWaiter;
 import com.github.wohatel.interaction.common.RpcSessionTransManger;
 import com.github.wohatel.interaction.file.RpcSessionSignature;
 import com.github.wohatel.interaction.handler.RpcSessionRequestMsgHandler;
+import com.github.wohatel.util.DefaultVirtualThreadPool;
 import com.github.wohatel.util.JsonUtil;
 import com.github.wohatel.util.RunnerUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -95,15 +96,12 @@ public class RpcSessionChannelDataTransProxy {
         reaction.setSuccess(signature.isAgreed());
         reaction.setMsg(signature.getMsg());
         RunnerUtil.execSilent(() -> RpcMsgTransManager.sendReaction(ctx.channel(), reaction));
-        if (signature.isAgreed()) {
-            // 注册最终release事件
-            RpcSessionTransManger.initSession(context, session, ctx);
-            RpcSessionTransManger.onRelease(session.getSessionId(), () -> RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter));
-        } else {
-            RpcSessionRequestMsgHandlerExecProxy.onFinally(rpcSessionRequestMsgHandler, contextWrapper, waiter);
+        // 注册事件
+        RpcSessionTransManger.initSession(context, session, ctx);
+        RpcSessionTransManger.onRelease(session.getSessionId(), () -> rpcSessionRequestMsgHandler.onFinally(contextWrapper, waiter));
+        if (!signature.isAgreed()) {
+            RpcSessionTransManger.release(session.getSessionId());
         }
-
-
     }
 
     /**
@@ -161,7 +159,7 @@ public class RpcSessionChannelDataTransProxy {
                 // Get the waiter associated with the session
                 RpcSessionReactionWaiter waiter = RpcSessionTransManger.getWaiter(session.getSessionId());
                 // Execute session stop operations through the proxy
-                RpcSessionRequestMsgHandlerExecProxy.sessionStop(rpcSessionRequestMsgHandler, contextWrapper, waiter);
+                DefaultVirtualThreadPool.execute(() -> rpcSessionRequestMsgHandler.onSessionStop(contextWrapper, waiter));
             }
         } finally {
             // Ensure the session resources are released regardless of exceptions
