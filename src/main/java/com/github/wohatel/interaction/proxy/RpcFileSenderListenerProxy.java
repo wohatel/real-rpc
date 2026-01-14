@@ -1,11 +1,9 @@
 package com.github.wohatel.interaction.proxy;
 
-import com.github.wohatel.constant.RpcSysEnum;
 import com.github.wohatel.interaction.file.RpcFileSenderListener;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
-import com.github.wohatel.util.OneTimeLock;
 
 import static com.github.wohatel.util.ReflectUtil.isOverridingInterfaceDefaultMethodByImplObj;
 
@@ -15,6 +13,8 @@ import static com.github.wohatel.util.ReflectUtil.isOverridingInterfaceDefaultMe
  * This proxy ensures that callbacks are executed in a controlled manner using thread pools.
  */
 public class RpcFileSenderListenerProxy {
+
+    private final int[] status;
 
     /**
      * The actual listener instance that will be called by this proxy.
@@ -39,6 +39,7 @@ public class RpcFileSenderListenerProxy {
         } else {
             isProcessOverride = false;
         }
+        status = new int[2];
     }
 
     /**
@@ -48,8 +49,9 @@ public class RpcFileSenderListenerProxy {
      * @param rpcFileSenderWrapper The wrapper containing file sender information
      */
     public void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper) {
-        if (rpcFileSenderListener != null) {
-            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.SUCCESS + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onSuccess(rpcFileSenderWrapper)));
+        if (rpcFileSenderListener != null && status[0] == 0) {
+            status[0] = 1;
+            DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onSuccess(rpcFileSenderWrapper));
         }
     }
 
@@ -63,8 +65,9 @@ public class RpcFileSenderListenerProxy {
      */
     public void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
         // Check if the listener is not null before proceeding
-        if (rpcFileSenderListener != null) {
-            OneTimeLock.runOnce(RpcSysEnum.SENDER.name() + RpcSysEnum.FAIL + rpcFileSenderWrapper.getRpcSession().getSessionId(), () -> DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onFailure(rpcFileSenderWrapper, errorMsg)));
+        if (rpcFileSenderListener != null && status[1] == 0) {
+            status[1] = 1;
+            DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onFailure(rpcFileSenderWrapper, errorMsg));
         }
     }
 
