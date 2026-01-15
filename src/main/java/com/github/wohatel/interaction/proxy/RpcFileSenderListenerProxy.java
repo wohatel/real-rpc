@@ -4,6 +4,7 @@ import com.github.wohatel.interaction.file.RpcFileSenderListener;
 import com.github.wohatel.interaction.file.RpcFileSenderWrapper;
 import com.github.wohatel.interaction.file.RpcFileTransProcess;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
+import com.github.wohatel.util.GoalKeeper;
 
 import static com.github.wohatel.util.ReflectUtil.isOverridingInterfaceDefaultMethodByImplObj;
 
@@ -14,7 +15,7 @@ import static com.github.wohatel.util.ReflectUtil.isOverridingInterfaceDefaultMe
  */
 public class RpcFileSenderListenerProxy {
 
-    private final int[] status;
+    private final GoalKeeper goalKeeper;
 
     /**
      * The actual listener instance that will be called by this proxy.
@@ -39,7 +40,7 @@ public class RpcFileSenderListenerProxy {
         } else {
             isProcessOverride = false;
         }
-        status = new int[2];
+        goalKeeper = new GoalKeeper();
     }
 
     /**
@@ -49,8 +50,7 @@ public class RpcFileSenderListenerProxy {
      * @param rpcFileSenderWrapper The wrapper containing file sender information
      */
     public void onSuccess(RpcFileSenderWrapper rpcFileSenderWrapper) {
-        if (rpcFileSenderListener != null && status[0] == 0) {
-            status[0] = 1;
+        if (rpcFileSenderListener != null && goalKeeper.once("onSuccess")) {
             DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onSuccess(rpcFileSenderWrapper));
         }
     }
@@ -65,8 +65,7 @@ public class RpcFileSenderListenerProxy {
      */
     public void onFailure(RpcFileSenderWrapper rpcFileSenderWrapper, String errorMsg) {
         // Check if the listener is not null before proceeding
-        if (rpcFileSenderListener != null && status[1] == 0) {
-            status[1] = 1;
+        if (rpcFileSenderListener != null && goalKeeper.once("onFailure")) {
             DefaultVirtualThreadPool.execute(() -> rpcFileSenderListener.onFailure(rpcFileSenderWrapper, errorMsg));
         }
     }

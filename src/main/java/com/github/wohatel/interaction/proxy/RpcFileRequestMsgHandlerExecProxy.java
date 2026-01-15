@@ -4,9 +4,8 @@ import com.github.wohatel.interaction.common.RpcFileInterrupter;
 import com.github.wohatel.interaction.file.RpcFileReceiveWrapper;
 import com.github.wohatel.interaction.handler.RpcFileRequestMsgHandler;
 import com.github.wohatel.util.DefaultVirtualThreadPool;
-import lombok.AccessLevel;
+import com.github.wohatel.util.GoalKeeper;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 
 /**
@@ -14,16 +13,15 @@ import lombok.NoArgsConstructor;
  * This class provides static methods to handle file transfer events in a thread-safe manner.
  * It uses a private constructor to ensure the class cannot be instantiated.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcFileRequestMsgHandlerExecProxy {
 
     @Getter
     private RpcFileRequestMsgHandler rpcFileRequestMsgHandler;
-    private int[] status;
+    private final GoalKeeper goalKeeper;
 
     public RpcFileRequestMsgHandlerExecProxy(RpcFileRequestMsgHandler rpcFileRequestMsgHandler) {
         this.rpcFileRequestMsgHandler = rpcFileRequestMsgHandler;
-        status = new int[3];
+        this.goalKeeper = new GoalKeeper();
     }
 
     /**
@@ -46,8 +44,7 @@ public class RpcFileRequestMsgHandlerExecProxy {
      * @param rpcFileWrapper Wrapper containing file transfer information
      */
     public void onSuccess(final RpcFileReceiveWrapper rpcFileWrapper) {
-        if (this.status[0] == 0) {
-            this.status[0] = 1;
+        if (goalKeeper.once("onSuccess")) {
             DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onSuccess(rpcFileWrapper));
         }
     }
@@ -60,8 +57,7 @@ public class RpcFileRequestMsgHandlerExecProxy {
      * @param e                        Exception that occurred during file transfer
      */
     public void onFailure(final RpcFileReceiveWrapper rpcFileWrapper, final Exception e) {
-        if (this.status[1] == 0) {
-            this.status[1] = 1;
+        if (goalKeeper.once("onFailure")) {
             DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFailure(rpcFileWrapper, e));
         }
     }
@@ -73,8 +69,7 @@ public class RpcFileRequestMsgHandlerExecProxy {
      * @param rpcFileWrapper           Wrapper containing file transfer information
      */
     public void onFinally(final RpcFileReceiveWrapper rpcFileWrapper) {
-        if (this.status[2] == 0) {
-            this.status[2] = 1;
+        if (goalKeeper.once("onFinally")) {
             DefaultVirtualThreadPool.execute(() -> rpcFileRequestMsgHandler.onFinally(rpcFileWrapper));
         }
     }
